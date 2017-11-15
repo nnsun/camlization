@@ -1,10 +1,11 @@
-(* [state] represents the entire state for the game *)
+(* [state] represents everything about the status of a game *)
 type state
 
 type time = int
 
-(* The amount of time in years surpassed in the game so far *)
+(* [date state] is the amount of time in years surpassed so far in the game
+ * represented by state *)
 val date : state -> time
 
-(* The map of the game *)
+(* [map state] is the map of the game represented by state *)
 val map : state -> Map.map
