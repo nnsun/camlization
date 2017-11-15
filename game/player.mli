@@ -1,3 +1,4 @@
+(* [player] represents a player in the game *)
 type player
 
 (* Amount of gold a player has stored *)
@@ -17,4 +18,3 @@ val science_rate : player -> int
 
 (* Technologies the player has researched *)
 val techs : player -> Tech.tech list
-

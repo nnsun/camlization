@@ -1,3 +1,4 @@
+(* [state] represents the entire state for the game *)
 type state
 
 type time = int
