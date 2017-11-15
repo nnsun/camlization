@@ -1,0 +1,4 @@
+type map
+
+type tile
+
