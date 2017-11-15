@@ -1,4 +1,5 @@
+(* [tech] represents a researchable technology *)
 type tech
 
-(* The science cost of researching a tech *)
+(* [cost tech] is the science cost of researching tech *)
 val cost : tech -> int
