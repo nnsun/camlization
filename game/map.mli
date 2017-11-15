@@ -1,13 +1,19 @@
+(* The overall map of the game *)
 type map
 
+(* Makes up each section of the map *)
 type tile
 
+(* The possible natural geographies of a tile *)
 type geography
 
+(* The possible resources present on a tile *)
 type resource
 
+(* The possible improvements that can be made to a tile *)
 type improvement
 
+(* The possible terrain features that can exist on a tile *)
 type terrain
 
 (* [get_tile] gets the tile at the specified cooridnates on the given map. *)
