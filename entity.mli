@@ -13,5 +13,5 @@ val owner : entity -> Player.player
 (* [health entity] is the health of [entity] (>= 0) *)
 val health : entity -> int
 
-(* [movement_points entity] is the health of [entity] (>= 0) *)
+(* [movement_points entity] is the remaining movement points of [entity] (>= 0) *)
 val movement_points : entity -> int

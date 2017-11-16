@@ -9,3 +9,9 @@ val capital : city -> bool
 
 (* [health city] is the health of [city] (>= 0) *)
 val health : city -> int
+
+(* [gold_per_turn city] is the gold produced per turn by [city] *)
+val gold_per_turn : city -> int
+
+(* [science_per_turn city] is the science produced per turn by [city] *)
+val science_per_turn : city -> int
