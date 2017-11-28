@@ -1,12 +1,15 @@
 open Notty
+open Notty_unix
 
-let square = "\xe2\x96\xaa"
+let rec main_loop t =
+  let img = I.(string A.(bg lightred ++ fg black) "This is a simple example") in
+    Term.image t img;
+    match Term.event t with
+    | `End | `Key (`Escape, []) | `Key (`Uchar 67, [`Ctrl]) -> ()
+    | _ -> main_loop t
 
-let rec sierp n =
-  if n > 1 then
-    let ss = sierp (pred n) in I.(ss <-> (ss <|> ss))
-  else I.(string A.(fg magenta) square |> hpad 1 0)
+let start () =
+  let t = Term.create () in
+  main_loop t
 
-let start () = sierp 8 |> Notty_unix.output_image
-
-let () = start ()
+let _ = start ()
