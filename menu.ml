@@ -220,7 +220,7 @@ let rec copyright t (w, h) mst =
   | _ -> copyright t (w, h) mst
 
 let multiplayer t (w, h) options =
-  Game { date = -3000; map = ref World.generate_map; map_display = (0,0) }
+  Game { date = -3000; map = ref World.generate_map; map_display = (0,0); selected_tile = (0,0) }
 
 let rec main t (w, h) i =
   Term.image t (img t (w, h) (Main (i)));

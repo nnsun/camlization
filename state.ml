@@ -17,6 +17,7 @@ type game_state = {
   date: time;
   map: World.map ref;
   map_display: int * int;
+  selected_tile: int * int;
 }
 
 type state =
