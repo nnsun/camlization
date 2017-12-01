@@ -52,7 +52,7 @@ type unit_info = {
 type city_info = {
   population: int;
   food_stock: int;
-  unit_production : unit_type;
+  unit_production : unit_type option;
   production_stock : int;
   gold : int;
   science : int;
