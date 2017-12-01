@@ -18,6 +18,7 @@ type menu_state =
 type game_state = {
   date: time;
   map: World.map ref;
+  map_display: int * int;
 }
 
 (* [state] represents everything about the status of the game *)

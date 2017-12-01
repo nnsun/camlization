@@ -22,13 +22,23 @@ let outline attr t =
     [d; hbar; c]
   ]
 
-let size_box cols rows =
+let size_box (cols, rows) =
   let cols_str = string_of_int cols in let rows_str = string_of_int rows in
   let label = (cols_str ^ "x" ^ rows_str) in
   let box = I.string A.(fg lightgreen ++ bg lightblack) label in
   center box cols rows
 
-let img t (w, h) gst = I.((outline A.(fg lightred ) t) </> (size_box w h))
+let game_map (w, h) gst =
+  center (I.string A.(fg blue) "Map") w h
+
+let img t (w, h) gst = I.((outline A.(fg lightred ) t) </> game_map (w, h) gst)
+
+let rec main t (w, h) gst =
+  match Term.event t with
+  | `End | `Key (`Uchar 68, [`Ctrl]) | `Key (`Uchar 67, [`Ctrl])
+  | `Key (`Escape, []) -> Quit
+  | `Resize (nw, nh) -> Term.image t (img t (nw, nh) gst); main t (nw, nh) gst
+  | _ -> main t (w, h) gst
 
 let new_state t (w, h) gst =
-  Game (gst)
+  main t (w, h) gst
