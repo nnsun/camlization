@@ -3,6 +3,25 @@ open Notty_unix
 open Notty_helper
 open State
 
+let title_img =
+  let camlization_width = 67 in
+  let v_string = I.string A.(fg yellow) "
+8b           d8
+`8b         d8'
+ `8b       d8'
+  `8b     d8'
+   `8b   d8'
+    `8b d8'
+     `888'
+      `8'       " in
+  let v_void = I.void camlization_width 8 in
+  let v_img = I.(v_void <|> v_string <|> v_void) in
+  let camlization_lines = [
+    I.(I.string A.empty "   #####" <|> (I.void (camlization_width - 8) 1));
+    I.(I.string A.empty " #     #   ##   #    # #" <|> (I.void 6 1));
+  ] in
+  I.vcat camlization_lines
+
 let img t (w, h) mst =
   match mst with
   | Loading -> center (I.string A.(fg lightwhite) "Loading...") w h
