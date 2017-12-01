@@ -132,35 +132,59 @@ let copyright_items = [|
 let main_menu_items = [|
   {
     index = 0;
-    img = I.(I.void 1 1 <-> img "Multiplayer" <-> I.void 1 1);
+    img = I.vcat [
+      I.void 1 2;
+      img "╔╦╗╦ ╦╦ ╔╦╗╦╔═╗╦  ╔═╗╦ ╦╔═╗╦═╗";
+      img "║║║║ ║║  ║ ║╠═╝║  ╠═╣╚╦╝║╣ ╠╦╝";
+      img "╩ ╩╚═╝╩═╝╩ ╩╩  ╩═╝╩ ╩ ╩ ╚═╝╩╚═";
+      I.void 1 2;
+    ];
     next_state = Menu (Multiplayer {
       player_count_menu_open = false; player_count = 2
     })
   };
   {
     index = 1;
-    img = I.(I.void 1 1 <-> img "Options" <-> I.void 1 1);
+    img = I.vcat [
+      I.void 1 2;
+      img "╔═╗╔═╗╔╦╗╦╔═╗╔╗╔╔═╗";
+      img "║ ║╠═╝ ║ ║║ ║║║║╚═╗";
+      img "╚═╝╩   ╩ ╩╚═╝╝╚╝╚═╝";
+      I.void 1 2;
+    ];
     next_state = Menu (Multiplayer {
       player_count_menu_open = false; player_count = 2
     })
   };
   {
     index = 2;
-    img = I.(I.void 1 1 <-> img "Acknowledgments" <-> I.void 1 1);
+    img = I.vcat [
+      I.void 1 2;
+      img "╔═╗╔═╗╦╔═╔╗╔╔═╗╦ ╦╦  ╔═╗╔╦╗╔═╗╔╦╗╔═╗╔╗╔╔╦╗╔═╗";
+      img "╠═╣║  ╠╩╗║║║║ ║║║║║  ║╣  ║║║ ╦║║║║╣ ║║║ ║ ╚═╗";
+      img "╩ ╩╚═╝╩ ╩╝╚╝╚═╝╚╩╝╩═╝╚═╝═╩╝╚═╝╩ ╩╚═╝╝╚╝ ╩ ╚═╝";
+      I.void 1 2;
+    ];
     next_state = Menu (Multiplayer {
       player_count_menu_open = false; player_count = 2
     })
   };
   {
     index = 3;
-    img = I.(I.void 1 1 <-> img "Quit" <-> I.void 1 1);
+    img = I.vcat [
+      I.void 1 2;
+      img "╔═╗ ╦ ╦╦╔╦╗";
+      img "║═╬╗║ ║║ ║ ";
+      img "╚═╝╚╚═╝╩ ╩ ";
+      I.void 1 2;
+    ];
     next_state = Quit
   };
 |]
 
 let menu_img (items: menu_item array) index =
   let imgs = Array.map (fun i -> i.img) items in
-  let width = 4 + Array.fold_left (fun m i -> max m (I.width i)) 0 imgs in
+  let width = 6 + Array.fold_left (fun m i -> max m (I.width i)) 0 imgs in
   let height =
     Array.fold_left (fun a i -> a + I.height i) (Array.length items) imgs - 1 in
 
