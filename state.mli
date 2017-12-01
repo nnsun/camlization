@@ -1,11 +1,18 @@
-(* [state] represents everything about the status of a game *)
+(* [state] represents everything about the status of the game *)
 type state
 
-type time = int
+(* [menu_state] represents the state of the main menu *)
+type menu_state
 
-(* [date state] is the amount of time in years surpassed so far in the game
- * represented by state *)
-val date : state -> time
+(* [game_state] represents the state of a running game *)
+type game_state
 
-(* [map state] is the map of the game represented by state *)
-val map : state -> Map.map
+(* [gold] is an amount of gold coins *)
+type gold = int
+
+(* [date state] is the human-readable year (CE or BCE) of state [state] *)
+val date : game_state -> string
+
+(* [game_map state] is Some of the map of the game represented by state if the state
+ * is in a game. None otherwise. *)
+val game_map : game_state -> World.map

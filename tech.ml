@@ -1,5 +1,8 @@
+open Primitives
+
 type tech = {
   id: string;
+  cost: gold;
 }
 
 module Tech = struct
@@ -8,3 +11,5 @@ module Tech = struct
 end
 
 module TechSet = Set.Make(Tech)
+
+let cost t = t.cost
