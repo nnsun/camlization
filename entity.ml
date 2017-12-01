@@ -4,7 +4,7 @@ type entity_info = {
   (* TODO: Check types *)
   owner : Player.player;
   health : int;
-  tile : int
+  tile : int * int
 }
 
 (* [unit_class] is the class of the unit: worker or military unit *)

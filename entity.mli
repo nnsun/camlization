@@ -16,7 +16,7 @@ val owner : entity -> Player.player
 val health : entity -> int
 
 (* [tile entity] is the tile that [entity] is located on *)
-val tile : entity -> int
+val tile : entity -> int * int
 
 (* [population city] is the population of [city] *)
 val population : city_entity -> int
