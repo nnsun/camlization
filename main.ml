@@ -1,5 +1,6 @@
 open Notty
 open Notty_unix
+open Tech
 
 let gui_height = 8
 
