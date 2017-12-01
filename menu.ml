@@ -1,18 +1,19 @@
 open Notty
 open Notty_unix
+open Notty_helper
 open State
 
 let img t (w, h) mst =
   match mst with
-  | Loading -> I.string A.(fg lightwhite) "Loading..."
+  | Loading -> center (I.string A.(fg lightwhite) "Loading...") w h
   | Copyright ->
     let a1 = A.(fg lightwhite ++ bg red)
     and a2 = A.(fg red) in
-    I.(string a1 "Copyright" <|> string a2 " stuff!")
-  | Main -> I.string A.(fg lightwhite) "Main menu"
-  | Multiplayer options -> I.string A.(fg lightwhite) "Multiplayer"
-  | Options -> I.string A.(fg lightwhite) "Options"
-  | About -> I.string A.(fg lightwhite) "About"
+    center (I.(string a1 "Copyright" <|> string a2 " stuff!")) w h
+  | Main -> center (I.string A.(fg lightwhite) "Main menu") w h
+  | Multiplayer options -> center (I.string A.(fg lightwhite) "Multiplayer") w h
+  | Options -> center (I.string A.(fg lightwhite) "Options") w h
+  | About -> center (I.string A.(fg lightwhite) "About") w h
 
 let rec copyright t (w, h) =
   match Term.event t with

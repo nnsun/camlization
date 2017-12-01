@@ -1,5 +1,6 @@
 open Notty
 open Notty_unix
+open Notty_helper
 open State
 
 let gui_height = 8
@@ -25,9 +26,7 @@ let size_box cols rows =
   let cols_str = string_of_int cols in let rows_str = string_of_int rows in
   let label = (cols_str ^ "x" ^ rows_str) in
   let box = I.string A.(fg lightgreen ++ bg lightblack) label in
-  let top_margin = (rows - I.height box) / 2 in
-  let left_margin = (cols - I.width box) / 2 in
-  I.pad ~t:top_margin ~l:left_margin box
+  center box cols rows
 
 let img t (w, h) gst = I.((outline A.(fg lightred ) t) </> (size_box w h))
 
