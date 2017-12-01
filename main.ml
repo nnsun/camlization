@@ -3,7 +3,6 @@ open Notty_unix
 open State
 
 let rec menu t (w, h) mst =
-  Term.image t (Menu.img t (w, h) mst);
   main t (w, h) (Menu.new_state t (w, h) mst)
 and game t (w, h) gst =
   Term.image t (Gui.img t (w, h) gst);
