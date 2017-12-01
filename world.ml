@@ -1,7 +1,9 @@
 
-type map
+type tile = {
+  foo: string
+}
 
-type tile
+type map = tile array array
 
 type geography
 
@@ -10,6 +12,9 @@ type resource
 type improvement
 
 type terrain
+
+let generate_map =
+  [||]
 
 let get_tile m x y =
   failwith "Unimplemented"

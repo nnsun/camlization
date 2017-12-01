@@ -16,6 +16,9 @@ type improvement
 (* The possible terrain features that can exist on a tile *)
 type terrain
 
+(* [generate_map] creates a new map *)
+val generate_map : map
+
 (* [get_tile] gets the tile at the specified cooridnates on the given map. *)
 val get_tile : map -> int -> int -> tile
 
