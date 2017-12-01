@@ -42,11 +42,11 @@ let tile_img is_selected col row =
   let color = if is_selected then A.(fg blue) else A.(fg white) in
   let color_underline = A.(color ++ st underline) in
   let odd_even_col_offset = if col mod 2 = 1 then 2 else 0 in
-  let row_0_offset = if row = 0 then 0 else 1 in
+  let top_underline_offset = if row = 0 || is_selected then 0 else 1 in
   let left = initial_tile_left + (tile_width*col) in
-  let top = initial_tile_top + (tile_height*row) + odd_even_col_offset + row_0_offset in
+  let top = initial_tile_top + (tile_height*row) + odd_even_col_offset + top_underline_offset in
   grid [
-    if row = 0 then [I.void 2 1; I.string color_underline "     "] else [];
+    if row = 0 || is_selected then [I.void 2 1; I.string color_underline "     "] else [];
     [I.void 1 1; I.uchar color 0x2571 1 1; I.string color "     "; I.uchar color 0x2572 1 1];
     [I.uchar color 0x2571 1 1; I.string color "       "; I.uchar color 0x2572 1 1];
     [I.uchar color 0x2572 1 1; I.string color "       "; I.uchar color 0x2571 1 1];
