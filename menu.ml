@@ -40,15 +40,16 @@ let rec copyright t (w, h) =
   | `Resize (nw, nh) -> copyright t (nw, nh)
   | _ -> Copyright
 
+let multiplayer t (w, h) options =
+  Game { date = -3000; map = ref World.generate_map; map_display = (0,0) }
+
 let rec main t (w, h) =
   match Term.event t with
   | `End | `Key (`Uchar 68, [`Ctrl]) | `Key (`Uchar 67, [`Ctrl])
   | `Key (`Escape, []) -> Quit
+  | `Key (`Enter, []) -> multiplayer t (w, h) { player_count_menu_open = false; player_count = 4 }
   | `Resize (nw, nh) -> main t (nw, nh)
   | _ -> main t (w, h)
-
-let multiplayer t (w, h) options =
-  Game { date = -3000; map = ref World.generate_map }
 
 let new_state t (w, h) mst =
   match mst with

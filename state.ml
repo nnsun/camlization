@@ -1,3 +1,5 @@
+open Primitives
+
 type multiplayer_options = {
   player_count_menu_open: bool;
   player_count: int
@@ -12,8 +14,9 @@ type menu_state =
   | About
 
 type game_state = {
-  date: int;
+  date: time;
   map: World.map ref;
+  map_display: int * int;
 }
 
 type state =
