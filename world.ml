@@ -19,6 +19,10 @@ let generate_map =
 let get_tile m x y =
   failwith "Unimplemented"
 
+let map_dimensions t =
+  (*(Array.length (t.(0)), Array.length t)*)
+  (100, 100)
+
 let resource t =
   failwith "Unimplemented"
 
@@ -51,4 +55,3 @@ let entity t =
 
 let city t =
   failwith "Unimplemented"
-

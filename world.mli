@@ -22,6 +22,9 @@ val generate_map : map
 (* [get_tile] gets the tile at the specified cooridnates on the given map. *)
 val get_tile : map -> int -> int -> tile
 
+(* [map_dimensions] returns the number of columns and rows in [map]. *)
+val map_dimensions : map -> int * int
+
 (* [resource] returns Some(resource) if the tile contains a luxury or
  * production resource. Returns None otherwise. *)
 val resource : tile -> resource option

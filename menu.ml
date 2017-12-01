@@ -22,7 +22,7 @@ let rec copyright t (w, h) =
   | _ -> Copyright
 
 let multiplayer t (w, h) options =
-  Game { date = -3000; map = ref World.generate_map; map_display = (0,0) }
+  Game { date = -3000; map = ref World.generate_map; map_display = (0,0); selected_tile = (0,0) }
 
 let rec main t (w, h) =
   match Term.event t with
@@ -34,7 +34,7 @@ let rec main t (w, h) =
 
 let new_state t (w, h) mst =
   match mst with
-  | Loading -> Unix.sleep 3; Menu(Copyright)
+  | Loading -> Menu(Copyright)
   | Copyright -> Menu(copyright t (w, h))
   | Main -> main t (w, h)
   | Multiplayer options -> multiplayer t (w, h) options
