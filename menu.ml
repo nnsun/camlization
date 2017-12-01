@@ -243,8 +243,16 @@ let rec copyright t (w, h) mst =
   | `Resize (nw, nh) -> copyright t (nw, nh) mst
   | _ -> copyright t (w, h) mst
 
-let multiplayer t (w, h) options =
-  Game { date = -3000; map = ref World.generate_map; map_display = (0,0); selected_tile = (0,0) }
+let rec multiplayer t (w, h) options =
+  Term.image t (img t (w, h) (Multiplayer options));
+  match Term.event t with
+  | `End | `Key (`Uchar 68, [`Ctrl]) | `Key (`Uchar 67, [`Ctrl])
+  | `Key (`Escape, []) -> Quit
+  | `Key (`Arrow(`Up), []) -> Menu(Multiplayer options)
+  | `Key (`Arrow(`Down), []) -> Menu (Multiplayer options)
+  | `Key (`Enter, []) -> Game { date = -3000; map = ref World.generate_map; map_display = (0,0); selected_tile = (0,0) }
+  | `Resize (nw, nh) -> multiplayer t (nw, nh) options
+  | _ -> multiplayer t (w, h) options
 
 let rec main t (w, h) i =
   Term.image t (img t (w, h) (Main (i)));
@@ -260,9 +268,8 @@ let rec main t (w, h) i =
   | _ -> main t (w, h) i
 
 let new_state t (w, h) mst =
-  Term.image t (img t (w, h) mst);
   match mst with
-  | Loading -> Unix.sleep 3; Menu(Copyright)
+  | Loading -> Term.image t (img t (w, h) mst); Unix.sleep 3; Menu(Copyright)
   | Copyright -> Menu(copyright t (w, h) mst)
   | Main i -> main t (w, h) i
   | Multiplayer options -> multiplayer t (w, h) options
