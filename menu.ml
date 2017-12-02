@@ -191,6 +191,8 @@ let multiplayer_items (i, options) = [|
       map = ref World.generate_map;
       map_display = (24,24);
       selected_tile = (29,25)
+      current_player = 0;
+      players = [||];
     }
   };
   {

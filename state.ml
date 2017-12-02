@@ -17,6 +17,8 @@ type game_state = {
   map: World.map ref;
   map_display: int * int;
   selected_tile: int * int;
+  current_player: int;
+  players: Player.player array;
 }
 
 type state =
@@ -25,6 +27,16 @@ type state =
   | Quit
 
 let start_state = Menu (Loading)
+
+let initial_game_state options =
+  {
+    date = -3000;
+    map = ref World.generate_map;
+    map_display = (0, 0);
+    selected_tile = (0, 0);
+    current_player = 0;
+    players = Array.make options.player_count Player.new_player
+  }
 
 let date gst =
   let date = gst.date in
