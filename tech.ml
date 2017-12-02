@@ -1,15 +1,23 @@
 open Primitives
 
-type tech = {
-  id: string;
-  cost: science
+type tech =
+  | Archery
+  | Pottery
+  | Mining
+  | Masonry
+
+type tech_info = {
+  cost : int;
+  prereqs : tech list
 }
 
-module Tech = struct
-  type t = tech
-  let compare t1 t2 = String.compare t1.id t2.id
-end
+let tech_info_map = [
+  Archery, { cost = 0; prereqs = [] };
+  Pottery, { cost = 0; prereqs = [] };
+  Mining, { cost = 0; prereqs = [] };
+  Masonry, { cost = 0; prereqs = [] };
+]
 
-module TechSet = Set.Make(Tech)
+let tech_cost tech = (List.assoc tech tech_info_map).cost
 
-let cost t = t.cost
+let prereqs tech = (List.assoc tech tech_info_map).prereqs
