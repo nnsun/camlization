@@ -1,7 +1,7 @@
-type terrain = Grassland | Plains | Desert | Ocean
-  | Coast | Tundra | Ice
+type terrain = Grassland | Plains | Desert | Tundra | Ice
+  | Ocean | Coast | Lake
 
-type feature = Forest | Jungle | Oasis | FloodPlains | Lake
+type feature = Forest | Jungle | Oasis | FloodPlains
 
 type elevation = Flatland | Hill | Peak
 
@@ -16,21 +16,21 @@ type tile_yields = {
 }
 
 let terrain_yields_map = [
-  Grassland, { gold = 0; food = 0; production = 0 };
-  Plains, { gold = 0; food = 0; production = 0 };
+  Grassland, { gold = 0; food = 2; production = 0 };
+  Plains, { gold = 0; food = 1; production = 1 };
   Desert, { gold = 0; food = 0; production = 0 };
-  Ocean, { gold = 0; food = 0; production = 0 };
-  Coast, { gold = 0; food = 0; production = 0 };
-  Tundra, { gold = 0; food = 0; production = 0 };
+  Tundra, { gold = 0; food = 1; production = 0 };
   Ice, { gold = 0; food = 0; production = 0 };
+  Ocean, { gold = 1; food = 1; production = 0 };
+  Coast, { gold = 2; food = 1; production = 0 };
+  Lake, { gold = 2; food = 2; production = 0 };
 ]
 
 let feature_yields_map = [
-  Forest, { gold = 0; food = 0; production = 0 };
-  Jungle, { gold = 0; food = 0; production = 0 };
-  Oasis, { gold = 0; food = 0; production = 0 };
-  FloodPlains, { gold = 0; food = 0; production = 0 };
-  Lake, { gold = 0; food = 0; production = 0 };
+  Forest, { gold = 0; food = 0; production = 1 };
+  Jungle, { gold = 0; food = -1; production = 0 };
+  Oasis, { gold = 2; food = 3; production = 0 };
+  FloodPlains, { gold = 1; food = 3; production = 0 };
 ]
 
 
