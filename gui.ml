@@ -10,8 +10,8 @@ let top_padding = 2
 let right_padding = 2
 let bottom_padding = 2
 let gui_bar_padding = 2
-let tile_width = 7
-let tile_height = 4
+let tile_width = 17
+let tile_height = 10
 let initial_tile_left = left_padding
 let initial_tile_top = top_padding + top_bar_height
 
@@ -41,16 +41,22 @@ let size_box (cols, rows) =
 let tile_img is_selected col row = 
   let color = if is_selected then A.(fg blue) else A.(fg white) in
   let color_underline = A.(color ++ st underline) in
-  let odd_even_col_offset = if col mod 2 = 1 then 2 else 0 in
+  let odd_even_col_offset = if col mod 2 = 1 then (tile_height/2) else 0 in
   let top_underline_offset = if row = 0 || is_selected then 0 else 1 in
   let left = initial_tile_left + (tile_width*col) in
   let top = initial_tile_top + (tile_height*row) + odd_even_col_offset + top_underline_offset in
   grid [
-    if row = 0 || is_selected then [I.void 2 1; I.string color_underline "     "] else [];
-    [I.void 1 1; I.uchar color 0x2571 1 1; I.string color "     "; I.uchar color 0x2572 1 1];
-    [I.uchar color 0x2571 1 1; I.string color "       "; I.uchar color 0x2572 1 1];
-    [I.uchar color 0x2572 1 1; I.string color "       "; I.uchar color 0x2571 1 1];
-    [I.void 1 1; I.uchar color 0x2572 1 1; I.string color_underline "     "; I.uchar color 0x2571 1 1];
+    if row = 0 || is_selected then [I.void 5 1; I.string color_underline "            "] else [];
+    [I.void 4 1; I.uchar color 0x2571 1 1; I.string color "            "; I.uchar color 0x2572 1 1];
+    [I.void 3 1; I.uchar color 0x2571 1 1; I.string color "              "; I.uchar color 0x2572 1 1];
+    [I.void 2 1; I.uchar color 0x2571 1 1; I.string color "                "; I.uchar color 0x2572 1 1];
+    [I.void 1 1; I.uchar color 0x2571 1 1; I.string color "                  "; I.uchar color 0x2572 1 1];
+    [I.uchar color 0x2571 1 1; I.string color "                    "; I.uchar color 0x2572 1 1];
+    [I.uchar color 0x2572 1 1; I.string color "                    "; I.uchar color 0x2571 1 1];
+    [I.void 1 1; I.uchar color 0x2572 1 1; I.string color "                  "; I.uchar color 0x2571 1 1];
+    [I.void 2 1; I.uchar color 0x2572 1 1; I.string color "                "; I.uchar color 0x2571 1 1];
+    [I.void 3 1; I.uchar color 0x2572 1 1; I.string color "              "; I.uchar color 0x2571 1 1];
+    [I.void 4 1; I.uchar color 0x2572 1 1; I.string color_underline "            "; I.uchar color 0x2571 1 1];
   ] |> I.pad ~l:left ~t:top
 
 let rec game_map_helper img tiles_w tiles_h col row =
@@ -61,9 +67,8 @@ let rec game_map_helper img tiles_w tiles_h col row =
   else acc
 
 let game_map (w, h) gst =
-  let tiles_w = (w - left_padding - right_padding) / tile_width - 1 in
-  let tiles_h = (h - top_padding - bottom_padding - gui_height - 
-                 gui_bar_padding - top_bar_height) / tile_height - 1 in
+  let tiles_w = (w - left_padding - right_padding) / tile_width in
+  let tiles_h = (h - top_padding - bottom_padding - top_bar_height) / tile_height in
   let (selected_col, selected_row) = gst.selected_tile in
   game_map_helper I.(tile_img true selected_col selected_row) tiles_w tiles_h 0 0
 
