@@ -90,9 +90,9 @@ let tile_img is_selected (col, row) (left_col, top_row) gst =
   ] |> I.pad ~l:left ~t:top
 
 let rec game_map_helper img gst tiles_w tiles_h (col, row) (left_col, top_row) (map_cols, map_rows) =
-  let (next_col, next_row) = if col < min map_cols (tiles_w + left_col) then (col + 1, row) else (left_col, row+1) in
+  let (next_col, next_row) = if col < min (map_cols - 1) (tiles_w + left_col) then (col + 1, row) else (left_col, row+1) in
   let acc = I.(img </> tile_img false (col, row) (left_col, top_row) gst) in
-  if next_row <= min map_rows (tiles_h + top_row - 1) then
+  if next_row <= min (map_rows - 1) (tiles_h + top_row - 1) then
     game_map_helper acc gst tiles_w tiles_h (next_col, next_row) (left_col, top_row) (map_cols, map_rows)
   else acc
 
@@ -111,9 +111,9 @@ let select_tile direction gst =
   let (current_col, current_row) = gst.selected_tile in
   match direction with
   | `Up -> (current_col, max 0 (current_row - 1))
-  | `Down -> (current_col, min max_rows (current_row + 1))
+  | `Down -> (current_col, min (max_rows - 1) (current_row + 1))
   | `Left -> (max 0 (current_col - 1), current_row)
-  | `Right -> (min max_cols (current_col + 1), current_row)
+  | `Right -> (min (max_cols - 1) (current_col + 1), current_row)
 
 let rec main t (w, h) gst =
   match Term.event t with
