@@ -103,7 +103,7 @@ let loading_img =
 type menu_item = {
   index: int;
   img: image;
-  next_state: State.state
+  enter_state: State.state
 }
 
 let copyright_items = [|
@@ -120,12 +120,12 @@ let copyright_items = [|
       img "persons or entities in the game's historical setting.";
       I.void 1 1
     ];
-    next_state = Menu (Copyright)
+    enter_state = Menu (Copyright)
   };
   {
     index = 1;
     img = I.(I.void 1 1 <-> img "Press Enter to Continue" <-> I.void 1 1);
-    next_state = Menu (Main 0)
+    enter_state = Menu (Main 0)
   };
 |]
 
@@ -139,9 +139,7 @@ let main_menu_items = [|
       img "╩ ╩╚═╝╩═╝╩ ╩╩  ╩═╝╩ ╩ ╩ ╚═╝╩╚═";
       I.void 1 2;
     ];
-    next_state = Menu (Multiplayer {
-      player_count_menu_open = false; player_count = 2
-    })
+    enter_state = Menu (Multiplayer (0, { player_count = 2 }))
   };
   {
     index = 1;
@@ -152,9 +150,7 @@ let main_menu_items = [|
       img "╚═╝╩   ╩ ╩╚═╝╝╚╝╚═╝";
       I.void 1 2;
     ];
-    next_state = Menu (Multiplayer {
-      player_count_menu_open = false; player_count = 2
-    })
+    enter_state = Menu (Main 0)
   };
   {
     index = 2;
@@ -165,9 +161,7 @@ let main_menu_items = [|
       img "╩ ╩╚═╝╩ ╩╝╚╝╚═╝╚╩╝╩═╝╚═╝═╩╝╚═╝╩ ╩╚═╝╝╚╝ ╩ ╚═╝";
       I.void 1 2;
     ];
-    next_state = Menu (Multiplayer {
-      player_count_menu_open = false; player_count = 2
-    })
+    enter_state = Menu (Main 0)
   };
   {
     index = 3;
@@ -178,8 +172,51 @@ let main_menu_items = [|
       img "╚═╝╚╚═╝╩ ╩ ";
       I.void 1 2;
     ];
-    next_state = Quit
+    enter_state = Quit
   };
+|]
+
+let multiplayer_items (i, options) = [|
+  {
+    index = 0;
+    img = I.vcat [
+      I.void 1 2;
+      img "╔═╗╔╦╗╔═╗╦═╗╔╦╗  ╔═╗╔═╗╔╦╗╔═╗";
+      img "╚═╗ ║ ╠═╣╠╦╝ ║   ║ ╦╠═╣║║║║╣ ";
+      img "╚═╝ ╩ ╩ ╩╩╚═ ╩   ╚═╝╩ ╩╩ ╩╚═╝";
+      I.void 1 2;
+    ];
+    enter_state = Game {
+      date = -3000;
+      map = ref World.generate_map;
+      map_display = (0,0);
+      selected_tile = (0,0)
+    }
+  };
+  {
+    index = 1;
+    img = I.vcat [
+      I.void 1 2;
+      img "╔═╗╦  ╔═╗╦ ╦╔═╗╦═╗╔═╗";
+      img "╠═╝║  ╠═╣╚╦╝║╣ ╠╦╝╚═╗";
+      img "╩  ╩═╝╩ ╩ ╩ ╚═╝╩╚═╚═╝";
+      I.void 1 1;
+      I.hsnap 20 (img (string_of_int options.player_count));
+      I.void 1 2;
+    ];
+    enter_state = Menu (Multiplayer (i, options))
+  };
+  {
+    index = 2;
+    img = I.vcat [
+      I.void 1 2;
+      img "╔╗ ╔═╗╔═╗╦╔═";
+      img "╠╩╗╠═╣║  ╠╩╗";
+      img "╚═╝╩ ╩╚═╝╩ ╩";
+      I.void 1 2;
+    ];
+    enter_state = Menu (Main 0)
+  }
 |]
 
 let menu_img (items: menu_item array) index =
@@ -232,7 +269,11 @@ let img t (w, h) mst =
       center (menu_img main_menu_items i) w h;
       I.pad ~t:1 ~l:(w - title_width - 2) title_img
     ]
-  | Multiplayer options -> center (I.string A.(fg lightwhite) "Multiplayer") w h
+  | Multiplayer (i, options) ->
+    I.zcat [
+      center (menu_img (multiplayer_items (i, options)) i) w h;
+      I.pad ~t:1 ~l:(w - title_width - 2) title_img
+    ]
   | Options -> center (I.string A.(fg lightwhite) "Options") w h
   | About -> center (I.string A.(fg lightwhite) "About") w h
 
@@ -243,16 +284,31 @@ let rec copyright t (w, h) mst =
   | `Resize (nw, nh) -> copyright t (nw, nh) mst
   | _ -> copyright t (w, h) mst
 
-let rec multiplayer t (w, h) options =
-  Term.image t (img t (w, h) (Multiplayer options));
+let rec multiplayer t (w, h) i options =
+  Term.image t (img t (w, h) (Multiplayer (i, options)));
   match Term.event t with
   | `End | `Key (`Uchar 68, [`Ctrl]) | `Key (`Uchar 67, [`Ctrl])
-  | `Key (`Escape, []) -> Quit
-  | `Key (`Arrow(`Up), []) -> Menu(Multiplayer options)
-  | `Key (`Arrow(`Down), []) -> Menu (Multiplayer options)
-  | `Key (`Enter, []) -> Game { date = -3000; map = ref World.generate_map; map_display = (0,0); selected_tile = (0,0) }
-  | `Resize (nw, nh) -> multiplayer t (nw, nh) options
-  | _ -> multiplayer t (w, h) options
+  | `Key (`Escape, []) -> Menu (Main 0)
+  | `Key (`Arrow(`Up), []) ->
+    let new_index =
+      if i-1 = -1 then Array.length (multiplayer_items (i, options)) - 1
+      else i - 1
+    in
+    multiplayer t (w, h) new_index options
+  | `Key (`Arrow(`Down), []) ->
+    let new_index = (i + 1) mod Array.length (multiplayer_items (i, options)) in
+    multiplayer t (w, h) new_index options
+  | `Key (`Arrow(`Left), []) ->
+    if i = 1 then Menu (Multiplayer (i, {
+      player_count = max 2 (options.player_count - 1)
+    })) else Menu(Multiplayer (i, options))
+  | `Key (`Arrow(`Right), []) ->
+    if i = 1 then Menu (Multiplayer (i, {
+      player_count = min 69 (options.player_count + 1)
+    })) else Menu(Multiplayer (i, options))
+  | `Key (`Enter, []) -> (multiplayer_items (i, options)).(i).enter_state
+  | `Resize (nw, nh) -> multiplayer t (nw, nh) i options
+  | _ -> multiplayer t (w, h) i options
 
 let rec main t (w, h) i =
   Term.image t (img t (w, h) (Main (i)));
@@ -263,7 +319,7 @@ let rec main t (w, h) i =
     main t (w, h) (if i-1 = -1 then Array.length main_menu_items - 1 else i-1)
   | `Key (`Arrow(`Down), []) ->
     main t (w, h) ((i+1) mod Array.length main_menu_items)
-  | `Key (`Enter, []) -> main_menu_items.(i).next_state
+  | `Key (`Enter, []) -> main_menu_items.(i).enter_state
   | `Resize (nw, nh) -> main t (nw, nh) i
   | _ -> main t (w, h) i
 
@@ -272,6 +328,6 @@ let new_state t (w, h) mst =
   | Loading -> Term.image t (img t (w, h) mst); Unix.sleep 3; Menu(Copyright)
   | Copyright -> Menu(copyright t (w, h) mst)
   | Main i -> main t (w, h) i
-  | Multiplayer options -> multiplayer t (w, h) options
+  | Multiplayer (i, options) -> multiplayer t (w, h) i options
   | Options -> Menu(Options)
   | About -> Menu(About)
