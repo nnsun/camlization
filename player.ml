@@ -14,17 +14,12 @@ let new_player = {
 
 let gold p = p.gold
 
-let gold_rate p =
-  failwith "Unimplemented"
+let gold_rate p = 69
 
-let points p =
-  failwith "Unimplemented"
+let points p = 100
 
-let science p =
-  failwith "Unimplemented"
+let science p = fst p.science
 
-let science_rate p =
-  failwith "Unimplemented"
+let science_rate p = 69
 
-let techs p =
-  failwith "Unimplemented"
+let techs p = p.techs

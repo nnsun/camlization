@@ -22,5 +22,5 @@ val science : player -> science
 (* [science_rate player] is the amount of science player accumulates per turn *)
 val science_rate : player -> science
 
-(* [techs player] is the list of technologies player has researched *)
-val techs : player -> Tech.tech list
+(* [techs player] is the set of technologies player has researched *)
+val techs : player -> Tech.TechSet.t
