@@ -52,3 +52,6 @@ val improvement : tile -> improvement option
 
 (* [terrain tile] returns the terrain of the tile. *)
 val terrain : tile -> terrain
+
+(* [tile_str tile] returns the string representation of the tile. *)
+val tile_str : tile -> string

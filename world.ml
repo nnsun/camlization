@@ -102,17 +102,35 @@ type tile = {
   elevation : elevation
 }
 
+let sample_tile = {
+  resource = Some Wheat;
+  improvement = Some Farm;
+  terrain = Grassland;
+  feature = None;
+  elevation = Flatland
+}
+
+let tile_str tile =
+  match tile.terrain with
+  | Grassland -> "Grassland"
+  | Plains -> "Plains"
+  | Desert -> "Desert"
+  | Tundra -> "Tundra"
+  | Ice -> "Ice"
+  | Ocean -> "Ocean"
+  | Coast -> "Coast"
+  | Lake -> "Lake"
+
 type map = tile array array
 
 let generate_map =
-  [||]
+  Array.make 50 (Array.make 50 sample_tile)
 
-let get_tile m x y =
-  failwith "Unimplemented"
+let get_tile m col row =
+  m.(row).(col)
 
-let map_dimensions map =
-  (*(Array.length (t.(0)), Array.length t)*)
-  (50, 50)
+let map_dimensions m =
+  (Array.length (m.(0)), Array.length m)
 
 let terrain tile = tile.terrain
 
