@@ -4,7 +4,7 @@ type entity_info = {
   (* TODO: Check types *)
   owner : Player.player;
   health : int;
-  tile : int
+  tile : int * int
 }
 
 (* [unit_class] is the class of the unit: worker or military unit *)
@@ -52,7 +52,7 @@ type unit_info = {
 type city_info = {
   population: int;
   food_stock: int;
-  unit_production : unit_type;
+  unit_production : unit_type option;
   production_stock : int;
   gold : int;
   science : int;

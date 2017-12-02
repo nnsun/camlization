@@ -38,7 +38,7 @@ let size_box (cols, rows) =
   let box = I.string A.(fg lightgreen ++ bg lightblack) label in
   center box cols rows
 
-let tile_img is_selected col row = 
+let tile_img is_selected col row =
   let color = if is_selected then A.(fg blue) else A.(fg white) in
   let color_underline = A.(color ++ st underline) in
   let odd_even_col_offset = if col mod 2 = 1 then (tile_height/2) else 0 in
@@ -62,7 +62,7 @@ let tile_img is_selected col row =
 let rec game_map_helper img tiles_w tiles_h col row =
   let (next_col, next_row) = if col < tiles_w then (col + 1, row) else (0, row+1) in
   let acc = I.(img </> tile_img false col row) in
-  if next_row < tiles_h then 
+  if next_row < tiles_h then
     game_map_helper acc tiles_w tiles_h next_col next_row
   else acc
 
@@ -88,7 +88,7 @@ let rec main t (w, h) gst =
   match Term.event t with
   | `End | `Key (`Uchar 68, [`Ctrl]) | `Key (`Uchar 67, [`Ctrl])
   | `Key (`Escape, []) -> Quit
-  | `Key (`Arrow direction, []) -> 
+  | `Key (`Arrow direction, []) ->
     let new_gst = {gst with selected_tile = select_tile direction gst} in
     Term.image t (img t (w, h) new_gst); main t (w, h) new_gst
   | `Resize (nw, nh) -> Term.image t (img t (nw, nh) gst); main t (nw, nh) gst

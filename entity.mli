@@ -16,7 +16,7 @@ val owner : entity -> Player.player
 val health : entity -> int
 
 (* [tile entity] is the tile that [entity] is located on *)
-val tile : entity -> int
+val tile : entity -> int * int
 
 (* [population city] is the population of [city] *)
 val population : city_entity -> int
@@ -25,7 +25,7 @@ val population : city_entity -> int
 val food_stock : city_entity -> int
 
 (* [unit_production city] is the unit that [city] is currently building *)
-val unit_production : city_entity -> unit_type
+val unit_production : city_entity -> unit_type option
 
 (* [production_stock city] is the amount of production that [city] has accumulated *)
 val production_stock : city_entity -> int

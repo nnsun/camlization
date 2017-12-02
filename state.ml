@@ -8,7 +8,7 @@ type multiplayer_options = {
 type menu_state =
   | Loading
   | Copyright
-  | Main
+  | Main of int (* index *)
   | Multiplayer of multiplayer_options
   | Options
   | About
