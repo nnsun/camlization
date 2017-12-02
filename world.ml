@@ -21,7 +21,7 @@ let get_tile m x y =
 
 let map_dimensions t =
   (*(Array.length (t.(0)), Array.length t)*)
-  (100, 100)
+  (50, 50)
 
 let resource t =
   failwith "Unimplemented"

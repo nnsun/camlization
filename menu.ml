@@ -189,8 +189,8 @@ let multiplayer_items (i, options) = [|
     enter_state = Game {
       date = -3000;
       map = ref World.generate_map;
-      map_display = (0,0);
-      selected_tile = (0,0)
+      map_display = (24,24);
+      selected_tile = (29,25)
     }
   };
   {
