@@ -186,14 +186,7 @@ let multiplayer_items (i, options) = [|
       img "╚═╝ ╩ ╩ ╩╩╚═ ╩   ╚═╝╩ ╩╩ ╩╚═╝";
       I.void 1 2;
     ];
-    enter_state = Game {
-      date = -3000;
-      map = ref World.generate_map;
-      map_display = (24,24);
-      selected_tile = (29,25);
-      current_player = 0;
-      players = [||];
-    }
+    enter_state = Game (State.initial_game_state options)
   };
   {
     index = 1;

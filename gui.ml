@@ -17,21 +17,22 @@ let initial_tile_top = top_padding + top_bar_height
 
 let grid xxs = xxs |> List.map I.hcat |> I.vcat
 
-let ui_img gst =
+let ui_img (w, h) gst =
   let player = gst.players.(gst.current_player) in
-  let science_text = "+" ^ string_of_int (Player.science_rate player) ^ " " in
-  let gold_text = " ⬤ " ^ string_of_int (Player.gold player) in
+  let science_text = " ⚕ +" ^ string_of_int (Player.science_rate player) in
+  let gold_text = "  ⬤ " ^ string_of_int (Player.gold player) in
   let gold_rate =
     let rate = Player.gold_rate player in
-    if rate > 0 then I.string A.(fg yellow) ("(+" ^ string_of_int rate ^ ")")
-    else I.string A.(fg red) (string_of_int rate)
+    if rate > 0
+    then I.string A.(fg yellow ++ bg black) ("(+" ^ string_of_int rate ^ ")")
+    else I.string A.(fg red ++ bg black) (string_of_int rate)
   in
-  I.hcat [
-    I.string A.(fg lightblue ++ bg black) " ⚕ ";
+  let metrics = I.hcat [
     I.string A.(fg blue ++ bg black) science_text;
-    I.string A.(fg yellow) (gold_text);
+    I.string A.(fg yellow ++ bg black) gold_text;
     gold_rate
-  ]
+  ] in
+  I.(metrics </> I.tile w 1 (I.string A.(bg black) " "))
 
 let outline attr t =
   let (w, h) = Term.size t in
@@ -56,7 +57,7 @@ let size_box (cols, rows) =
 
 let calculate_tiles_w_h (w, h) =
   let tiles_w = (w - left_padding - right_padding - tile_width) / tile_width in
-  let tiles_h = (h - top_padding - bottom_padding - top_bar_height - gui_bar_padding - tile_height) / tile_height in
+  let tiles_h = (h - top_padding - bottom_padding - top_bar_height - tile_height) / tile_height in
   (tiles_w, tiles_h)
 
 let tile_img is_selected (col, row) (left_col, top_row) =
@@ -82,20 +83,21 @@ let tile_img is_selected (col, row) (left_col, top_row) =
     [I.void 4 1; I.uchar color 0x2572 1 1; I.string color_underline "            "; I.uchar color 0x2571 1 1];
   ] |> I.pad ~l:left ~t:top
 
-let rec game_map_helper img tiles_w tiles_h (col, row) (left_col, top_row) =
-  let (next_col, next_row) = if col < (tiles_w + left_col) then (col + 1, row) else (left_col, row+1) in
+let rec game_map_helper img tiles_w tiles_h (col, row) (left_col, top_row) (map_cols, map_rows) =
+  let (next_col, next_row) = if col < min map_cols (tiles_w + left_col) then (col + 1, row) else (left_col, row+1) in
   let acc = I.(img </> tile_img false (col, row) (left_col, top_row)) in
-  if next_row < (tiles_h + top_row) then
-    game_map_helper acc tiles_w tiles_h (next_col, next_row) (left_col, top_row)
+  if next_row <= min map_rows (tiles_h + top_row - 1) then
+    game_map_helper acc tiles_w tiles_h (next_col, next_row) (left_col, top_row) (map_cols, map_rows)
   else acc
 
 let game_map (w, h) gst =
   let (tiles_w, tiles_h) = calculate_tiles_w_h (w, h) in
   let (selected_col, selected_row) = gst.selected_tile in
   let (left_col, top_row) = gst.map_display in
-  game_map_helper I.(tile_img true (selected_col, selected_row) (left_col, top_row)) tiles_w tiles_h (left_col, top_row) (left_col, top_row)
+  let (map_cols, map_rows) = World.map_dimensions !(gst.map) in
+  game_map_helper I.(tile_img true (selected_col, selected_row) (left_col, top_row)) tiles_w tiles_h (left_col, top_row) (left_col, top_row) (map_cols, map_rows)
 
-let img t (w, h) gst = I.((outline A.(fg lightred ) t) </> game_map (w, h) gst)
+let img t (w, h) gst = I.(ui_img (w, h) gst </> game_map (w, h) gst)
 
 let select_tile direction gst =
   let map = State.game_map gst in
@@ -116,12 +118,15 @@ let rec main t (w, h) gst =
     let (new_selected_col, new_selected_row) = select_tile direction gst in
     let (current_left_col, current_top_row) = gst.map_display in
     let new_map_display = 
-      if new_selected_col > (current_left_col + tiles_w - 1) then
-        (current_left_col + 1, current_top_row)
+      if new_selected_col > (current_left_col + tiles_w) then
+        (current_left_col + 2, current_top_row)
       else if new_selected_row > (current_top_row + tiles_h - 1) then
         (current_left_col, current_top_row + 1)
-      else (min current_left_col new_selected_col,
-            min current_top_row new_selected_row) in
+      else if new_selected_col < current_left_col then
+        (current_left_col - 2, current_top_row)
+      else if new_selected_row < current_top_row then
+        (current_left_col, current_top_row - 1)
+      else (current_left_col, current_top_row) in
     let new_gst = {gst with selected_tile = select_tile direction gst;
                             map_display = new_map_display} in
     Term.image t (img t (w, h) new_gst); main t (w, h) new_gst
