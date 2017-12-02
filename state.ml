@@ -1,15 +1,14 @@
 open Primitives
 
 type multiplayer_options = {
-  player_count_menu_open: bool;
   player_count: int
 }
 
 type menu_state =
   | Loading
   | Copyright
-  | Main of int (* index *)
-  | Multiplayer of multiplayer_options
+  | Main of int
+  | Multiplayer of int * multiplayer_options
   | Options
   | About
 
