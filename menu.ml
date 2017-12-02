@@ -190,7 +190,9 @@ let multiplayer_items (i, options) = [|
       date = -3000;
       map = ref World.generate_map;
       map_display = (0,0);
-      selected_tile = (0,0)
+      selected_tile = (0,0);
+      current_player = 0;
+      players = [||];
     }
   };
   {

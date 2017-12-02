@@ -2,7 +2,7 @@ open Primitives
 
 type tech = {
   id: string;
-  cost: gold;
+  cost: science
 }
 
 module Tech = struct

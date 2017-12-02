@@ -17,6 +17,22 @@ let initial_tile_top = top_padding + top_bar_height
 
 let grid xxs = xxs |> List.map I.hcat |> I.vcat
 
+let ui_img gst =
+  let player = gst.players.(gst.current_player) in
+  let science_text = "+" ^ string_of_int (Player.science_rate player) ^ " " in
+  let gold_text = " ⬤ " ^ string_of_int (Player.gold player) in
+  let gold_rate =
+    let rate = Player.gold_rate player in
+    if rate > 0 then I.string A.(fg yellow) ("(+" ^ string_of_int rate ^ ")")
+    else I.string A.(fg red) (string_of_int rate)
+  in
+  I.hcat [
+    I.string A.(fg lightblue ++ bg black) " ⚕ ";
+    I.string A.(fg blue ++ bg black) science_text;
+    I.string A.(fg yellow) (gold_text);
+    gold_rate
+  ]
+
 let outline attr t =
   let (w, h) = Term.size t in
   let chr x = I.uchar attr x 1 1
