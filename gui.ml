@@ -63,28 +63,116 @@ let calculate_tiles_w_h (w, h) =
                 float_of_int tile_height |> floor |> int_of_float in
   (tiles_w, tiles_h)
 
+let terrain_str tile =
+  World.(
+    match terrain tile with
+    | Grassland -> "Grassland"
+    | Plains -> "Plains"
+    | Desert -> "Desert"
+    | Tundra -> "Tundra"
+    | Ice -> "Ice"
+    | Ocean -> "Ocean"
+    | Coast -> "Coast"
+    | Lake -> "Lake")
+
+let feature_str f =
+  World.(
+    match f with
+    | Forest -> "Forest"
+    | Jungle -> "Jungle"
+    | Oasis -> "Oasis"
+    | FloodPlains -> "Flood Plains")
+
+let feature_opt_str tile =
+  World.(
+    match feature tile with
+    | Some f -> feature_str f
+    | None -> "")
+
+let elevation_str tile =
+  World.(
+    match elevation tile with
+    | Flatland -> "Flatland"
+    | Hill -> "Hill"
+    | Peak -> "Peak")
+
+let resource_str r = (* TODO: Make sure player has researched it *)
+  World.(
+    match r with
+    | Fish -> "Fish"
+    | Crab -> "Crab"
+    | Gold -> "Gold"
+    | Silver -> "Silver"
+    | Gems -> "Gem"
+    | Salt -> "Salt"
+    | Iron -> "Iron"
+    | Marble -> "Marble"
+    | Stone -> "Stone"
+    | Wheat -> "Wheat"
+    | Corn -> "Corn"
+    | Rice -> "Rice"
+    | Furs -> "Furs"
+    | Ivory -> "Ivory"
+    | Deer -> "Deer"
+    | Sheep -> "Sheep"
+    | Cattle -> "Cattle"
+    | Horses -> "Horses"
+    | Cotton -> "Cotton"
+    | Banana -> "Banana"
+    | Sugar -> "Sugar")
+
+let resource_opt_str tile =
+  World.(
+    match resource tile with
+    | Some r -> resource_str r
+    | None -> "")
+
+let improvement_str i = (* TODO: Make sure player has researched it *)
+  World.(
+    match i with
+    | FishingBoats -> "Fishing Boats"
+    | Mine -> "Mine"
+    | Quarry -> "Quarry"
+    | Farm -> "Farm"
+    | Camp -> "Camp"
+    | Pasture -> "Pasture"
+    | Plantation -> "Plantation")
+
+let improvement_opt_str tile =
+  World.(
+    match improvement tile with
+    | Some i -> improvement_str i
+    | None -> "")
+
+let tile_yields_img tile =
+  World.(
+    let y = tile_yields tile in
+    I.(string A.(fg green) ("🍏 " ^ string_of_int y.food) <|>
+       void 1 1 <|>
+       string A.(fg yellow) ("⬤ " ^ string_of_int y.gold) <|>
+       void 1 1 <|>
+       string A.(fg blue) ("🔬 " ^ string_of_int y.production))
+  )
+
 let tile_img is_selected (col, row) (left_col, top_row) gst =
   let color = if is_selected then A.(fg blue) else A.(fg white) in
+  let text_color = A.(fg white) in
   let color_underline = A.(color ++ st underline) in
   let odd_even_col_offset = if col mod 2 = 1 then (tile_height/2) else 0 in
   let top_underline_offset = if row = top_row || is_selected then 0 else 1 in
   let left = initial_tile_left + (tile_width*(col - left_col)) in
   let top = initial_tile_top + (tile_height*(row - top_row)) + odd_even_col_offset + top_underline_offset in
-  let col_str = if col < 10 then "   " ^ string_of_int col else "  " ^ string_of_int col in
-  let row_str = if row < 10 then "   " ^ string_of_int row else "  " ^ string_of_int row in
   let tile = World.get_tile !(gst.map) col row in
-  let terrain = World.tile_str tile in
-  let formatted_terrain = terrain ^ String.make (18-String.length terrain) ' ' in
   grid [
     if row = top_row || is_selected then [I.void 5 1; I.string color_underline "            "] else [];
     [I.void 4 1; I.uchar color 0x2571 1 1; I.string color "            "; I.uchar color 0x2572 1 1];
     [I.void 3 1; I.uchar color 0x2571 1 1; I.string color "              "; I.uchar color 0x2572 1 1];
-    [I.void 2 1; I.uchar color 0x2571 1 1; I.string color "                "; I.uchar color 0x2572 1 1];
-    [I.void 1 1; I.uchar color 0x2571 1 1; I.string color "                  "; I.uchar color 0x2572 1 1];
-    [I.uchar color 0x2571 1 1; I.string color col_str; I.string color "                "; I.uchar color 0x2572 1 1];
-    [I.uchar color 0x2572 1 1; I.string color row_str; I.string color "                "; I.uchar color 0x2571 1 1];
-    [I.void 1 1; I.uchar color 0x2572 1 1; I.string color formatted_terrain; I.uchar color 0x2571 1 1];
-    [I.void 2 1; I.uchar color 0x2572 1 1; I.string color "                "; I.uchar color 0x2571 1 1];
+    [I.void 2 1; I.uchar color 0x2571 1 1; I.hsnap 16 (I.string text_color (terrain_str tile)); I.uchar color 0x2572 1 1];
+    [I.void 1 1; I.uchar color 0x2571 1 1; I.hsnap 18 (I.string text_color (feature_opt_str tile)); I.uchar color 0x2572 1 1];
+    [I.uchar color 0x2571 1 1; I.hsnap 20 (I.string text_color (elevation_str tile)); I.uchar color 0x2572 1 1];
+    [I.uchar color 0x2572 1 1; I.hsnap 20 (I.string text_color (resource_opt_str tile)); I.uchar color 0x2571 1 1];
+    [I.void 1 1; I.uchar color 0x2572 1 1; I.hsnap 18 (I.string text_color (improvement_opt_str tile)); I.uchar color 0x2571 1 1];
+    [I.void 2 1; I.uchar color 0x2572 1 1; I.hsnap 16 (tile_yields_img tile); I.uchar color 0x2571 1 1];
     [I.void 3 1; I.uchar color 0x2572 1 1; I.string color "              "; I.uchar color 0x2571 1 1];
     [I.void 4 1; I.uchar color 0x2572 1 1; I.string color_underline "            "; I.uchar color 0x2571 1 1];
   ] |> I.pad ~l:left ~t:top

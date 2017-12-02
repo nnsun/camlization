@@ -40,7 +40,6 @@ let feature_yields_map = [
   FloodPlains, { food = 3; production = 0; gold = 1 };
 ]
 
-
 let elevation_yields_map = [
   Flatland, { food = 0; production = 0; gold = 0 };
   Hill, { food = -1; production = 1; gold = 0 };
@@ -106,20 +105,9 @@ let sample_tile = {
   resource = Some Wheat;
   improvement = Some Farm;
   terrain = Grassland;
-  feature = None;
+  feature = Some Forest;
   elevation = Flatland
 }
-
-let tile_str tile =
-  match tile.terrain with
-  | Grassland -> "Grassland"
-  | Plains -> "Plains"
-  | Desert -> "Desert"
-  | Tundra -> "Tundra"
-  | Ice -> "Ice"
-  | Ocean -> "Ocean"
-  | Coast -> "Coast"
-  | Lake -> "Lake"
 
 type map = tile array array
 
@@ -136,7 +124,11 @@ let terrain tile = tile.terrain
 
 let feature tile = tile.feature
 
+let elevation tile = tile.elevation
+
 let resource tile = tile.resource
+
+let improvement tile = tile.improvement
 
 let food_gen tile =
   let yield =
@@ -170,21 +162,24 @@ let production_gen tile =
       (List.assoc improv (improvement_yields_map tile.resource)).production in
   if yield < 0 then 0 else yield
 
-  let gold_gen tile =
-    let yield =
-      (List.assoc tile.terrain terrain_yields_map).gold +
-      (List.assoc tile.elevation elevation_yields_map).gold +
-      match tile.resource with
-      | None -> 0
-      | Some res -> (List.assoc res resource_yields_map).gold +
-      match tile.feature with
-      | None -> 0
-      | Some feat -> (List.assoc feat feature_yields_map).gold +
-      match tile.improvement with
-      | None -> 0
-      | Some improv ->
-        (List.assoc improv (improvement_yields_map tile.resource)).gold in
-    if yield < 0 then 0 else yield
+let gold_gen tile =
+  let yield =
+    (List.assoc tile.terrain terrain_yields_map).gold +
+    (List.assoc tile.elevation elevation_yields_map).gold +
+    match tile.resource with
+    | None -> 0
+    | Some res -> (List.assoc res resource_yields_map).gold +
+    match tile.feature with
+    | None -> 0
+    | Some feat -> (List.assoc feat feature_yields_map).gold +
+    match tile.improvement with
+    | None -> 0
+    | Some improv ->
+      (List.assoc improv (improvement_yields_map tile.resource)).gold in
+  if yield < 0 then 0 else yield
 
-let improvement tile = tile.improvement
-
+let tile_yields tile = {
+  food = food_gen tile; 
+  production = production_gen tile;
+  gold = gold_gen tile
+}
