@@ -23,4 +23,4 @@ val science : player -> science
 val science_rate : player -> science
 
 (* [techs player] is the set of technologies player has researched *)
-val techs : player -> Tech.TechSet.t
+val techs : player -> Tech.tech list
