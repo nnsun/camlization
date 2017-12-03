@@ -18,8 +18,8 @@ let grid xxs = xxs |> List.map I.hcat |> I.vcat
 
 let ui_img (w, h) gst =
   let player = gst.players.(gst.current_player) in
-  let science_text = " ⚕ +" ^ string_of_int (Player.science_rate player) in
-  let gold_text = "  ⬤ " ^ string_of_int (Player.gold player) in
+  let science_text = string_of_int (Player.science_rate player) in
+  let gold_text = string_of_int (Player.gold player) in
   let gold_rate =
     let rate = Player.gold_rate player in
     if rate > 0
@@ -27,7 +27,12 @@ let ui_img (w, h) gst =
     else I.string A.(fg red ++ bg black) (string_of_int rate)
   in
   let metrics = I.hcat [
+    I.void 1 1;
+    I.uchar A.(fg blue ++ bg black) 9877 1 1;
     I.string A.(fg blue ++ bg black) science_text;
+    I.void 1 1;
+    I.uchar A.(fg yellow ++ bg black) 11044 1 1;
+    I.void 1 1;
     I.string A.(fg yellow ++ bg black) gold_text;
     gold_rate
   ] in
@@ -147,11 +152,17 @@ let improvement_opt_str tile =
 let tile_yields_img tile =
   World.(
     let y = tile_yields tile in
-    I.(string A.(fg green) ("🍏 " ^ string_of_int y.food) <|>
+    I.(uchar A.(fg green) 127823 1 1 <|> 
+        void 1 1 <|>
+       string A.(fg green) (string_of_int y.food) <|>
        void 1 1 <|>
-       string A.(fg yellow) ("⬤ " ^ string_of_int y.gold) <|>
+       uchar A.(fg yellow) 11044 1 1 <|>
        void 1 1 <|>
-       string A.(fg blue) ("🔨 " ^ string_of_int y.production))
+       string A.(fg yellow) (string_of_int y.gold) <|>
+       void 1 1 <|>
+       uchar A.(fg blue) 128296 1 1 <|>
+       void 1 1 <|>
+       string A.(fg blue) (string_of_int y.production))
   )
 
 let tile_img is_selected (col, row) (left_col, top_row) gst =
