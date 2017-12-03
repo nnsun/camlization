@@ -127,7 +127,7 @@ let resource_opt_str tile =
     | Some r -> resource_str r
     | None -> "")
 
-let improvement_str i = (* TODO: Make sure player has researched it *)
+let improvement_str i =
   World.(
     match i with
     | FishingBoats -> "Fishing Boats"
@@ -151,7 +151,7 @@ let tile_yields_img tile =
        void 1 1 <|>
        string A.(fg yellow) ("⬤ " ^ string_of_int y.gold) <|>
        void 1 1 <|>
-       string A.(fg blue) ("🔬 " ^ string_of_int y.production))
+       string A.(fg blue) ("🔨 " ^ string_of_int y.production))
   )
 
 let tile_img is_selected (col, row) (left_col, top_row) gst =
