@@ -3,7 +3,6 @@ open Notty_unix
 open Notty_helper
 open State
 
-let gui_height = 8
 let left_padding = 2
 let top_padding = 1
 let right_padding = 2
@@ -18,8 +17,8 @@ let grid xxs = xxs |> List.map I.hcat |> I.vcat
 
 let ui_img (w, h) gst =
   let player = gst.players.(gst.current_player) in
-  let science_text = " ⚕ +" ^ string_of_int (Player.science_rate player) in
-  let gold_text = "  ⬤ " ^ string_of_int (Player.gold player) in
+  let science_text = string_of_int (Player.science_rate player) in
+  let gold_text = string_of_int (Player.gold player) in
   let gold_rate =
     let rate = Player.gold_rate player in
     if rate > 0
@@ -27,39 +26,23 @@ let ui_img (w, h) gst =
     else I.string A.(fg red ++ bg black) (string_of_int rate)
   in
   let metrics = I.hcat [
+    I.void 1 1;
+    I.uchar A.(fg blue ++ bg black) 9877 1 1;
     I.string A.(fg blue ++ bg black) science_text;
+    I.void 1 1;
+    I.uchar A.(fg yellow ++ bg black) 11044 1 1;
+    I.void 1 1;
     I.string A.(fg yellow ++ bg black) gold_text;
     gold_rate
   ] in
   I.(metrics </> I.tile w 1 (I.string A.(bg black) " "))
 
-let outline attr t =
-  let (w, h) = Term.size t in
-  let chr x = I.uchar attr x 1 1
-  and hbar = I.uchar attr 0x2500 (w - 2) 1
-  and bottom_vbar = I.uchar attr 0x2502 1 (gui_height)
-  and top_vbar = I.uchar attr 0x2502 1 (h - 3 - gui_height) in
-  let (a, b, c, d) = (chr 0x256d, chr 0x256e, chr 0x256f, chr 0x2570) in
-  grid [
-    [a; hbar; b];
-    [top_vbar; I.void (w - 2) 1; top_vbar];
-    [chr 0x2502; hbar; chr 0x2502];
-    [bottom_vbar; I.void (w - 2) 1; bottom_vbar];
-    [d; hbar; c]
-  ]
-
-let size_box (cols, rows) =
-  let cols_str = string_of_int cols in let rows_str = string_of_int rows in
-  let label = (cols_str ^ "x" ^ rows_str) in
-  let box = I.string A.(fg lightgreen ++ bg lightblack) label in
-  center box cols rows
-
 let calculate_tiles_w_h (w, h) =
-  let tiles_w = (float_of_int w -. float_of_int left_padding -. 
-                float_of_int right_padding -. (float_of_int tile_width *. 1.5)) /. 
+  let tiles_w = (float_of_int w -. float_of_int left_padding -.
+                float_of_int right_padding -. (float_of_int tile_width *. 1.5)) /.
                 float_of_int tile_width |> floor |> int_of_float in
-  let tiles_h = (float_of_int h -. float_of_int top_padding -. 
-                float_of_int bottom_padding -. (float_of_int tile_height /. 2.)) /. 
+  let tiles_h = (float_of_int h -. float_of_int top_padding -.
+                float_of_int bottom_padding -. (float_of_int tile_height /. 2.)) /.
                 float_of_int tile_height |> floor |> int_of_float in
   (tiles_w, tiles_h)
 
@@ -147,11 +130,17 @@ let improvement_opt_str tile =
 let tile_yields_img tile =
   World.(
     let y = tile_yields tile in
-    I.(string A.(fg green) ("🍏 " ^ string_of_int y.food) <|>
+    I.(uchar A.(fg green) 127823 1 1 <|> 
+        void 1 1 <|>
+       string A.(fg green) (string_of_int y.food) <|>
        void 1 1 <|>
-       string A.(fg yellow) ("⬤ " ^ string_of_int y.gold) <|>
+       uchar A.(fg yellow) 11044 1 1 <|>
        void 1 1 <|>
-       string A.(fg blue) ("🔨 " ^ string_of_int y.production))
+       string A.(fg yellow) (string_of_int y.gold) <|>
+       void 1 1 <|>
+       uchar A.(fg blue) 128296 1 1 <|>
+       void 1 1 <|>
+       string A.(fg blue) (string_of_int y.production))
   )
 
 let tile_img is_selected (col, row) (left_col, top_row) gst =
@@ -211,7 +200,7 @@ let rec main t (w, h) gst =
     let (tiles_w, tiles_h) = calculate_tiles_w_h (w, h) in
     let (new_selected_col, new_selected_row) = select_tile direction gst in
     let (current_left_col, current_top_row) = gst.map_display in
-    let new_map_display = 
+    let new_map_display =
       if new_selected_col > (current_left_col + tiles_w) then
         (current_left_col + 2, current_top_row)
       else if new_selected_row > (current_top_row + tiles_h - 1) then
