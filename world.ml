@@ -92,13 +92,25 @@ let improvement_yields_map res = [
   );
 ]
 
+let feature_movement_cost feat =
+  match feat with
+  | Some Forest -> 1
+  | Some Jungle -> 1
+  | _ -> 0
+
+let elevation_movement_cost elev =
+  match elev with
+  | Flatland -> 0
+  | Hill -> 1
+  | Peak -> 1000
 
 type tile = {
   resource : resource option;
   improvement : improvement option;
   terrain : terrain;
   feature : feature option;
-  elevation : elevation
+  elevation : elevation;
+  movement_cost : int
 }
 
 let sample_tile = {
@@ -106,7 +118,8 @@ let sample_tile = {
   improvement = Some Farm;
   terrain = Grassland;
   feature = Some Forest;
-  elevation = Flatland
+  elevation = Flatland;
+  movement_cost = 1
 }
 
 type map = tile array array
@@ -179,7 +192,9 @@ let gold_gen tile =
   if yield < 0 then 0 else yield
 
 let tile_yields tile = {
-  food = food_gen tile; 
+  food = food_gen tile;
   production = production_gen tile;
   gold = gold_gen tile
 }
+
+let movement_cost tile = tile.movement_cost
