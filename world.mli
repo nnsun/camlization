@@ -43,6 +43,9 @@ val get_tile : map -> int -> int -> tile
 (* [map_dimensions map] returns the number of columns and rows in [map]. *)
 val map_dimensions : map -> int * int
 
+(* [coordinates tile] returns the coordinates of [tile] *)
+val coordinates : tile -> int * int
+
 (* [terrain tile] returns the terrain of [tile]. *)
 val terrain : tile -> terrain
 

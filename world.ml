@@ -105,6 +105,7 @@ let elevation_movement_cost elev =
   | Peak -> 1000
 
 type tile = {
+  coordinates : int * int;
   resource : resource option;
   improvement : improvement option;
   terrain : terrain;
@@ -114,6 +115,7 @@ type tile = {
 }
 
 let sample_tile = {
+  coordinates = (0, 0);
   resource = Some Wheat;
   improvement = Some Farm;
   terrain = Grassland;
@@ -132,6 +134,8 @@ let get_tile m col row =
 
 let map_dimensions m =
   (Array.length (m.(0)), Array.length m)
+
+let coordinates tile = tile.coordinates
 
 let terrain tile = tile.terrain
 
