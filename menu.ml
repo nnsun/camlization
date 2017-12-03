@@ -320,7 +320,7 @@ let rec main t (w, h) i =
 
 let new_state t (w, h) mst =
   match mst with
-  | Loading -> Term.image t (img t (w, h) mst); Unix.sleep 3; Menu(Copyright)
+  | Loading -> Term.image t (img t (w, h) mst); Unix.sleep 1; Menu(Copyright)
   | Copyright -> Menu(copyright t (w, h) mst)
   | Main i -> main t (w, h) i
   | Multiplayer (i, options) -> multiplayer t (w, h) i options

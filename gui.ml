@@ -60,11 +60,11 @@ let size_box (cols, rows) =
   center box cols rows
 
 let calculate_tiles_w_h (w, h) =
-  let tiles_w = (float_of_int w -. float_of_int left_padding -. 
-                float_of_int right_padding -. (float_of_int tile_width *. 1.5)) /. 
+  let tiles_w = (float_of_int w -. float_of_int left_padding -.
+                float_of_int right_padding -. (float_of_int tile_width *. 1.5)) /.
                 float_of_int tile_width |> floor |> int_of_float in
-  let tiles_h = (float_of_int h -. float_of_int top_padding -. 
-                float_of_int bottom_padding -. (float_of_int tile_height /. 2.)) /. 
+  let tiles_h = (float_of_int h -. float_of_int top_padding -.
+                float_of_int bottom_padding -. (float_of_int tile_height /. 2.)) /.
                 float_of_int tile_height |> floor |> int_of_float in
   (tiles_w, tiles_h)
 
@@ -222,7 +222,7 @@ let rec main t (w, h) gst =
     let (tiles_w, tiles_h) = calculate_tiles_w_h (w, h) in
     let (new_selected_col, new_selected_row) = select_tile direction gst in
     let (current_left_col, current_top_row) = gst.map_display in
-    let new_map_display = 
+    let new_map_display =
       if new_selected_col > (current_left_col + tiles_w) then
         (current_left_col + 2, current_top_row)
       else if new_selected_row > (current_top_row + tiles_h - 1) then
