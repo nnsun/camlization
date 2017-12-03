@@ -130,7 +130,7 @@ let improvement_opt_str tile =
 let tile_yields_img tile =
   World.(
     let y = tile_yields tile in
-    I.(uchar A.(fg green) 127823 1 1 <|> 
+    I.(uchar A.(fg green) 127823 1 1 <|>
         void 1 1 <|>
        string A.(fg green) (string_of_int y.food) <|>
        void 1 1 <|>
@@ -214,6 +214,7 @@ let rec main t (w, h) gst =
                             map_display = new_map_display} in
     Term.image t (img t (w, h) new_gst); main t (w, h) new_gst
   | `Resize (nw, nh) -> Term.image t (img t (nw, nh) gst); main t (nw, nh) gst
+  | `Key (`Enter, []) -> failwith "Unimplemented"
   | _ -> main t (w, h) gst
 
 let new_state t (w, h) gst =

@@ -42,3 +42,7 @@ val date : game_state -> string
 (* [game_map state] is Some of the map of the game represented by state if the state
  * is in a game. None otherwise. *)
 val game_map : game_state -> World.map
+
+(* [next_turn state] is the new state of the game after the current player
+ * ends their turn *)
+val next_turn : game_state -> game_state
