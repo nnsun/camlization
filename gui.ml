@@ -223,6 +223,7 @@ let rec main t (w, h) gst =
                             map_display = new_map_display} in
     Term.image t (img t (w, h) new_gst); main t (w, h) new_gst
   | `Resize (nw, nh) -> Term.image t (img t (nw, nh) gst); main t (nw, nh) gst
+  | `Key (`Enter, []) -> failwith "Unimplemented"
   | _ -> main t (w, h) gst
 
 let new_state t (w, h) gst =

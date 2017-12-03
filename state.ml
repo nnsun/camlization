@@ -49,3 +49,8 @@ let date gst =
   string_of_int (abs date) ^ suffix
 
 let game_map gst = !(gst.map)
+
+let next_turn state =
+  { state with
+    current_player = (state.current_player + 1) mod (Array.length state.players)
+  }
