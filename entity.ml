@@ -98,6 +98,23 @@ let tile entity =
   | City e -> (fst e).tile
   | Unit e -> (fst e).tile
 
+let is_city entity =
+  match entity with
+  | City e -> true
+  | Unit e -> false
+
+let is_unit entity = not (is_city entity)
+
+let get_city_entity entity =
+  match entity with
+  | City c -> c
+  | _ -> failwith "Error: expected City but got Unit"
+
+  let get_unit_entity entity =
+    match entity with
+    | Unit u -> u
+    | _ -> failwith "Error: expected Unit but got City"
+
 let population city = (snd city).population
 
 let is_capital city = (snd city).is_capital

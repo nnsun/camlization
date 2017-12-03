@@ -1,11 +1,13 @@
 open World
 
-(* [entity] represents the various units/entities in the game *)
-type entity
-
 type city_entity
 
 type unit_entity
+
+(* [entity] represents the various units/entities in the game *)
+type entity =
+  | City of city_entity
+  | Unit of unit_entity
 
 type unit_class = Civilian | Military
 
@@ -16,6 +18,20 @@ val health : entity -> int
 
 (* [tile entity] is the tile that [entity] is located on *)
 val tile : entity -> int * int
+
+(* [is_city entity] is whether the entity represents a city *)
+val is_city : entity -> bool
+
+(* [is_unit entity] is whether the entity represents a unit *)
+val is_unit : entity -> bool
+
+(* [get_city_entity entity] returns the city_entity of [entity], if
+ * [entity] represents a city, and generates an exception otherwise *)
+val get_city_entity : entity -> city_entity
+
+(* [get_unit_entity entity] returns the unit_entity of [entity], if
+ * [entity] represents a unit, and generates an exception otherwise *)
+val get_unit_entity : entity -> unit_entity
 
 (* [population city] is the population of [city] *)
 val population : city_entity -> int
