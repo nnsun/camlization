@@ -215,6 +215,7 @@ let rec main t (w, h) gst =
                             map_display = new_map_display} in
     main t (w, h) new_gst
   | `Resize (nw, nh) -> main t (nw, nh) gst
+  | `Key (`Enter, []) -> main t (w, h) gst
   | _ -> main t (w, h) gst
 
 let new_state t (w, h) gst =
