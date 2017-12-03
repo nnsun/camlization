@@ -21,10 +21,18 @@ let ui_img (w, h) gst =
   let gold_text = string_of_int (Player.gold player) in
   let gold_rate =
     let rate = Player.gold_rate player in
-    if rate > 0
-    then I.string A.(fg yellow ++ bg black) ("(+" ^ string_of_int rate ^ ")")
-    else I.string A.(fg red ++ bg black) (string_of_int rate)
+    if rate >= 0
+      then I.string A.(fg yellow ++ bg black) ("(+" ^ string_of_int rate ^ ")")
+    else I.string A.(fg red ++ bg black) ("(" ^ string_of_int rate ^ ")")
   in
+  let status = I.hsnap ?align:(Some `Right) w (I.hcat [
+    I.string A.(empty ++ bg black) ("Turns: " ^ string_of_int (State.turns gst));
+    I.string A.(empty ++ bg black) (
+      "  "
+      ^ date gst
+    );
+    I.string A.(empty ++ bg black) "  QUIT "
+  ]) in
   let metrics = I.hcat [
     I.void 1 1;
     I.uchar A.(fg blue ++ bg black) 9877 1 1;
@@ -35,7 +43,8 @@ let ui_img (w, h) gst =
     I.string A.(fg yellow ++ bg black) gold_text;
     gold_rate
   ] in
-  I.(metrics </> I.tile w 1 (I.string A.(bg black) " "))
+  let background = I.tile w 1 (I.string A.(bg black) " ") in
+  I.(metrics </> status </> background)
 
 let calculate_tiles_w_h (w, h) =
   let tiles_w = (float_of_int w -. float_of_int left_padding -.
@@ -193,6 +202,7 @@ let select_tile direction gst =
   | `Right -> (min (max_cols - 1) (current_col + 1), current_row)
 
 let rec main t (w, h) gst =
+  Term.image t (img t (w, h) gst);
   match Term.event t with
   | `End | `Key (`Uchar 68, [`Ctrl]) | `Key (`Uchar 67, [`Ctrl])
   | `Key (`Escape, []) -> Quit
@@ -212,9 +222,9 @@ let rec main t (w, h) gst =
       else (current_left_col, current_top_row) in
     let new_gst = {gst with selected_tile = select_tile direction gst;
                             map_display = new_map_display} in
-    Term.image t (img t (w, h) new_gst); main t (w, h) new_gst
-  | `Resize (nw, nh) -> Term.image t (img t (nw, nh) gst); main t (nw, nh) gst
-  | `Key (`Enter, []) -> failwith "Unimplemented"
+    main t (w, h) new_gst
+  | `Resize (nw, nh) -> main t (nw, nh) gst
+  | `Key (`Enter, []) -> main t (w, h) gst
   | _ -> main t (w, h) gst
 
 let new_state t (w, h) gst =
