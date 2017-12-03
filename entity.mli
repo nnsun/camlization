@@ -1,3 +1,5 @@
+open World
+
 (* [entity] represents the various units/entities in the game *)
 type entity
 
@@ -5,7 +7,7 @@ type city_entity
 
 type unit_entity
 
-type unit_class = Worker | Military
+type unit_class = Civilian | Military
 
 type unit_type
 
@@ -20,6 +22,9 @@ val tile : entity -> int * int
 
 (* [population city] is the population of [city] *)
 val population : city_entity -> int
+
+(* [is_capital city] is whether [city] is a capital *)
+val is_capital : city_entity -> bool
 
 (* [food_stock city] is the amount of food that [city] in storage *)
 val food_stock : city_entity -> int
@@ -51,7 +56,7 @@ val strength : unit_entity -> int
 (* [unit_cost unit] is the production cost of [unit] *)
 val unit_cost : unit_entity -> int
 
-(* [unit_class unit] is the unit class of [unit] (Worker or Military) *)
+(* [unit_class unit] is the unit class of [unit] (Civilian or Military) *)
 val unit_class : unit_entity -> unit_class
 
 (* [moves_left unit] is the remaining movement points of [unit] (>= 0) *)

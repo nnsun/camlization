@@ -1,3 +1,5 @@
+open World
+
 (* [entity_info] represents information common to all entities,
 * such as owner and health *)
 type entity_info = {
@@ -7,36 +9,54 @@ type entity_info = {
   tile : int * int
 }
 
-(* [unit_class] is the class of the unit: worker or military unit *)
-type unit_class = Worker | Military
+(* [unit_class] is the class of the unit: civilian or military unit *)
+type unit_class = Civilian | Military
 
 
 type unit_type =
   | Worker
   | Scout
   | Warrior
+  | WorkBoat
   | Archer
+  | Trireme
   | Spearman
-  | Axeman
-  | Swordsman
+  | Chariot
   | Horseman
+  | Swordsman
+  | Catapult
 
 type unit_attributes = {
   movement : int;
   strength : int;
   cost : int;
-  uclass : unit_class
+  uclass : unit_class;
+  res_req : World.resource option
 }
 
 let unit_attributes_map = [
-  Worker, { movement = 2; strength = 0; cost = 100; uclass = Worker };
-  Scout, { movement = 2; strength = 1; cost = 75; uclass = Military };
-  Warrior, { movement = 1; strength = 2; cost = 100; uclass = Military };
-  Archer, { movement = 1; strength = 3; cost = 150; uclass = Military };
-  Spearman, { movement = 1; strength = 4; cost = 175; uclass = Military };
-  Axeman, { movement = 1; strength = 5; cost = 250; uclass = Military };
-  Swordsman, { movement = 1; strength = 6; cost = 250; uclass = Military };
-  Horseman, { movement = 2; strength = 6; cost = 300; uclass = Military };
+  Worker, { movement = 2; strength = 0; cost = 100;
+              uclass = Civilian; res_req = None };
+  Scout, { movement = 2; strength = 1; cost = 75;
+              uclass = Military; res_req = None };
+  Warrior, { movement = 1; strength = 2; cost = 100;
+              uclass = Military; res_req = None };
+  WorkBoat, { movement = 2; strength = 0; cost = 50;
+              uclass = Civilian; res_req = None };
+  Archer, { movement = 1; strength = 3; cost = 150;
+              uclass = Military; res_req = None };
+  Trireme, { movement = 4; strength = 5; cost = 150;
+              uclass = Military; res_req = None };
+  Spearman, { movement = 1; strength = 4; cost = 175;
+              uclass = Military; res_req = None };
+  Chariot, { movement = 2; strength = 4; cost = 175;
+              uclass = Military; res_req = Some Horses };
+  Horseman, { movement = 2; strength = 7; cost = 300;
+              uclass = Military; res_req = Some Horses };
+  Swordsman, { movement = 1; strength = 6; cost = 250;
+              uclass = Military; res_req = Some Iron };
+  Catapult, { movement = 1; strength = 5; cost = 175;
+              uclass = Military; res_req = None };
 ]
 
 
@@ -51,6 +71,7 @@ type unit_info = {
 * such as current build task, population, and gold output *)
 type city_info = {
   population: int;
+  is_capital : bool;
   food_stock: int;
   unit_production : unit_type option;
   production_stock : int;
@@ -84,6 +105,8 @@ let tile entity =
   | Unit e -> (fst e).tile
 
 let population city = (snd city).population
+
+let is_capital city = (snd city).is_capital
 
 let food_stock city = (snd city).food_stock
 
