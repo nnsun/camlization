@@ -130,7 +130,7 @@ let improvement_opt_str tile =
 let tile_yields_img tile =
   World.(
     let y = tile_yields tile in
-    I.(uchar A.(fg green) 127823 1 1 <|> 
+    I.(uchar A.(fg green) 127823 1 1 <|>
         void 1 1 <|>
        string A.(fg green) (string_of_int y.food) <|>
        void 1 1 <|>
@@ -193,6 +193,7 @@ let select_tile direction gst =
   | `Right -> (min (max_cols - 1) (current_col + 1), current_row)
 
 let rec main t (w, h) gst =
+  Term.image t (img t (w, h) gst);
   match Term.event t with
   | `End | `Key (`Uchar 68, [`Ctrl]) | `Key (`Uchar 67, [`Ctrl])
   | `Key (`Escape, []) -> Quit
@@ -212,8 +213,8 @@ let rec main t (w, h) gst =
       else (current_left_col, current_top_row) in
     let new_gst = {gst with selected_tile = select_tile direction gst;
                             map_display = new_map_display} in
-    Term.image t (img t (w, h) new_gst); main t (w, h) new_gst
-  | `Resize (nw, nh) -> Term.image t (img t (nw, nh) gst); main t (nw, nh) gst
+    main t (w, h) new_gst
+  | `Resize (nw, nh) -> main t (nw, nh) gst
   | _ -> main t (w, h) gst
 
 let new_state t (w, h) gst =
