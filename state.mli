@@ -15,7 +15,7 @@ type menu_state =
 
 (* [game_state] represents the state of a running game *)
 type game_state = {
-  date: time;
+  player_turns: int;
   map: World.map ref;
   map_display: int * int;
   selected_tile: int * int;
@@ -35,6 +35,10 @@ val start_state : state
 (* [initial_game_state options] is the state that a new multiplayer game starts
  * in with the given [options] *)
 val initial_game_state : multiplayer_options -> game_state
+
+(* [turns state] is the number of times each player has taken a turn in the
+ * game *)
+val turns : game_state -> int
 
 (* [date state] is the human-readable year (CE or BCE) of state [state] *)
 val date : game_state -> string

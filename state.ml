@@ -13,7 +13,7 @@ type menu_state =
   | About
 
 type game_state = {
-  date: time;
+  player_turns: int;
   map: World.map ref;
   map_display: int * int;
   selected_tile: int * int;
@@ -26,11 +26,14 @@ type state =
   | Game of game_state
   | Quit
 
+let initial_year = -3000
+let years_per_turn = 100
+
 let start_state = Menu (Loading)
 
 let initial_game_state options =
   {
-    date = -3000;
+    player_turns = 0;
     map = ref World.generate_map;
     map_display = (24, 24);
     selected_tile = (29, 25);
@@ -38,10 +41,12 @@ let initial_game_state options =
     players = Array.make options.player_count Player.new_player
   }
 
+let turns gst = gst.player_turns mod Array.length gst.players
+
 let date gst =
-  let date = gst.date in
+  let date = initial_year + (turns gst * years_per_turn) in
   let suffix = if date < 0 then " BCE" else " CE" in
-  string_of_int date ^ suffix
+  string_of_int (abs date) ^ suffix
 
 let game_map gst = !(gst.map)
 

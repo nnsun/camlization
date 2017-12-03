@@ -21,10 +21,18 @@ let ui_img (w, h) gst =
   let gold_text = string_of_int (Player.gold player) in
   let gold_rate =
     let rate = Player.gold_rate player in
-    if rate > 0
-    then I.string A.(fg yellow ++ bg black) ("(+" ^ string_of_int rate ^ ")")
-    else I.string A.(fg red ++ bg black) (string_of_int rate)
+    if rate >= 0
+      then I.string A.(fg yellow ++ bg black) ("(+" ^ string_of_int rate ^ ")")
+    else I.string A.(fg red ++ bg black) ("(" ^ string_of_int rate ^ ")")
   in
+  let status = I.hsnap ?align:(Some `Right) w (I.hcat [
+    I.string A.(empty ++ bg black) ("Turns: " ^ string_of_int (State.turns gst));
+    I.string A.(empty ++ bg black) (
+      "  "
+      ^ date gst
+    );
+    I.string A.(empty ++ bg black) "  QUIT "
+  ]) in
   let metrics = I.hcat [
     I.void 1 1;
     I.uchar A.(fg blue ++ bg black) 9877 1 1;
@@ -35,7 +43,8 @@ let ui_img (w, h) gst =
     I.string A.(fg yellow ++ bg black) gold_text;
     gold_rate
   ] in
-  I.(metrics </> I.tile w 1 (I.string A.(bg black) " "))
+  let background = I.tile w 1 (I.string A.(bg black) " ") in
+  I.(metrics </> status </> background)
 
 let calculate_tiles_w_h (w, h) =
   let tiles_w = (float_of_int w -. float_of_int left_padding -.
