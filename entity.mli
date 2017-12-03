@@ -11,9 +11,6 @@ type unit_class = Civilian | Military
 
 type unit_type
 
-(* [owner entity] is the player who owns [entity] *)
-val owner : entity -> Player.player
-
 (* [health entity] is the health of [entity] (>= 0) *)
 val health : entity -> int
 

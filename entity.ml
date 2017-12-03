@@ -4,7 +4,6 @@ open World
 * such as owner and health *)
 type entity_info = {
   (* TODO: Check types *)
-  owner : Player.player;
   health : int;
   tile : int * int
 }
@@ -88,11 +87,6 @@ type unit_entity = entity_info * unit_info
 type entity =
   | City of city_entity
   | Unit of unit_entity
-
-let owner entity =
-  match entity with
-  | City e -> (fst e).owner
-  | Unit e -> (fst e).owner
 
 let health entity =
   match entity with

@@ -22,5 +22,8 @@ val science : player -> science
 (* [science_rate player] is the amount of science player accumulates per turn *)
 val science_rate : player -> science
 
-(* [techs player] is the set of technologies player has researched *)
+(* [techs player] is the list of technologies that [player] has researched *)
 val techs : player -> Tech.tech list
+
+(* [entities player] is the list of entities that [player] owns *)
+val entities : player -> Entity.entity list
