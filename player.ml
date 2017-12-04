@@ -18,6 +18,16 @@ let new_player = {
   entities = [ref (Entity.new_unit Entity.Worker World.sample_tile);
               ref (Entity.new_unit Entity.Archer World.sample_tile)];
   num_cities = 0;
+  num_units = 2;
+}
+
+let new_player2 = {
+  gold = 100;
+  current_tech = None;
+  science = 50;
+  techs = [];
+  entities = [ref (Entity.new_city World.sample_tile2)];
+  num_cities = 1;
   num_units = 0;
 }
 

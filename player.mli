@@ -6,6 +6,8 @@ type player
 (* [new_player] is a newly created player *)
 val new_player : player
 
+val new_player2 : player
+
 (* [gold player] is the amount of gold player p has stored *)
 val gold : player -> gold
 

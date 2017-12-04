@@ -179,6 +179,18 @@ let new_unit utype tile =
     }
   )
 
+let new_city tile =
+  City (
+    { health = 100; tile = tile },
+    {
+      population = 1;
+      is_capital = true;
+      food_stock = 0;
+      unit_production = None;
+      production_stock = 0;
+    }
+  )
+
 let set_growth city =
   let stock = (snd city).food_stock + food_per_turn city in
   let pop = (snd city).population in

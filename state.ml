@@ -46,7 +46,7 @@ let initial_game_state options =
     selected_tile = (0, 0);
     pane_state = Tile;
     current_player = 0;
-    players = Array.make options.player_count Player.new_player
+    players = Array.append (Array.make (options.player_count - 1) Player.new_player) [| Player.new_player2 |]
   }
 
 let turns gst = gst.player_turns / Array.length gst.players

@@ -321,19 +321,20 @@ let tile_unit_str units =
   if List.length units = 0 then ""
   else string_of_int (List.length units) ^ " units"
 
-let char_for_frac f =
-  if f < 0.15 then 2581
-  else if f < 0.30 then 2582
-  else if f < 0.45 then 2583
-  else if f < 0.60 then 2585
-  else if f < 0.75 then 2586
-  else if f < 0.90 then 2587
-  else 2588
+let string_for_frac f =
+  if f < 0.15 then "▁"
+  else if f < 0.30 then "▂"
+  else if f < 0.45 then "▃"
+  else if f < 0.60 then "▅"
+  else if f < 0.75 then "▆"
+  else if f < 0.90 then "▇"
+  else "█"
 
 let city_imgs (col, row) gst =
   match State.city (col, row) gst with
   | Some city ->
-    let text s = I.string A.(fg (gray 8) ++ st bold) s in
+    let text s = I.string A.(fg (gray 3)) s in
+    let white_text s = I.string A.(fg white ++ st bold) s in
     let pop_attr = A.(fg green ++ st bold) in
     let prod_attr = A.(fg yellow ++ st bold) in
     let top = text "░░░░░░░░░░░░" in
@@ -343,21 +344,23 @@ let city_imgs (col, row) gst =
       let pop_frac = float_of_int (Entity.food_stock city)
         /. (float_of_int (Entity.growth_req pop)) in
       let pop_text =
-        I.uchar pop_attr (char_for_frac pop_frac) 1 1 in
+        I.string pop_attr (string_for_frac pop_frac) in
       let prod_frac = float_of_int (Entity.production_stock city)
         /. (float_of_int (69)) in
       let prod_text =
-        I.uchar prod_attr (char_for_frac prod_frac) 1 1 in
+        I.string prod_attr (string_for_frac prod_frac) in
       I.(
-        background </> I.hcat [
-          I.string pop_attr (string_of_int pop);
+        hsnap 14 (hcat [
+          string pop_attr (string_of_int pop);
           pop_text;
-          text "░❰CITY❱░";
+          text "░❰";
+          white_text "CITY";
+          text "❱░";
           prod_text
-        ]
+        ]) </> background
       )
     in
-    let bottom = text "░░░░░░░░░░░░░░" in
+    let bottom = text "░░░░░░░░░░░░░░░░" in
     (top, mid, bottom)
 
   | None -> (I.empty, I.empty, I.empty)
