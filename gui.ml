@@ -81,8 +81,25 @@ let player_bar (w, h) gst =
 
 let left_pane (w, h) gst =
   let pane_width = pane_width w in
-  I.(char A.(fg white ++ bg black) ' ' pane_width (h - top_padding - bottom_padding)) |>
-  I.pad ~t:top_padding
+  let text = A.(fg white ++ bg black) in
+  I.zcat [
+    I.vcat [
+      I.hsnap pane_width (I.(string A.(text ++ st underline)) "UNITS");
+      I.void 1 1;
+      I.hsnap pane_width (I.string text "MOVEMENT:");
+      I.hsnap pane_width (I.hcat [I.uchar text 8598 1 1; (I.string text " 1 ");
+                                  I.uchar text 8593 1 1; (I.string text " 2 ");
+                                  I.uchar text 8599 1 1; (I.string text " 3 ")]);
+      I.hsnap pane_width (I.hcat [I.uchar text 8601 1 1; (I.string text " 6 ");
+                                  I.uchar text 8595 1 1; (I.string text " 5 ");
+                                  I.uchar text 8600 1 1; (I.string text " 4 ");
+                                  ]);
+      I.void 1 1;
+      I.hsnap pane_width (I.string text "HEALTH: ");
+      I.void 1 1;
+      I.hsnap pane_width (I.string text "SELECT UNIT WITH U")];
+    I.(char A.(fg white ++ bg black) ' ' pane_width (h - top_padding - bottom_padding))
+  ] |> I.pad ~t:top_padding
 
 let ui_img (w, h) gst =
   I.zcat [
