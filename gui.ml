@@ -5,6 +5,8 @@ open State
 
 (* Constants and Helpers *)
 
+let is_mac_os = true
+
 let left_padding = 2
 let top_padding = 1
 let right_padding = 2
@@ -170,17 +172,19 @@ let improvement_opt_str tile =
 let tile_yields_img tile =
   World.(
     let y = tile_yields tile in
-    I.(uchar A.(fg green) 127823 1 1 <|>
-        void 1 1 <|>
-       string A.(fg green) (string_of_int y.food) <|>
-       void 1 1 <|>
-       uchar A.(fg yellow) 11044 1 1 <|>
-       void 1 1 <|>
-       string A.(fg yellow) (string_of_int y.gold) <|>
-       void 1 1 <|>
-       uchar A.(fg blue) 128296 1 1 <|>
-       void 1 1 <|>
-       string A.(fg blue) (string_of_int y.production))
+    I.(hcat [
+      uchar A.(fg green) 127823 1 1;
+      void 1 1;
+      string A.(fg green) (string_of_int y.food);
+      void 1 1;
+      uchar A.(fg yellow) 11044 1 1;
+      void 1 1;
+      string A.(fg yellow) (string_of_int y.gold);
+      void 1 1;
+      uchar A.(fg blue) 128296 1 1;
+      void 1 1;
+      string A.(fg blue) (string_of_int y.production);
+    ])
   )
 
 let tile_img is_selected (col, row) (left_col, top_row) gst =
