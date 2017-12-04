@@ -1,5 +1,20 @@
 (* [tech] represents a researchable technology *)
-type tech
+type tech =
+  | Agriculture
+    | Fishing
+      | Sailing
+        | Optics
+    | AnimalHusbandry
+      | Trapping
+        | HorsebackRiding
+    | Mining
+      | Masonry
+        | Calendar
+      | BronzeWorking
+        | IronWorking
+    | Archery
+      | TheWheel
+        | Mathematics
 
 (* [tech_cost tech] is the science cost of researching tech *)
 val tech_cost : tech -> int
