@@ -163,5 +163,13 @@ let set_production city =
       else { (snd city) with production_stock = stock } in
   let output =
     if !finished_flag then unit_production else None in
-  ((fst city,new_city_info), output)
+  ((fst city, new_city_info), output)
 
+let new_unit utype tile =
+  Unit (
+    { health = 100; tile = tile },
+    {
+      name = utype;
+      moves_left = movement_points utype
+    }
+  )

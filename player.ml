@@ -71,10 +71,34 @@ let set_science p =
     else { p with science = new_science }
   | _ -> p
 
-let set_production p = failwith "Unimplemented"
-  (* let city_refs = filter_city_refs p in
-  let rec cycle_cities cities =
+let set_production p =
+  let city_refs = filter_city_refs p in
+  let rec cycle_cities cities player =
     match cities with
     | [] -> p
-    | a::b -> p in
-  p *)
+    | a::b ->
+      let city_entity = (
+        match !a with
+        | Entity.City c -> c
+        | _ -> failwith "Error: expected City but got Unit"
+      ) in
+      let (city_entity, output) = Entity.set_production city_entity in
+      let _ = a := Entity.City city_entity in
+      if output = None then cycle_cities b player
+      else
+        let new_unit_type = (
+          match output with
+          | Some u -> u
+          | _ -> failwith "Error: expected new Unit to be produced"
+        ) in
+        let new_entity = ref (Entity.new_unit new_unit_type (Entity.tile !a)) in
+        let player =
+          { player with
+            entities = new_entity::player.entities;
+            num_units = player.num_units + 1
+          } in
+        cycle_cities b player in
+  cycle_cities city_refs p
+
+
+
