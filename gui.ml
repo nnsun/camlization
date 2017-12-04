@@ -81,38 +81,84 @@ let player_bar (w, h) gst =
 
 let tech_pane (w, h) gst = I.void 5 5
 
+let tile_yields_img tile =
+  World.(
+    let y = tile_yields tile in
+    I.(hcat [
+      uchar A.(fg green ++ bg black) 127823 1 1;
+      void 1 1;
+      string A.(fg green ++ bg black) (string_of_int y.food);
+      void 1 1;
+      uchar A.(fg yellow ++ bg black) 11044 1 1;
+      void 1 1;
+      string A.(fg yellow ++ bg black) (string_of_int y.gold);
+      void 1 1;
+      uchar A.(fg blue ++ bg black) 128296 1 1;
+      void 1 1;
+      string A.(fg blue ++ bg black) (string_of_int y.production);
+    ]))
+
+let unit_str u =
+  Entity.(
+    match Entity.get_unit_type u with
+    | Worker -> "Worker"
+    | Scout -> "Scout"
+    | Warrior -> "Warrior"
+    | WorkBoat -> "Work Boat"
+    | Archer -> "Archer"
+    | Trireme -> "Trireme"
+    | Spearman -> "Spearman"
+    | Chariot -> "Chariot"
+    | Horseman -> "Horseman"
+    | Swordsman -> "Swordsman"
+    | Catapult -> "Catapult"
+  )
+
+let unit_list_img ul selected_unit =
+  let rec unit_list_img_helper ul selected_unit current_unit =
+    let text = A.(fg white ++ bg black) in
+    match ul with
+    | [] -> I.void 1 1
+    | u :: us -> let arrow = if selected_unit = current_unit then I.uchar text 129170 1 1 else I.void 1 1 in
+      I.vcat [I.hcat [arrow; I.string text (unit_str u)]; unit_list_img_helper us selected_unit (current_unit+1)] in
+  unit_list_img_helper ul selected_unit 0
+
 let left_pane (w, h) gst =
   let pane_width = pane_width w in
   let text = A.(fg white ++ bg black) in
   let (col, row) = gst.selected_tile in
-  let entities = State.entities (col, row) gst in
   let pane_content = match gst.pane_state with
-  | Tile -> I.vcat [
-      I.hsnap pane_width (I.(string text "TILE"));
-      I.hsnap pane_width (I.(string text "City: C, Tech: T, Unit: U"))
+  | Tile -> let tile = World.get_tile gst.map col row in
+    I.vcat [
+      I.hsnap pane_width (I.(string A.(text ++ st underline) "TILE"));
+      I.hsnap pane_width (I.(string text "City: C, Tech: T, Unit: U"));
+      I.void 1 1;
+      I.hsnap pane_width (tile_yields_img tile)
     ]
-  | Unit u -> I.vcat [
-    I.hsnap pane_width (I.(string A.(text ++ st underline)) "UNITS");
-    I.hsnap pane_width (I.(string text "City: C, Tech: T, Tile: S"));
-    I.void 1 1;
-    I.hsnap pane_width (I.string text "MOVEMENT:");
-    I.hsnap pane_width (I.hcat [I.uchar text 8598 1 1; (I.string text " 1 ");
-                                I.uchar text 8593 1 1; (I.string text " 2 ");
-                                I.uchar text 8599 1 1; (I.string text " 3 ")]);
-    I.hsnap pane_width (I.hcat [I.uchar text 8601 1 1; (I.string text " 6 ");
-                                I.uchar text 8595 1 1; (I.string text " 5 ");
-                                I.uchar text 8600 1 1; (I.string text " 4 ");
-                                ]);
-    I.void 1 1;
-    I.hsnap pane_width (I.string text "HEALTH: ");
-    I.void 1 1;
-    I.hsnap pane_width (I.string text "SELECT UNIT WITH U")]
+  | Unit u -> let units = State.units (col, row) gst in
+    I.vcat [
+      I.hsnap pane_width (I.(string A.(text ++ st underline)) "UNITS");
+      I.hsnap pane_width (I.(string text "City: C, Tech: T, Tile: S"));
+      I.void 1 1;
+      I.hsnap pane_width (I.string A.(text ++ st underline) "MOVEMENT:");
+      I.hsnap pane_width (I.hcat [I.uchar text 8598 1 1; (I.string text " 1 ");
+                                  I.uchar text 8593 1 1; (I.string text " 2 ");
+                                  I.uchar text 8599 1 1; (I.string text " 3 ")]);
+      I.hsnap pane_width (I.hcat [I.uchar text 8601 1 1; (I.string text " 4 ");
+                                  I.uchar text 8595 1 1; (I.string text " 5 ");
+                                  I.uchar text 8600 1 1; (I.string text " 6 ");
+                                  ]);
+      I.void 1 1;
+      I.hsnap pane_width (I.string text "HEALTH: ");
+      I.void 1 1;
+      I.hsnap pane_width (I.string text "SELECT UNIT WITH .");
+      I.hsnap ~align: `Left pane_width (unit_list_img units u)]
   | City c -> I.vcat [
-      I.hsnap pane_width (I.(string text "CITY"));
+      I.hsnap pane_width (I.(string A.(text ++ st underline) "CITY"));
       I.hsnap pane_width (I.(string text "Tech: T, Unit: U, Tile: S"))
     ]
   | Tech t -> I.vcat [
-      I.hsnap pane_width (I.(string text "TECH"));
+      I.hsnap pane_width (I.(string A.(text ++ st underline) "TECH"));
       I.hsnap pane_width (I.(string text "City: C, Unit: U, Tile: S"))
     ] in
   I.zcat [
@@ -217,24 +263,6 @@ let improvement_opt_str tile =
     match improvement tile with
     | Some i -> improvement_str i
     | None -> "")
-
-let tile_yields_img tile =
-  World.(
-    let y = tile_yields tile in
-    I.(hcat [
-      uchar A.(fg green) 127823 1 1;
-      void 1 1;
-      string A.(fg green) (string_of_int y.food);
-      void 1 1;
-      uchar A.(fg yellow) 11044 1 1;
-      void 1 1;
-      string A.(fg yellow) (string_of_int y.gold);
-      void 1 1;
-      uchar A.(fg blue) 128296 1 1;
-      void 1 1;
-      string A.(fg blue) (string_of_int y.production);
-    ])
-  )
 
 let tile_img is_selected (col, row) (left_col, top_row) gst (w, h) =
   let color = if is_selected then A.(fg blue) else A.(fg white) in

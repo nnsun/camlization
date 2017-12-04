@@ -124,10 +124,53 @@ let sample_tile = {
   movement_cost = 1
 }
 
+let sample_tile2 = {
+  coordinates = (1, 0);
+  resource = Some Cattle;
+  improvement = Some Farm;
+  terrain = Coast;
+  feature = None;
+  elevation = Hill;
+  movement_cost = 1
+}
+
+let sample_tile3 = {
+  coordinates = (2, 0);
+  resource = Some Wheat;
+  improvement = Some Farm;
+  terrain = Grassland;
+  feature = Some Forest;
+  elevation = Flatland;
+  movement_cost = 1
+}
+
+let sample_tile4 = {
+  coordinates = (3, 0);
+  resource = None;
+  improvement = None;
+  terrain = Lake;
+  feature = None;
+  elevation = Peak;
+  movement_cost = 1
+}
+
+let sample_tile5 = {
+  coordinates = (4, 0);
+  resource = Some Corn;
+  improvement = Some Mine;
+  terrain = Plains;
+  feature = None;
+  elevation = Flatland;
+  movement_cost = 1
+}
+
 type map = tile array array
 
 let generate_map =
-  Array.make 50 (Array.make 50 sample_tile)
+  let arr = [|sample_tile; sample_tile2; sample_tile3; sample_tile4; sample_tile5|] in
+  let arr2 = [|sample_tile5; sample_tile4; sample_tile3; sample_tile2; sample_tile|] in
+  let row = Array.concat [arr; arr2; arr; arr2; arr; arr2; arr; arr2; arr; arr2] in
+  Array.make 50 row
 
 let get_tile m col row =
   m.(row).(col)
