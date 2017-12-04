@@ -120,7 +120,7 @@ let sample_tile = {
   improvement = Some Farm;
   terrain = Grassland;
   feature = Some Forest;
-  elevation = Flatland;
+  elevation = Peak;
   movement_cost = 1
 }
 

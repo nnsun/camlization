@@ -196,7 +196,7 @@ let multiplayer_items (i, options) = [|
       img "╠═╝║  ╠═╣╚╦╝║╣ ╠╦╝╚═╗";
       img "╩  ╩═╝╩ ╩ ╩ ╚═╝╩╚═╚═╝";
       I.void 1 1;
-      I.hsnap 20 (img (string_of_int options.player_count));
+      I.hsnap 20 (img (" ❮ " ^ string_of_int options.player_count ^ " ❯"));
       I.void 1 2;
     ];
     enter_state = Menu (Multiplayer (i, options))
