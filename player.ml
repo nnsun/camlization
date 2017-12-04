@@ -104,7 +104,7 @@ let set_growth p =
   let city_refs = filter_city_refs p in
   let rec cycle_cities refs =
     match refs with
-    | [] -> ()
+    | [] -> p
     | a::b ->
       let city_entity = (
         match !a with

@@ -69,3 +69,9 @@ val city : int * int -> game_state -> Entity.city_entity option
 (* [units coord gst] is the list of units at the coordinates [coord] is such exists, or
  * None otherwise *)
 val units : int * int -> game_state -> Entity.unit_entity list
+
+(* [make_move game_state unit tile] returns the resultant game state from attempting to
+ * move [unit] to [tile].
+ * Returns  [game_state] if move cannot be made, and the resultant [game_state] if
+ * the move is legal *)
+val make_move : game_state -> Entity.unit_entity -> World.tile -> game_state

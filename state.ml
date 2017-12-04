@@ -62,6 +62,8 @@ let next_turn state =
   let player = state.players.(state.current_player) in
   let player = Player.set_gold player in
   let player = Player.set_science player in
+  let player = Player.set_production player in
+  let player = Player.set_growth player in
   state.players.(state.current_player) <- player;
   {
     state with
@@ -99,3 +101,8 @@ let city coordinates gst =
       | Unit u -> None
     )
   with _ -> None
+
+let make_move state unit_entity tile =
+  if World.is_adjacent !(Entity.tile (Entity.Unit unit_entity)) tile then
+    failwith "Unimplemented"
+  else state
