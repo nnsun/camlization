@@ -13,6 +13,10 @@ val gold : player -> gold
  * negative *)
 val gold_rate : player -> gold
 
+(* [maintenance player] is the amount of maintenance per turn needed to support
+ * [player]'s units and cities *)
+val maintenance : player -> gold
+
 (* [points player] is the amount of points player has accumulated thus far *)
 val points : player -> int
 
@@ -27,3 +31,6 @@ val techs : player -> Tech.tech list
 
 (* [entities player] is the list of entities that [player] owns *)
 val entities : player -> Entity.entity list
+
+(* [set_gold player] calculates the new gold balance of [player] after a turn *)
+val set_gold : player -> player
