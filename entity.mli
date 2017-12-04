@@ -18,7 +18,7 @@ type unit_type
 val health : entity -> int
 
 (* [tile entity] is the tile that [entity] is located on *)
-val tile : entity -> World.tile
+val tile : entity -> World.tile ref
 
 (* [is_city entity] is whether the entity represents a city *)
 val is_city : entity -> bool
