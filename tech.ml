@@ -43,3 +43,10 @@ let tech_info_map = [
 let tech_cost tech = (List.assoc tech tech_info_map).cost
 
 let prereqs tech = (List.assoc tech tech_info_map).prereqs
+
+let tech_list =
+  let rec prepend acc lst =
+    match lst with
+    | [] -> acc
+    | a::b -> prepend ((fst a)::acc) b in
+  prepend [] tech_info_map
