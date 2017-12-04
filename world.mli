@@ -78,3 +78,6 @@ val gold_gen : tile -> int
 
 (* [movement_cost tile] returns the movement cost of [tile] *)
 val movement_cost : tile -> int
+
+(* [is_adjacent tile1 tile2] returns whether [tile1] is adjacent to [tile2] *)
+val is_adjacent : tile -> tile -> bool

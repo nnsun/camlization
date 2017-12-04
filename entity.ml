@@ -1,8 +1,8 @@
 open World
 open Tech
 
-(* [entity_info] represents information common to all entities,
-* such as owner and health *)
+(* [entity_info] represents information common to all entities:
+* tile and health *)
 type entity_info = {
   (* TODO: Check types *)
   health : int;

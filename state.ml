@@ -101,3 +101,8 @@ let city coordinates gst =
       | Unit u -> None
     )
   with _ -> None
+
+let make_move state unit_entity tile =
+  if World.is_adjacent !(Entity.tile (Entity.Unit unit_entity)) tile then
+    failwith "Unimplemented"
+  else state

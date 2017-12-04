@@ -202,3 +202,8 @@ let tile_yields tile = {
 }
 
 let movement_cost tile = tile.movement_cost
+
+let is_adjacent tile1 tile2 =
+  let (x1, y1) = tile1.coordinates in
+  let (x2, y2) = tile2.coordinates in
+  if abs(x2 - x1) <= 1 && abs(y2 - y1) <= 1 then true else false
