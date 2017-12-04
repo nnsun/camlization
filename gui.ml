@@ -81,8 +81,25 @@ let player_bar (w, h) gst =
 
 let left_pane (w, h) gst =
   let pane_width = pane_width w in
-  I.(char A.(fg white ++ bg black) ' ' pane_width (h - top_padding - bottom_padding)) |>
-  I.pad ~t:top_padding
+  let text = A.(fg white ++ bg black) in
+  I.zcat [
+    I.vcat [
+      I.hsnap pane_width (I.(string A.(text ++ st underline)) "UNITS");
+      I.void 1 1;
+      I.hsnap pane_width (I.string text "MOVEMENT:");
+      I.hsnap pane_width (I.hcat [I.uchar text 8598 1 1; (I.string text " 1 ");
+                                  I.uchar text 8593 1 1; (I.string text " 2 ");
+                                  I.uchar text 8599 1 1; (I.string text " 3 ")]);
+      I.hsnap pane_width (I.hcat [I.uchar text 8601 1 1; (I.string text " 6 ");
+                                  I.uchar text 8595 1 1; (I.string text " 5 ");
+                                  I.uchar text 8600 1 1; (I.string text " 4 ");
+                                  ]);
+      I.void 1 1;
+      I.hsnap pane_width (I.string text "HEALTH: ");
+      I.void 1 1;
+      I.hsnap pane_width (I.string text "SELECT UNIT WITH U")];
+    I.(char A.(fg white ++ bg black) ' ' pane_width (h - top_padding - bottom_padding))
+  ] |> I.pad ~t:top_padding
 
 let ui_img (w, h) gst =
   I.zcat [
@@ -208,7 +225,7 @@ let tile_img is_selected (col, row) (left_col, top_row) gst (w, h) =
   let top_underline_offset = if row = top_row || is_selected then 0 else 1 in
   let left = initial_tile_left w + (tile_width*(col - left_col)) in
   let top = initial_tile_top + (tile_height*(row - top_row)) + odd_even_col_offset + top_underline_offset in
-  let tile = World.get_tile !(gst.map) col row in
+  let tile = World.get_tile gst.map col row in
   grid [
     if row = top_row || is_selected then [I.void 5 1; I.string color_underline "            "] else [];
     [I.void 4 1; I.uchar color 0x2571 1 1; I.string color "            "; I.uchar color 0x2572 1 1];
@@ -234,7 +251,7 @@ let game_map (w, h) gst =
   let (tiles_w, tiles_h) = calculate_tiles_w_h (w, h) in
   let (selected_col, selected_row) = gst.selected_tile in
   let (left_col, top_row) = gst.map_display in
-  let (map_cols, map_rows) = World.map_dimensions !(gst.map) in
+  let (map_cols, map_rows) = World.map_dimensions gst.map in
   game_map_helper I.(tile_img true (selected_col, selected_row) (left_col, top_row) gst (w, h)) (w, h) gst tiles_w tiles_h (left_col, top_row) (left_col, top_row) (map_cols, map_rows)
 
 let img t (w, h) gst =

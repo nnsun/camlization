@@ -15,14 +15,14 @@ type menu_state =
 
 type pane_state =
   | Tile
-  | City
-  | Unit
-  | Tech
+  | City of int
+  | Unit of int
+  | Tech of int
 
 (* [game_state] represents the state of a running game *)
 type game_state = {
   player_turns: int;
-  map: World.map ref;
+  map: World.map;
   map_display: int * int;
   selected_tile: int * int;
   pane_state: pane_state;
@@ -36,24 +36,28 @@ type state =
   | Game of game_state
   | Quit
 
-(* [state_state] is the state that the game begins in *)
+(* [start_state] is the state that the program begins in *)
 val start_state : state
 
 (* [initial_game_state options] is the state that a new multiplayer game starts
  * in with the given [options] *)
 val initial_game_state : multiplayer_options -> game_state
 
-(* [turns state] is the number of times each player has taken a turn in the
+(* [turns gst] is the number of times each player has taken a turn in the
  * game *)
 val turns : game_state -> int
 
-(* [date state] is the human-readable year (CE or BCE) of state [state] *)
+(* [date gst] is the human-readable year (CE or BCE) of state [state] *)
 val date : game_state -> string
 
-(* [game_map state] is Some of the map of the game represented by state if the state
+(* [game_map gst] is Some of the map of the game represented by state if the state
  * is in a game. None otherwise. *)
 val game_map : game_state -> World.map
 
-(* [next_turn state] is the new state of the game after the current player
+(* [next_turn gst] is the new state of the game after the current player
  * ends their turn *)
 val next_turn : game_state -> game_state
+
+(* [entities coord gst] is the list of entities at the coordinates [coord] for
+ * the given game state [gst] *)
+val entities : int * int -> game_state -> Entity.entity list

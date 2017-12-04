@@ -6,7 +6,7 @@ open Tech
 type entity_info = {
   (* TODO: Check types *)
   health : int;
-  tile : World.tile
+  tile : World.tile ref
 }
 
 (* [unit_class] is the class of the unit: civilian or military unit *)
