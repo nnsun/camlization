@@ -206,3 +206,24 @@ let make_move state entity_ref tile =
       else
         go_to_tile state unit_entity tile
     else state
+
+let strategics state p =
+  let city_refs = Player.filter_city_refs p in
+  let rec cycle_cities acc refs =
+    match refs with
+    | [] -> acc
+    | a::b ->
+      let adj_tiles = World.adjacent_tiles (Entity.tile !a) state.map in
+      let rec check_tiles inner_acc tiles =
+        match tiles with
+        | [] -> acc
+        | c::d ->
+          if World.resource c = Some World.Horses
+              && World.improvement c = Some World.Pasture then
+            check_tiles (World.Horses::inner_acc) d
+          else if World.resource c = Some World.Iron
+              && World.improvement c = Some World.Mine then
+            check_tiles (World.Iron::inner_acc) d
+          else check_tiles acc d in
+      cycle_cities (List.rev_append acc (check_tiles [] adj_tiles)) b in
+  cycle_cities [] city_refs

@@ -191,6 +191,12 @@ let elevation tile = tile.elevation
 
 let resource tile = tile.resource
 
+let is_strategic resource =
+  match resource with
+  | Horses -> true
+  | Iron -> true
+  | _ -> false
+
 let improvement tile = tile.improvement
 
 let food_gen tile =
@@ -257,6 +263,7 @@ let is_adjacent tile1 tile2 =
 let adjacent_tiles tile map =
   let (x, y) = tile.coordinates in
   let unfiltered = [
+    tile;
     get_tile map (x - 1) y;
     get_tile map (x + 1) y;
     get_tile map (x - 1) (y + 1);
