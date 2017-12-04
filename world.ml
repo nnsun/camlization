@@ -167,10 +167,13 @@ let sample_tile5 = {
 type map = tile array array
 
 let generate_map =
-  let arr = [|sample_tile; sample_tile2; sample_tile3; sample_tile4; sample_tile5|] in
-  let arr2 = [|sample_tile5; sample_tile4; sample_tile3; sample_tile2; sample_tile|] in
-  let row = Array.concat [arr; arr2; arr; arr2; arr; arr2; arr; arr2; arr; arr2] in
-  Array.make 50 row
+  let generate_row () =
+    let arr = [|sample_tile; sample_tile2; sample_tile3; sample_tile4; sample_tile5|] in
+    let arr2 = [|sample_tile5; sample_tile4; sample_tile3; sample_tile2; sample_tile|] in
+    Array.concat [arr; arr2; arr; arr2; arr; arr2; arr; arr2; arr; arr2] in
+  let map = Array.make 50 (generate_row ()) in
+  map |> Array.iteri (fun i row -> map.(i) <- generate_row ());
+  map |> Array.iteri (fun i current_row -> (Array.iteri (fun j elt -> current_row.(j) <- {elt with coordinates = (j,i)}) current_row)); map
 
 let get_tile m col row =
   m.(row).(col)
