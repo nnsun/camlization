@@ -250,3 +250,19 @@ let is_adjacent tile1 tile2 =
   let (x1, y1) = tile1.coordinates in
   let (x2, y2) = tile2.coordinates in
   if abs(x2 - x1) <= 1 && abs(y2 - y1) <= 1 then true else false
+
+let adjacent_tiles tile map =
+  let (x, y) = tile.coordinates in
+  let unfiltered = [
+    get_tile map (x - 1) y;
+    get_tile map (x + 1) y;
+    get_tile map (x - 1) (y + 1);
+    get_tile map (x - 1) (y - 1);
+    get_tile map (x + 1) (y + 1);
+    get_tile map (x + 1) (y - 1);
+  ] in
+  let pred map t =
+    let (num_cols, num_rows) = map_dimensions map in
+    let (x, y) = t.coordinates in
+    if x < 0 || x >= num_cols || y < 0 || y >= num_rows then false else true in
+  List.filter (pred map) unfiltered

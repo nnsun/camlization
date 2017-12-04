@@ -62,6 +62,8 @@ let science_rate p =
 
 let techs p = p.techs
 
+let current_tech p = p.current_tech
+
 let entities p = p.entities
 
 let set_gold p =
