@@ -116,24 +116,26 @@ let tile_contains_enemy state tile =
     | a::b ->
       if a = player then cycle_players b
       else
-        let units_ref_list = Player.filter_unit_refs a in
-        let is_on_tile unit_ref = Entity.tile !unit_ref = !tile in
-        let sat_pred_result = satisfies_pred is_on_tile units_ref_list in
+        let entities_ref_list = Player.entities a in
+        let is_on_tile t unit_ref =
+          World.coordinates (Entity.tile !unit_ref) = World.coordinates t in
+        let sat_pred_result = satisfies_pred (is_on_tile tile) entities_ref_list in
         if sat_pred_result <> None then sat_pred_result
         else cycle_players b in
   cycle_players (Array.to_list state.players)
 
+let combat e1 e2 = failwith "Unimplemented"
 
-let make_move state unit_entity_ref tile_ref = failwith ""
-  (* let cost = World.movement_cost tile_ref in
-  let u_entity =
+
+let make_move state unit_entity_ref tile =
+  let cost = World.movement_cost tile in
   let go_to_tile st e_ref t_ref = failwith "" in
-    let opponent_opt = tile_contains_enemy st t_ref in
+    (* let opponent_opt = tile_contains_enemy st t_ref in
     match opponent_opt with
     | None ->
-    | Some o ->
+    | Some o -> *)
 
-  if World.is_adjacent !(Entity.tile (Entity.Unit !unit_entity_ref)) tile then
+  if World.is_adjacent (Entity.tile (Entity.Unit !unit_entity_ref)) tile then
     if World.elevation tile = World.Peak then state
     else if World.terrain tile = World.Ice then state
     else if World.terrain tile = World.Ocean &&
@@ -142,7 +144,7 @@ let make_move state unit_entity_ref tile_ref = failwith ""
       let techs = Player.techs player in
       let is_optics tech = if tech = Tech.Optics then true else false in
       if not (List.exists is_optics techs) then state
-      else go_to_tile state unit_entity_ref tile_ref
+      else go_to_tile state unit_entity_ref tile
     else
-      go_to_tile state unit_entity_ref tile_ref
-  else state *)
+      go_to_tile state unit_entity_ref tile
+  else state
