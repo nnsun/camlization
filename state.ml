@@ -12,11 +12,18 @@ type menu_state =
   | Options
   | About
 
+type pane_state =
+  | Tile
+  | City
+  | Unit
+  | Tech
+
 type game_state = {
   player_turns: int;
   map: World.map ref;
   map_display: int * int;
   selected_tile: int * int;
+  pane_state: pane_state;
   current_player: int;
   players: Player.player array;
 }
@@ -37,6 +44,7 @@ let initial_game_state options =
     map = ref World.generate_map;
     map_display = (24, 24);
     selected_tile = (29, 25);
+    pane_state = Tile;
     current_player = 0;
     players = Array.make options.player_count Player.new_player
   }
@@ -51,9 +59,10 @@ let date gst =
 let game_map gst = !(gst.map)
 
 let next_turn state =
-  let old_p = state.players.(state.current_player) in
-  let new_p = Player.set_gold old_p in
-  state.players.(state.current_player) <- new_p;
+  let player = state.players.(state.current_player) in
+  let player = Player.set_gold player in
+  let player = Player.set_science player in
+  state.players.(state.current_player) <- player;
   {
     state with
     current_player = (state.current_player + 1) mod (Array.length state.players);

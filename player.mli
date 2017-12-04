@@ -30,7 +30,17 @@ val science_rate : player -> science
 val techs : player -> Tech.tech list
 
 (* [entities player] is the list of entities that [player] owns *)
-val entities : player -> Entity.entity list
+val entities : player -> Entity.entity ref list
 
-(* [set_gold player] calculates the new gold balance of [player] after a turn *)
+(* [set_gold player] calculates the new gold balance of [player] after a turn
+   and returns the new state of player *)
 val set_gold : player -> player
+
+(* [set_science player] calculates the new science balance of [player] after a turn
+ * and adds techs to [player]'s list of researched techs if they are finished being
+ * researched *)
+val set_science : player -> player
+
+(* [set_production player] calculates production for each city, and creates new
+ * if production has finished *)
+val set_production : player -> player

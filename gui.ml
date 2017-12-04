@@ -62,9 +62,9 @@ let player_bar (w, h) gst =
     then
       I.(vcat [
         hsnap len (uchar A.(fg white) 9660 1 1);
-        string A.(fg white ++ bg lightblue) (String.make len ' ');
-        string A.(fg white ++ bg lightblue) player_string;
-        string A.(fg white ++ bg lightblue) (String.make len ' ');
+        string A.(fg white ++ bg blue) (String.make len ' ');
+        string A.(fg white ++ bg blue) player_string;
+        string A.(fg white ++ bg blue) (String.make len ' ');
       ])
     else
       I.(vcat [
