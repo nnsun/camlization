@@ -26,6 +26,10 @@ let filter_city_refs p =
   let is_city_ref entity = Entity.is_city !entity in
   List.filter is_city_ref p.entities
 
+let filter_unit_refs p =
+  let is_unit_ref entity = Entity.is_unit !entity in
+  List.filter is_unit_ref p.entities
+
 let gold_rate p =
   let city_refs = filter_city_refs p in
   let add_gold acc city_ref =
