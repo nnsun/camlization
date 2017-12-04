@@ -263,7 +263,6 @@ let is_adjacent tile1 tile2 =
 let adjacent_tiles tile map =
   let (x, y) = tile.coordinates in
   let unfiltered = [
-    tile;
     get_tile map (x - 1) y;
     get_tile map (x + 1) y;
     get_tile map (x - 1) (y + 1);

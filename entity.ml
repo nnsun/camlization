@@ -132,6 +132,11 @@ let unit_production city = (snd city).unit_production
 
 let production_stock city = (snd city).production_stock
 
+let worked_tiles city =
+  let workable_tiles = World.adjacent_tiles (fst city).tile in
+  (* the first entry in workable_tiles is always the city tile itself *)
+  ()
+
 let gold_per_turn city = failwith "Unimplemented"
 
 let science_per_turn city = (snd city).population * 2

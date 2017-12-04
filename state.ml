@@ -214,10 +214,17 @@ let strategics state =
     match refs with
     | [] -> acc
     | a::b ->
-      let adj_tiles = World.adjacent_tiles (Entity.tile !a) state.map in
+      let city_tile = Entity.tile !a in
+      let adj_tiles = World.adjacent_tiles city_tile state.map in
+      let acc =
+        if World.resource city_tile = Some World.Horses then
+          World.Horses::acc
+        else if World.resource city_tile = Some World.Iron then
+          World.Iron::acc
+        else acc in
       let rec check_tiles inner_acc tiles =
         match tiles with
-        | [] -> acc
+        | [] -> inner_acc
         | c::d ->
           if World.resource c = Some World.Horses
               && World.improvement c = Some World.Pasture then
@@ -225,7 +232,7 @@ let strategics state =
           else if World.resource c = Some World.Iron
               && World.improvement c = Some World.Mine then
             check_tiles (World.Iron::inner_acc) d
-          else check_tiles acc d in
+          else check_tiles inner_acc d in
       cycle_cities (List.rev_append acc (check_tiles [] adj_tiles)) b in
   cycle_cities [] city_refs
 
