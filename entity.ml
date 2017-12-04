@@ -6,7 +6,7 @@ open Tech
 type entity_info = {
   (* TODO: Check types *)
   health : int;
-  tile : World.tile
+  tile : tile
 }
 
 (* [unit_class] is the class of the unit: civilian or military unit *)
@@ -32,7 +32,7 @@ type unit_attributes = {
   cost : int;
   uclass : unit_class;
   tech_req : Tech.tech option;
-  res_req : World.resource option
+  res_req : resource option
 }
 
 let unit_attributes_map = [
