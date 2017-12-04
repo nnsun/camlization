@@ -3,6 +3,8 @@ open Notty_unix
 open Notty_helper
 open State
 
+(* Constants and Helpers *)
+
 let left_padding = 2
 let top_padding = 1
 let right_padding = 2
@@ -46,8 +48,34 @@ let status_bar (w, h) gst =
   let background = I.tile w 1 (I.string A.(bg black) " ") in
   I.(metrics </> status </> background)
 
+let player_bar (w, h) gst =
+  let pimg i p =
+    let player_string = " PLAYER " ^ string_of_int i ^ " " in
+    let len = String.length player_string in
+    if gst.current_player = i
+    then
+      I.(vcat [
+        hsnap len (uchar A.(fg white) 9660 1 1);
+        string A.(fg white ++ bg lightblue) (String.make len ' ');
+        string A.(fg white ++ bg lightblue) player_string;
+        string A.(fg white ++ bg lightblue) (String.make len ' ');
+      ])
+    else
+      I.(vcat [
+        void 1 1;
+        string A.empty (String.make len ' ');
+        string A.empty player_string;
+        string A.empty (String.make len ' ');
+      ])
+  in
+  let bar = Array.mapi pimg gst.players |> Array.to_list |> I.hcat in
+  I.(void 1 (h - 4) <-> hsnap w bar)
+
 let ui_img (w, h) gst =
-  status_bar (w, h) gst
+  I.zcat [
+    status_bar (w, h) gst;
+    player_bar (w, h) gst
+  ]
 
 let calculate_tiles_w_h (w, h) =
   let tiles_w = (float_of_int w -. float_of_int left_padding -.
