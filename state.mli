@@ -87,3 +87,7 @@ val make_move : game_state -> Entity.entity ref -> World.tile -> game_state
 (* [available_techs state] returns a list of techs that the current player
  * is able to research *)
 val available_techs : game_state -> Tech.tech list
+
+(* [available_techs state] returns a list of [unit_type]s that the current player
+ * is able to build *)
+val available_units : game_state -> Entity.unit_type list
