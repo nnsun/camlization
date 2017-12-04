@@ -88,3 +88,7 @@ val moves_left : unit_entity -> int
 (* [new_unit unit_type tile] returns a new entity of type Unit with
  * unit type [unit_type] on tile [tile] *)
 val new_unit : unit_type -> World.tile ref -> entity
+
+(* [set_growth city] calculates the new food stockpile and population
+ * of [city] after a turn and returns the new city_entity *)
+ val set_growth : city_entity -> city_entity
