@@ -4,7 +4,6 @@ open Tech
 (* [entity_info] represents information common to all entities:
 * tile and health *)
 type entity_info = {
-  (* TODO: Check types *)
   health : int;
   tile : tile
 }
@@ -212,3 +211,6 @@ let subtract_moves_left unit_entity cost =
   let new_unit_info =
     { (snd unit_entity) with moves_left = (if diff < 0 then 0 else diff) } in
   (fst unit_entity, new_unit_info)
+
+let set_tile unit_entity tile =
+  ( {(fst unit_entity) with tile = tile }, snd unit_entity )

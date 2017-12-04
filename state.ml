@@ -157,6 +157,8 @@ let make_move state unit_entity_ref tile =
   let moves_left = Entity.moves_left !unit_entity_ref in
   if moves_left <= 0 then state else
     let cost = World.movement_cost tile in
+    let update_tile unit_entity_ref tile =
+      Entity.set_tile !unit_entity_ref tile in
     let go_to_tile st e_ref t_ref =
       let opponent_opt = tile_contains_enemy st t_ref in
       match opponent_opt with
@@ -164,7 +166,10 @@ let make_move state unit_entity_ref tile =
         let _ =
           unit_entity_ref :=
             Entity.subtract_moves_left !unit_entity_ref cost in
-            state
+        let _ =
+          unit_entity_ref :=
+            Entity.set_tile !unit_entity_ref tile in
+        state
       | Some o ->
           let (new_e1, new_e2) = combat (Entity.Unit !unit_entity_ref) (!o) in
           let new_ue1 = (
