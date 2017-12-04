@@ -76,10 +76,6 @@ type city_info = {
   food_stock: int;
   unit_production : unit_type option;
   production_stock : int;
-  gold : int;
-  science : int;
-  production : int;
-  food : int;
 }
 
 type city_entity = entity_info * city_info
@@ -127,13 +123,13 @@ let unit_production city = (snd city).unit_production
 
 let production_stock city = (snd city).production_stock
 
-let gold_per_turn city = (snd city).gold
+let gold_per_turn city = failwith "Unimplemented"
 
-let science_per_turn city = (snd city).science
+let science_per_turn city = (snd city).population * 2
 
-let production_per_turn city = (snd city).production
+let production_per_turn city = failwith "Unimplemented"
 
-let food_per_turn city = (snd city).food
+let food_per_turn city = failwith "Unimplemented"
 
 let movement_points utype = (List.assoc utype unit_attributes_map).movement
 

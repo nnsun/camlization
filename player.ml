@@ -100,5 +100,9 @@ let set_production p =
         cycle_cities b player in
   cycle_cities city_refs p
 
+let set_growth p = failwith "Unimplemented"
+  (* let city_refs = filter_city_refs p in *)
+  (* let rec cycle_cities cities player  *)
+
 
 
