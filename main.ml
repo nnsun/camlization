@@ -2,20 +2,18 @@ open Notty
 open Notty_unix
 open State
 
-let rec menu t (w, h) mst =
-  main t (w, h) (Menu.new_state t (w, h) mst)
-and game t (w, h) gst =
-  Term.image t (Gui.img t (w, h) gst);
-  main t (w, h) (Gui.new_state t (w, h) gst)
-and main t (w, h) st =
+let rec menu t mst =
+  main t (Menu.new_state t mst)
+and game t gst =
+  main t (Gui.new_state t gst)
+and main t (st: state) =
   match st with
-  | Menu mst -> menu t (w, h) mst
-  | Game gst -> game t (w, h) gst
+  | Menu mst -> menu t mst
+  | Game gst -> game t gst
   | Quit -> ()
-
 
 let start () =
   let t = Term.create () in
-  main t (Term.size t) start_state
+  main t start_state
 
 let _ = start ()

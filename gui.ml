@@ -15,7 +15,7 @@ let initial_tile_top = top_padding
 
 let grid xxs = xxs |> List.map I.hcat |> I.vcat
 
-let ui_img (w, h) gst =
+let status_bar (w, h) gst =
   let player = gst.players.(gst.current_player) in
   let science_text = string_of_int (Player.science_rate player) in
   let gold_text = string_of_int (Player.gold player) in
@@ -45,6 +45,9 @@ let ui_img (w, h) gst =
   ] in
   let background = I.tile w 1 (I.string A.(bg black) " ") in
   I.(metrics </> status </> background)
+
+let ui_img (w, h) gst =
+  status_bar (w, h) gst
 
 let calculate_tiles_w_h (w, h) =
   let tiles_w = (float_of_int w -. float_of_int left_padding -.
@@ -189,7 +192,8 @@ let game_map (w, h) gst =
   let (map_cols, map_rows) = World.map_dimensions !(gst.map) in
   game_map_helper I.(tile_img true (selected_col, selected_row) (left_col, top_row) gst) gst tiles_w tiles_h (left_col, top_row) (left_col, top_row) (map_cols, map_rows)
 
-let img t (w, h) gst = I.(ui_img (w, h) gst </> game_map (w, h) gst)
+let img t (w, h) gst =
+  I.(ui_img (w, h) gst </> game_map (w, h) gst)
 
 let select_tile direction gst =
   let map = State.game_map gst in
@@ -201,7 +205,8 @@ let select_tile direction gst =
   | `Left -> (max 0 (current_col - 1), current_row)
   | `Right -> (min (max_cols - 1) (current_col + 1), current_row)
 
-let rec main t (w, h) gst =
+let rec main t gst =
+  let (w, h) = Term.size t in
   Term.image t (img t (w, h) gst);
   match Term.event t with
   | `End | `Key (`Uchar 68, [`Ctrl]) | `Key (`Uchar 67, [`Ctrl])
@@ -220,12 +225,14 @@ let rec main t (w, h) gst =
       else if new_selected_row < current_top_row then
         (current_left_col, current_top_row - 1)
       else (current_left_col, current_top_row) in
-    let new_gst = {gst with selected_tile = select_tile direction gst;
-                            map_display = new_map_display} in
-    main t (w, h) new_gst
-  | `Resize (nw, nh) -> main t (nw, nh) gst
-  | `Key (`Enter, []) -> main t (w, h) gst
-  | _ -> main t (w, h) gst
+    let new_gst = { gst with
+      selected_tile = select_tile direction gst;
+      map_display = new_map_display
+    } in
+    main t new_gst
+  | `Resize (nw, nh) -> main t gst
+  | `Key (`Enter, []) -> main t gst
+  | _ -> main t gst
 
-let new_state t (w, h) gst =
-  main t (w, h) gst
+let new_state t gst =
+  main t gst

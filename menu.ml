@@ -305,24 +305,25 @@ let rec multiplayer t (w, h) i options =
   | `Resize (nw, nh) -> multiplayer t (nw, nh) i options
   | _ -> multiplayer t (w, h) i options
 
-let rec main t (w, h) i =
+let rec main t i =
+  let (w, h) = Term.size t in
   Term.image t (img t (w, h) (Main (i)));
   match Term.event t with
   | `End | `Key (`Uchar 68, [`Ctrl]) | `Key (`Uchar 67, [`Ctrl])
   | `Key (`Escape, []) -> Quit
   | `Key (`Arrow(`Up), []) ->
-    main t (w, h) (if i-1 = -1 then Array.length main_menu_items - 1 else i-1)
+    main t (if i-1 = -1 then Array.length main_menu_items - 1 else i-1)
   | `Key (`Arrow(`Down), []) ->
-    main t (w, h) ((i+1) mod Array.length main_menu_items)
+    main t ((i+1) mod Array.length main_menu_items)
   | `Key (`Enter, []) -> main_menu_items.(i).enter_state
-  | `Resize (nw, nh) -> main t (nw, nh) i
-  | _ -> main t (w, h) i
+  | _ -> main t i
 
-let new_state t (w, h) mst =
+let new_state t mst =
+  let (w, h) = Term.size t in
   match mst with
   | Loading -> Term.image t (img t (w, h) mst); Unix.sleep 1; Menu(Copyright)
   | Copyright -> Menu(copyright t (w, h) mst)
-  | Main i -> main t (w, h) i
+  | Main i -> main t i
   | Multiplayer (i, options) -> multiplayer t (w, h) i options
   | Options -> Menu(Options)
   | About -> Menu(About)
