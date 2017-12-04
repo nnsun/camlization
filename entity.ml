@@ -170,4 +170,12 @@ let new_unit utype tile =
     }
   )
 
-let set_growth city = failwith "Unimplemented"
+let set_growth city =
+  let stock = (snd city).food_stock + food_per_turn city in
+  let pop = (snd city).population in
+  let growth_req = 15 + 5 * pop in
+  if stock >= growth_req then
+    (fst city,
+      { (snd city) with food_stock = stock - growth_req; population = pop })
+  else
+    (fst city, { (snd city) with food_stock = stock })
