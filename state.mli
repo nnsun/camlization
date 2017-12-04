@@ -13,12 +13,19 @@ type menu_state =
   | Options
   | About
 
+type pane_state =
+  | Tile
+  | City
+  | Unit
+  | Tech
+
 (* [game_state] represents the state of a running game *)
 type game_state = {
   player_turns: int;
   map: World.map ref;
   map_display: int * int;
   selected_tile: int * int;
+  pane_state: pane_state;
   current_player: int;
   players: Player.player array;
 }
