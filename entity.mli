@@ -49,29 +49,38 @@ val unit_production : city_entity -> unit_type option
 (* [production_stock city] is the amount of production that [city] has accumulated *)
 val production_stock : city_entity -> int
 
+(* [set_production city] calculates the new production stockpile value and builds a
+ * new unit if production finishes
+ * Returns: a tuple with a new city_entity with the updated hammer stock as the
+ * first value and [Some unit_entity] if the unit_entity was built, or [None] if
+ * production hasn't finished as it second value *)
+val set_production : city_entity -> city_entity * unit_entity option
+
 (* [gold_per_turn city] is the amount of gold that [city] is generating per turn *)
 val gold_per_turn : city_entity -> int
 
-(* [science_per_turn city] is the amount of science that [city] is generating per turn *)
+(* [science_per_turn city] is the amount of science that [city] is
+ * generating per turn *)
 val science_per_turn : city_entity -> int
 
-(* [production_per_turn city] is the amount of production that [city] is generating per turn *)
+(* [production_per_turn city] is the amount of production that [city] is
+ * generating per turn *)
 val production_per_turn : city_entity -> int
 
 (* [food_per_turn city] is the amount of food that [city] is generating per turn *)
 val food_per_turn : city_entity -> int
 
 (* [movement_points unit] is the number of movement points that [unit] has per turn *)
-val movement_points : unit_entity -> int
+val movement_points : unit_type -> int
 
 (* [strength unit] is the strength of [unit] *)
-val strength : unit_entity -> int
+val strength : unit_type -> int
 
 (* [unit_cost unit] is the production cost of [unit] *)
-val unit_cost : unit_entity -> int
+val unit_cost : unit_type -> int
 
 (* [unit_class unit] is the unit class of [unit] (Civilian or Military) *)
-val unit_class : unit_entity -> unit_class
+val unit_class : unit_type -> unit_class
 
 (* [moves_left unit] is the remaining movement points of [unit] (>= 0) *)
 val moves_left : unit_entity -> int

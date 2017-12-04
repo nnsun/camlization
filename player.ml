@@ -72,5 +72,9 @@ let set_science p =
   | _ -> p
 
 let set_production p = failwith "Unimplemented"
-  (* let cities = List.filter Entity.is_city p in
-  let rec cycle_cities cities = 0 in p *)
+  (* let city_refs = filter_city_refs p in
+  let rec cycle_cities cities =
+    match cities with
+    | [] -> p
+    | a::b -> p in
+  p *)

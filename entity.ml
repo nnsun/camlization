@@ -135,17 +135,21 @@ let production_per_turn city = (snd city).production
 
 let food_per_turn city = (snd city).food
 
-let get_unit_attributes unit =
-  let unit_name = (snd unit).name in
-  List.assoc unit_name unit_attributes_map
+let movement_points utype = (List.assoc utype unit_attributes_map).movement
 
+let strength utype = (List.assoc utype unit_attributes_map).strength
 
-let movement_points unit = (get_unit_attributes unit).movement
+let unit_cost utype = (List.assoc utype unit_attributes_map).cost
 
-let strength unit = (get_unit_attributes unit).strength
-
-let unit_cost unit = (get_unit_attributes unit).cost
-
-let unit_class unit = (get_unit_attributes unit).uclass
+let unit_class utype = (List.assoc utype unit_attributes_map).uclass
 
 let moves_left unit = (snd unit).moves_left
+
+let set_production city = failwith "Unimplemented"
+  (* let production_stock = (snd city).production_stock + production_per_turn city in
+  let unit_production = (snd city).unit_production in
+  let new_city_info =
+    match unit_production with
+    | None -> { (snd city) with production_stock = production_stock }
+    | Some u ->
+      let cost = unit_cost u in *)
