@@ -169,3 +169,5 @@ let new_unit utype tile =
       moves_left = movement_points utype
     }
   )
+
+let set_growth city = failwith "Unimplemented"

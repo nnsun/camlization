@@ -73,9 +73,9 @@ let set_science p =
 
 let set_production p =
   let city_refs = filter_city_refs p in
-  let rec cycle_cities cities player =
-    match cities with
-    | [] -> p
+  let rec cycle_cities refs player =
+    match refs with
+    | [] -> player
     | a::b ->
       let city_entity = (
         match !a with
@@ -100,9 +100,18 @@ let set_production p =
         cycle_cities b player in
   cycle_cities city_refs p
 
-let set_growth p = failwith "Unimplemented"
-  (* let city_refs = filter_city_refs p in *)
-  (* let rec cycle_cities cities player  *)
-
-
-
+let set_growth p =
+  let city_refs = filter_city_refs p in
+  let rec cycle_cities refs =
+    match refs with
+    | [] -> ()
+    | a::b ->
+      let city_entity = (
+        match !a with
+        | Entity.City c -> c
+        | _ -> failwith "Error: expected City but got Unit"
+      ) in
+      let city_entity = Entity.set_growth city_entity in
+      let _ = a := Entity.City city_entity in
+      cycle_cities b in
+  cycle_cities city_refs
