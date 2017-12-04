@@ -71,7 +71,7 @@ let next_turn state =
     player_turns = state.player_turns + 1
   }
 
-let entities coordinates gst =
+let entities_refs coordinates gst =
   let valid_entity e =
     let entity = !e in
     Entity.health entity != 0
@@ -79,7 +79,10 @@ let entities coordinates gst =
   in
   let entities_of_player p = List.filter valid_entity (Player.entities p) in
   let players = Array.map entities_of_player gst.players in
-  players |> Array.to_list |> List.flatten |> List.map (!)
+  players |> Array.to_list |> List.flatten
+
+let entities coordinates gst =
+  entities_refs coordinates gst |> List.map (!)
 
 let units coordinates gst =
   let l = entities coordinates gst in
@@ -91,6 +94,10 @@ let units coordinates gst =
     )
   in
   List.map unit_entity l |> List.flatten
+
+let unit_refs coordinates gst =
+  let l = entities_refs coordinates gst in
+  List.filter (fun e -> Entity.is_unit !e) l
 
 let city coordinates gst =
   let l = entities coordinates gst in

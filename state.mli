@@ -58,17 +58,25 @@ val game_map : game_state -> World.map
  * ends their turn *)
 val next_turn : game_state -> game_state
 
+(* [entities_refs coord gst] is the list of entity refs at the coordinates
+ * [coord] for the given game state [gst] *)
+val entities_refs : int * int -> game_state -> Entity.entity ref list
+
 (* [entities coord gst] is the list of entities at the coordinates [coord] for
  * the given game state [gst] *)
 val entities : int * int -> game_state -> Entity.entity list
 
-(* [city coord gst] is the city at the coordinates [coord] is such exists, or
+(* [city coord gst] is the city at the coordinates [coord] if such exists, or
  * None otherwise *)
 val city : int * int -> game_state -> Entity.city_entity option
 
-(* [units coord gst] is the list of units at the coordinates [coord] is such exists, or
- * None otherwise *)
+(* [units coord gst] is the list of units at the coordinates [coord] if such
+ * exists, or None otherwise *)
 val units : int * int -> game_state -> Entity.unit_entity list
+
+(* [unit_refs coord gst] is the list of unit refs at the coordinates [coord] if
+ * such exists, or None otherwise *)
+val unit_refs : int * int -> game_state -> Entity.entity ref list
 
 (* [make_move game_state unit tile] returns the resultant game state from attempting to
  * move [unit] to [tile].
