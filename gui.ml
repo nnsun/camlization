@@ -81,44 +81,95 @@ let player_bar (w, h) gst =
 
 let tech_pane (w, h) gst = I.void 5 5
 
+let tile_yields_img tile =
+  World.(
+    let y = tile_yields tile in
+    I.(hcat [
+      uchar A.(fg green ++ bg black) 127823 1 1;
+      void 1 1;
+      string A.(fg green ++ bg black) (string_of_int y.food);
+      void 1 1;
+      uchar A.(fg yellow ++ bg black) 11044 1 1;
+      void 1 1;
+      string A.(fg yellow ++ bg black) (string_of_int y.gold);
+      void 1 1;
+      uchar A.(fg blue ++ bg black) 128296 1 1;
+      void 1 1;
+      string A.(fg blue ++ bg black) (string_of_int y.production);
+    ]))
+
+let unit_str u =
+  Entity.(
+    match Entity.get_unit_type u with
+    | Worker -> "Worker"
+    | Scout -> "Scout"
+    | Warrior -> "Warrior"
+    | WorkBoat -> "Work Boat"
+    | Archer -> "Archer"
+    | Trireme -> "Trireme"
+    | Spearman -> "Spearman"
+    | Chariot -> "Chariot"
+    | Horseman -> "Horseman"
+    | Swordsman -> "Swordsman"
+    | Catapult -> "Catapult"
+  )
+
+let unit_list_img ul selected_unit =
+  let rec unit_list_img_helper ul selected_unit current_unit =
+    let text = A.(fg white ++ bg black) in
+    let health = A.(fg red ++ bg black) in
+    match ul with
+    | [] -> I.void 1 1
+    | u :: us -> let arrow = if selected_unit = current_unit then I.uchar text 129170 1 1 else I.void 1 1 in
+      I.vcat [I.hcat [arrow; I.string text (unit_str u); I.void 1 1; I.uchar health 9829 1 1; I.void 1 1;
+                      I.string health (string_of_int (Entity.health (Entity.Unit u)))];
+              unit_list_img_helper us selected_unit (current_unit+1)] in
+  unit_list_img_helper ul selected_unit 0
+
 let left_pane (w, h) gst =
   let pane_width = pane_width w in
   let text = A.(fg white ++ bg black) in
   let underlined = A.(fg white ++ bg black ++ st underline) in
   let (col, row) = gst.selected_tile in
-  let entities = State.entities (col, row) gst in
   let pane_content = match gst.pane_state with
   | Tile -> I.vcat [
       I.hsnap pane_width (I.(string text "TILE"));
       I.hsnap pane_width (I.(string text "City: C, Tech: T, Units: U"))
     ]
-  | Unit u -> I.vcat [
-    I.hsnap pane_width (I.(string A.(text ++ st underline)) "UNITS");
-    I.hsnap pane_width (I.(string text "City: C, Tech: T, Tile: S"));
-    I.void 1 1;
-    I.hsnap pane_width (I.string text "MOVEMENT:");
-    I.hsnap pane_width (I.string text "___");
-    I.hsnap pane_width (I.string text "/   \\");
-    I.hsnap pane_width (I.string text ",--(     )--.");
-    I.hsnap pane_width (I.(hcat [
-      string text "/    \\_"; string underlined "2"; string text "_/    \\"
-    ]));
-    I.hsnap pane_width (I.string text "\\  1 /   \\ 3  /");
-    I.hsnap pane_width (I.string text ")--(     )--(");
-    I.hsnap pane_width (I.string text "/  4 \\___/ 6  \\");
-    I.hsnap pane_width (I.string text "\\    / 5 \\    /");
-    I.hsnap pane_width (I.string text "`--(     )--'");
-    I.hsnap pane_width (I.string text "\\___/");
-    I.void 1 1;
-    I.hsnap pane_width (I.string text "HEALTH: ");
-    I.void 1 1;
-    I.hsnap pane_width (I.string text "SELECT UNIT WITH U")]
+  | Unit u -> let units = State.units (col, row) gst in
+    let num_units = List.length units in
+    I.vcat [
+      I.hsnap pane_width (I.(string A.(text ++ st underline)) "UNITS");
+      I.hsnap pane_width (I.(string text "City: C, Tech: T, Tile: S"));
+      I.void 1 1;
+      I.hsnap pane_width (I.string text "MOVEMENT:");
+      I.hsnap pane_width (I.string text "___");
+      I.hsnap pane_width (I.string text "/   \\");
+      I.hsnap pane_width (I.string text ",--(     )--.");
+      I.hsnap pane_width (I.(hcat [
+        string text "/    \\_"; string underlined "2"; string text "_/    \\"
+      ]));
+      I.hsnap pane_width (I.string text "\\  1 /   \\ 3  /");
+      I.hsnap pane_width (I.string text ")--(     )--(");
+      I.hsnap pane_width (I.string text "/  4 \\___/ 6  \\");
+      I.hsnap pane_width (I.string text "\\    / 5 \\    /");
+      I.hsnap pane_width (I.string text "`--(     )--'");
+      I.hsnap pane_width (I.string text "\\___/");
+      I.void 1 1;
+      I.hsnap pane_width (I.string text "HEALTH: ");
+      I.void 1 1;
+      I.hsnap pane_width (I.string text "SELECT UNIT WITH .");
+      I.void 1 1;
+      if num_units > 0 then
+        I.hsnap ~align: `Left pane_width (unit_list_img units (u mod num_units))
+      else I.void 1 1
+    ]
   | City c -> I.vcat [
-      I.hsnap pane_width (I.(string text "CITY"));
+      I.hsnap pane_width (I.(string A.(text ++ st underline) "CITY"));
       I.hsnap pane_width (I.(string text "Tech: T, Units: U, Tile: S"))
     ]
   | Tech t -> I.vcat [
-      I.hsnap pane_width (I.(string text "TECH"));
+      I.hsnap pane_width (I.(string A.(text ++ st underline) "TECH"));
       I.hsnap pane_width (I.(string text "City: C, Units: U, Tile: S"))
     ] in
   I.zcat [
@@ -302,6 +353,13 @@ let select_tile direction gst =
   | `Left -> (max 0 (current_col - 1), current_row)
   | `Right -> (min (max_cols - 1) (current_col + 1), current_row)
 
+let next_pane_state pst tile_changing =
+  match pst with
+  | Tile -> Tile
+  | Unit u -> if tile_changing then Unit 0 else Unit (u+1)
+  | City c -> if tile_changing then City 0 else City (c+1)
+  | Tech t -> if tile_changing then Tech 0 else Tech (t+1)
+
 let rec main t gst =
   let (w, h) = Term.size t in
   Term.image t (img t (w, h) gst);
@@ -324,15 +382,17 @@ let rec main t gst =
       else (current_left_col, current_top_row) in
     let new_gst = { gst with
       selected_tile = select_tile direction gst;
-      map_display = new_map_display
+      map_display = new_map_display;
+      pane_state = next_pane_state gst.pane_state true
     } in
     main t new_gst
   | `Resize (nw, nh) -> main t gst
-  | `Key (`Enter, []) -> main t gst
+  | `Key (`Enter, []) -> main t (State.next_turn gst)
   | `Key (`Uchar 117, []) -> main t {gst with pane_state = Unit 0}
   | `Key (`Uchar 99, []) -> main t {gst with pane_state = City 0}
   | `Key (`Uchar 116, []) -> main t {gst with pane_state = Tech 0}
   | `Key (`Uchar 115, []) -> main t {gst with pane_state = Tile}
+  | `Key (`Uchar 46, []) -> main t {gst with pane_state = next_pane_state gst.pane_state false}
   | _ -> main t gst
 
 let new_state t gst =

@@ -12,13 +12,24 @@ type entity =
 
 type unit_class = Civilian | Military
 
-type unit_type
+type unit_type =
+  | Worker
+  | Scout
+  | Warrior
+  | WorkBoat
+  | Archer
+  | Trireme
+  | Spearman
+  | Chariot
+  | Horseman
+  | Swordsman
+  | Catapult
 
 (* [health entity] is the health of [entity] (>= 0) *)
 val health : entity -> int
 
 (* [tile entity] is the tile that [entity] is located on *)
-val tile : entity -> World.tile ref
+val tile : entity -> tile
 
 (* [is_city entity] is whether the entity represents a city *)
 val is_city : entity -> bool
@@ -87,8 +98,26 @@ val moves_left : unit_entity -> int
 
 (* [new_unit unit_type tile] returns a new entity of type Unit with
  * unit type [unit_type] on tile [tile] *)
-val new_unit : unit_type -> World.tile ref -> entity
+val new_unit : unit_type -> tile -> entity
 
 (* [set_growth city] calculates the new food stockpile and population
  * of [city] after a turn and returns the new city_entity *)
- val set_growth : city_entity -> city_entity
+val set_growth : city_entity -> city_entity
+
+(* [relative_str e1 e2] returns the relative strength of [e1] prior to
+ * initiating combat with [e2] *)
+val relative_str : entity -> entity -> float
+
+(* [set_health entity i] returns [entity] with health set to [i] *)
+val set_health : entity -> int -> entity
+
+(* [get_unit_type u] is the unit type for [u] *)
+val get_unit_type : unit_entity -> unit_type
+
+(* [subtract_moves_left unit_entity cost] returns [entity] with cost fewer
+ * moves left, or 0 moves left if the difference is less than 0 *)
+val subtract_moves_left : unit_entity -> int -> unit_entity
+
+(* [set_tile unit_entity tile] returns [unit_entity] with the tile location
+ * set to [tile] *)
+val set_tile : unit_entity -> tile -> unit_entity

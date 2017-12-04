@@ -4,9 +4,8 @@ open Tech
 (* [entity_info] represents information common to all entities:
 * tile and health *)
 type entity_info = {
-  (* TODO: Check types *)
   health : int;
-  tile : World.tile ref
+  tile : tile
 }
 
 (* [unit_class] is the class of the unit: civilian or military unit *)
@@ -32,7 +31,7 @@ type unit_attributes = {
   cost : int;
   uclass : unit_class;
   tech_req : Tech.tech option;
-  res_req : World.resource option
+  res_req : resource option
 }
 
 let unit_attributes_map = [
@@ -85,6 +84,14 @@ type unit_entity = entity_info * unit_info
 type entity =
   | City of city_entity
   | Unit of unit_entity
+
+let get_unit_type u =
+  (snd u).name
+
+let shared_info e =
+  match e with
+  | City c -> fst c
+  | Unit u -> fst u
 
 let health entity =
   match entity with
@@ -179,3 +186,31 @@ let set_growth city =
       { (snd city) with food_stock = stock - growth_req; population = pop })
   else
     (fst city, { (snd city) with food_stock = stock })
+
+let relative_str e1 e2 =
+  (* TODO: Add unit bonuses *)
+  let (health, str) =
+    match e1 with
+    | City c ->
+      ((fst c).health, (snd c).population)
+    | Unit u ->
+      ((fst u).health, (List.assoc  ((snd u).name) unit_attributes_map).strength) in
+  (float_of_int health) /. 100. *. (float_of_int str)
+
+let set_health entity new_health =
+  let new_health = if new_health < 0 then 0 else new_health in
+  let entity_info = { (shared_info entity) with health = new_health } in
+  match entity with
+  | City c ->
+    City (entity_info, snd c )
+  | Unit u ->
+    Unit (entity_info, snd u)
+
+let subtract_moves_left unit_entity cost =
+  let diff = (snd unit_entity).moves_left - cost in
+  let new_unit_info =
+    { (snd unit_entity) with moves_left = (if diff < 0 then 0 else diff) } in
+  (fst unit_entity, new_unit_info)
+
+let set_tile unit_entity tile =
+  ( {(fst unit_entity) with tile = tile }, snd unit_entity )

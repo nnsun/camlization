@@ -15,7 +15,8 @@ let new_player = {
   current_tech = None;
   science = 0;
   techs = [];
-  entities = [];
+  entities = [ref (Entity.new_unit Entity.Worker World.sample_tile);
+              ref (Entity.new_unit Entity.Archer World.sample_tile)];
   num_cities = 0;
   num_units = 0;
 }
@@ -25,6 +26,10 @@ let gold p = p.gold
 let filter_city_refs p =
   let is_city_ref entity = Entity.is_city !entity in
   List.filter is_city_ref p.entities
+
+let filter_unit_refs p =
+  let is_unit_ref entity = Entity.is_unit !entity in
+  List.filter is_unit_ref p.entities
 
 let gold_rate p =
   let city_refs = filter_city_refs p in

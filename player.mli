@@ -29,7 +29,7 @@ val science_rate : player -> science
 (* [techs player] is the list of technologies that [player] has researched *)
 val techs : player -> Tech.tech list
 
-(* [entities player] is the list of entities that [player] owns *)
+(* [entities player] is the list of refs of entities that [player] owns *)
 val entities : player -> Entity.entity ref list
 
 (* [set_gold player] calculates the new gold balance of [player] after a turn
@@ -48,3 +48,9 @@ val set_production : player -> player
 (* [set_growth player] calculates growth for each city, and adjusts food
  * stockpile levels and population *)
  val set_growth : player -> player
+
+(* [filter_city_refs player] is the list of refs of cities that [player] owns *)
+val filter_city_refs : player -> Entity.entity ref list
+
+(* [filter_unit_refs player] is the list of refs of units that [player] owns *)
+val filter_unit_refs : player -> Entity.entity ref list

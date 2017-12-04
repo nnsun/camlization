@@ -74,4 +74,4 @@ val units : int * int -> game_state -> Entity.unit_entity list
  * move [unit] to [tile].
  * Returns  [game_state] if move cannot be made, and the resultant [game_state] if
  * the move is legal *)
-val make_move : game_state -> Entity.unit_entity -> World.tile -> game_state
+val make_move : game_state -> Entity.unit_entity ref -> World.tile -> game_state
