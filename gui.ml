@@ -8,11 +8,17 @@ open State
 let left_padding = 2
 let top_padding = 1
 let right_padding = 2
-let bottom_padding = 2
+let bottom_padding = 4
 let gui_bar_padding = 2
 let tile_width = 17
 let tile_height = 10
-let initial_tile_left = left_padding
+let left_pane_frac = 0.2
+
+let pane_width w =
+  (float_of_int w) *. left_pane_frac |> int_of_float
+
+let initial_tile_left w =
+  left_padding + (pane_width w)
 let initial_tile_top = top_padding
 
 let grid xxs = xxs |> List.map I.hcat |> I.vcat
@@ -71,14 +77,21 @@ let player_bar (w, h) gst =
   let bar = Array.mapi pimg gst.players |> Array.to_list |> I.hcat in
   I.(void 1 (h - 4) <-> hsnap w bar)
 
+let left_pane (w, h) gst =
+  let pane_width = pane_width w in
+  I.(char A.(fg white ++ bg black) ' ' pane_width (h - top_padding - bottom_padding)) |>
+  I.pad ~t:top_padding
+
 let ui_img (w, h) gst =
   I.zcat [
     status_bar (w, h) gst;
-    player_bar (w, h) gst
+    player_bar (w, h) gst;
+    left_pane (w, h) gst
   ]
 
 let calculate_tiles_w_h (w, h) =
-  let tiles_w = (float_of_int w -. float_of_int left_padding -.
+  let tiles_w = (float_of_int w -. float_of_int (pane_width w) -.
+                float_of_int left_padding -.
                 float_of_int right_padding -. (float_of_int tile_width *. 1.5)) /.
                 float_of_int tile_width |> floor |> int_of_float in
   let tiles_h = (float_of_int h -. float_of_int top_padding -.
@@ -183,13 +196,13 @@ let tile_yields_img tile =
        string A.(fg blue) (string_of_int y.production))
   )
 
-let tile_img is_selected (col, row) (left_col, top_row) gst =
+let tile_img is_selected (col, row) (left_col, top_row) gst (w, h) =
   let color = if is_selected then A.(fg blue) else A.(fg white) in
   let text_color = A.(fg white) in
   let color_underline = A.(color ++ st underline) in
   let odd_even_col_offset = if col mod 2 = 1 then (tile_height/2) else 0 in
   let top_underline_offset = if row = top_row || is_selected then 0 else 1 in
-  let left = initial_tile_left + (tile_width*(col - left_col)) in
+  let left = initial_tile_left w + (tile_width*(col - left_col)) in
   let top = initial_tile_top + (tile_height*(row - top_row)) + odd_even_col_offset + top_underline_offset in
   let tile = World.get_tile !(gst.map) col row in
   grid [
@@ -206,11 +219,11 @@ let tile_img is_selected (col, row) (left_col, top_row) gst =
     [I.void 4 1; I.uchar color 0x2572 1 1; I.string color_underline "            "; I.uchar color 0x2571 1 1];
   ] |> I.pad ~l:left ~t:top
 
-let rec game_map_helper img gst tiles_w tiles_h (col, row) (left_col, top_row) (map_cols, map_rows) =
+let rec game_map_helper img (w, h) gst tiles_w tiles_h (col, row) (left_col, top_row) (map_cols, map_rows) =
   let (next_col, next_row) = if col < min (map_cols - 1) (tiles_w + left_col) then (col + 1, row) else (left_col, row+1) in
-  let acc = I.(img </> tile_img false (col, row) (left_col, top_row) gst) in
+  let acc = I.(img </> tile_img false (col, row) (left_col, top_row) gst (w, h)) in
   if next_row <= min (map_rows - 1) (tiles_h + top_row - 1) then
-    game_map_helper acc gst tiles_w tiles_h (next_col, next_row) (left_col, top_row) (map_cols, map_rows)
+    game_map_helper acc (w, h) gst tiles_w tiles_h (next_col, next_row) (left_col, top_row) (map_cols, map_rows)
   else acc
 
 let game_map (w, h) gst =
@@ -218,7 +231,7 @@ let game_map (w, h) gst =
   let (selected_col, selected_row) = gst.selected_tile in
   let (left_col, top_row) = gst.map_display in
   let (map_cols, map_rows) = World.map_dimensions !(gst.map) in
-  game_map_helper I.(tile_img true (selected_col, selected_row) (left_col, top_row) gst) gst tiles_w tiles_h (left_col, top_row) (left_col, top_row) (map_cols, map_rows)
+  game_map_helper I.(tile_img true (selected_col, selected_row) (left_col, top_row) gst (w, h)) (w, h) gst tiles_w tiles_h (left_col, top_row) (left_col, top_row) (map_cols, map_rows)
 
 let img t (w, h) gst =
   I.(ui_img (w, h) gst </> game_map (w, h) gst)
