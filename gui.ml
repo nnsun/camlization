@@ -79,6 +79,8 @@ let player_bar (w, h) gst =
   let bar = Array.mapi pimg gst.players |> Array.to_list |> I.hcat in
   I.(void 1 (h - 4) <-> hsnap w bar)
 
+let tech_pane (w, h) gst = I.void 5 5
+
 let left_pane (w, h) gst =
   let pane_width = pane_width w in
   let text = A.(fg white ++ bg black) in
@@ -226,6 +228,7 @@ let tile_img is_selected (col, row) (left_col, top_row) gst (w, h) =
   let left = initial_tile_left w + (tile_width*(col - left_col)) in
   let top = initial_tile_top + (tile_height*(row - top_row)) + odd_even_col_offset + top_underline_offset in
   let tile = World.get_tile gst.map col row in
+  let units = State.units (col, row) gst in
   grid [
     if row = top_row || is_selected then [I.void 5 1; I.string color_underline "            "] else [];
     [I.void 4 1; I.uchar color 0x2571 1 1; I.string color "            "; I.uchar color 0x2572 1 1];
@@ -235,7 +238,7 @@ let tile_img is_selected (col, row) (left_col, top_row) gst (w, h) =
     [I.uchar color 0x2571 1 1; I.hsnap 20 (I.string text_color (elevation_str tile)); I.uchar color 0x2572 1 1];
     [I.uchar color 0x2572 1 1; I.hsnap 20 (I.string text_color (resource_opt_str tile)); I.uchar color 0x2571 1 1];
     [I.void 1 1; I.uchar color 0x2572 1 1; I.hsnap 18 (I.string text_color (improvement_opt_str tile)); I.uchar color 0x2571 1 1];
-    [I.void 2 1; I.uchar color 0x2572 1 1; I.hsnap 16 (tile_yields_img tile); I.uchar color 0x2571 1 1];
+    [I.void 2 1; I.uchar color 0x2572 1 1; I.hsnap 16 (I.string text_color (string_of_int (List.length units) ^ " units")); I.uchar color 0x2571 1 1];
     [I.void 3 1; I.uchar color 0x2572 1 1; I.string color "              "; I.uchar color 0x2571 1 1];
     [I.void 4 1; I.uchar color 0x2572 1 1; I.string color_underline "            "; I.uchar color 0x2571 1 1];
   ] |> I.pad ~l:left ~t:top

@@ -77,3 +77,25 @@ let entities coordinates gst =
   let entities_of_player p = List.filter valid_entity (Player.entities p) in
   let players = Array.map entities_of_player gst.players in
   players |> Array.to_list |> List.flatten |> List.map (!)
+
+let units coordinates gst =
+  let l = entities coordinates gst in
+  let unit_entity e =
+    Entity.(
+      match e with
+      | Unit u -> [u]
+      | City c -> []
+    )
+  in
+  List.map unit_entity l |> List.flatten
+
+let city coordinates gst =
+  let l = entities coordinates gst in
+  try
+    let entity = List.hd l in
+    Entity.(
+      match entity with
+      | City c -> Some c
+      | Unit u -> None
+    )
+  with _ -> None
