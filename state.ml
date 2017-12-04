@@ -117,8 +117,9 @@ let tile_contains_enemy state tile =
       if a = player then cycle_players b
       else
         let entities_ref_list = Player.entities a in
-        let is_on_tile t unit_ref =
-          World.coordinates (Entity.tile !unit_ref) = World.coordinates t in
+        let is_on_tile t entity_ref =
+          if Entity.health (!entity_ref) <= 0 then false else
+            World.coordinates (Entity.tile !entity_ref) = World.coordinates t in
         let sat_pred_result = satisfies_pred (is_on_tile tile) entities_ref_list in
         if sat_pred_result <> None then sat_pred_result
         else cycle_players b in
