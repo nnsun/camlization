@@ -82,6 +82,10 @@ val movement_cost : tile -> int
 (* [is_adjacent tile1 tile2] returns whether [tile1] is adjacent to [tile2] *)
 val is_adjacent : tile -> tile -> bool
 
+(* [adjacent_tiles tile map] returns a list of all tiles that are adjacent to
+ * [tile] on [map] *)
+val adjacent_tiles : tile -> map -> tile list
+
 (* Temporary *)
 val sample_tile : tile
 val sample_tile2 : tile
