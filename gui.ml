@@ -364,23 +364,44 @@ let move_unit_tile gst dir =
   let (max_cols, max_rows) = World.map_dimensions gst.map in
   let (col, row) = gst.selected_tile in
   match dir with
-  | `TopLeft -> if col - 1 > 0 then (col - 1, row) else (col, row)
-  | `TopMiddle -> if row - 1 > 0 then (col, row - 1) else (col, row)
-  | `TopRight -> if col + 1 < max_cols then (col + 1, row) else (col, row)
-  | `BottomLeft -> if col - 1 > 0 && row + 1 < max_rows then (col - 1, row + 1) else (col, row)
+  | `TopLeft ->
+    if col - 1 > 0 && row > 0 then
+      if (col mod 2 = 1) then (col - 1, row)
+      else (col - 1, row - 1)
+    else (col, row)
+  | `TopMiddle -> if row - 1 > 0 && row > 0 then (col, row - 1) else (col, row)
+  | `TopRight ->
+    if col + 1 < max_cols && row > 0 then
+      if (col mod 2 = 1) then (col + 1, row)
+      else (col + 1, row - 1)
+    else (col, row)
+  | `BottomLeft ->
+    if col - 1 > 0 && row + 1 < max_rows then
+      if (col mod 2 = 1) then
+        (col - 1, row - 1)
+      else (col - 1, row)
+    else (col, row)
   | `BottomMiddle -> if row + 1 < max_rows then (col, row + 1) else (col, row)
-  | `BottomRight -> if col + 1 < max_cols && row + 1 < max_rows then (col + 1, row + 1) else (col, row)
+  | `BottomRight ->
+    if col + 1 < max_cols && row + 1 < max_rows then
+      if (col mod 2 = 1) then
+        (col + 1, row + 1)
+      else (col + 1, row)
+    else (col, row)
 
 let move_unit gst dir =
   match gst.pane_state with
   | Unit u ->
     let (col, row) = gst.selected_tile in
     let units = State.unit_refs (col,row) gst in
-    let current_unit_num = u mod (List.length units) in
-    let current_unit = List.nth units current_unit_num in
-    let (new_col, new_row) = move_unit_tile gst dir in
-    if (col, row) <> (new_col, new_row) then
-      State.make_move gst current_unit (World.get_tile gst.map new_col new_row)
+    let num_units = List.length units in
+    if num_units > 0 then
+      let current_unit_num = u mod num_units in
+      let current_unit = List.nth units current_unit_num in
+      let (new_col, new_row) = move_unit_tile gst dir in
+      if (col, row) <> (new_col, new_row) then
+        State.make_move gst current_unit (World.get_tile gst.map new_col new_row)
+      else gst
     else gst
   | _ -> gst
 
