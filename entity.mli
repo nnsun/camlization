@@ -1,4 +1,5 @@
 open World
+open Tech
 
 type city_entity
 

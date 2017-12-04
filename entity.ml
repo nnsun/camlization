@@ -1,4 +1,5 @@
 open World
+open Tech
 
 (* [entity_info] represents information common to all entities,
 * such as owner and health *)
@@ -30,32 +31,33 @@ type unit_attributes = {
   strength : int;
   cost : int;
   uclass : unit_class;
+  tech_req : Tech.tech option;
   res_req : World.resource option
 }
 
 let unit_attributes_map = [
-  Worker, { movement = 2; strength = 0; cost = 100;
-              uclass = Civilian; res_req = None };
-  Scout, { movement = 2; strength = 1; cost = 75;
-              uclass = Military; res_req = None };
-  Warrior, { movement = 1; strength = 2; cost = 100;
-              uclass = Military; res_req = None };
-  WorkBoat, { movement = 2; strength = 0; cost = 50;
-              uclass = Civilian; res_req = None };
-  Archer, { movement = 1; strength = 3; cost = 150;
-              uclass = Military; res_req = None };
-  Trireme, { movement = 4; strength = 5; cost = 150;
-              uclass = Military; res_req = None };
-  Spearman, { movement = 1; strength = 4; cost = 175;
-              uclass = Military; res_req = None };
-  Chariot, { movement = 2; strength = 4; cost = 175;
-              uclass = Military; res_req = Some Horses };
-  Horseman, { movement = 2; strength = 7; cost = 300;
-              uclass = Military; res_req = Some Horses };
-  Swordsman, { movement = 1; strength = 6; cost = 250;
-              uclass = Military; res_req = Some Iron };
-  Catapult, { movement = 1; strength = 5; cost = 175;
-              uclass = Military; res_req = None };
+  Worker, { movement = 2; strength = 0; cost = 100; uclass = Civilian;
+              tech_req = None; res_req = None };
+  Scout, { movement = 2; strength = 1; cost = 75; uclass = Military;
+              tech_req = None; res_req = None };
+  Warrior, { movement = 1; strength = 2; cost = 100; uclass = Military;
+              tech_req = None; res_req = None };
+  WorkBoat, { movement = 2; strength = 0; cost = 50; uclass = Civilian;
+              tech_req = Some Fishing; res_req = None };
+  Archer, { movement = 1; strength = 3; cost = 150; uclass = Military;
+              tech_req = Some Archery; res_req = None };
+  Trireme, { movement = 4; strength = 5; cost = 150; uclass = Military;
+              tech_req = Some Sailing; res_req = None };
+  Spearman, { movement = 1; strength = 4; cost = 175; uclass = Military;
+              tech_req = Some BronzeWorking; res_req = None };
+  Chariot, { movement = 2; strength = 4; cost = 175; uclass = Military;
+              tech_req = Some TheWheel; res_req = Some Horses };
+  Horseman, { movement = 2; strength = 7; cost = 300; uclass = Military;
+              tech_req = Some HorsebackRiding; res_req = Some Horses };
+  Swordsman, { movement = 1; strength = 6; cost = 250; uclass = Military;
+              tech_req = Some IronWorking; res_req = Some Iron };
+  Catapult, { movement = 1; strength = 5; cost = 175; uclass = Military;
+              tech_req = Some Mathematics; res_req = None };
 ]
 
 
