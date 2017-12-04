@@ -6,7 +6,7 @@ open Tech
 type entity_info = {
   (* TODO: Check types *)
   health : int;
-  tile : World.tile
+  tile : tile
 }
 
 (* [unit_class] is the class of the unit: civilian or military unit *)
@@ -85,6 +85,9 @@ type unit_entity = entity_info * unit_info
 type entity =
   | City of city_entity
   | Unit of unit_entity
+
+let get_unit_type u =
+  (snd u).name
 
 let shared_info e =
   match e with

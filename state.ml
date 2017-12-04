@@ -42,8 +42,8 @@ let initial_game_state options =
   {
     player_turns = 0;
     map = World.generate_map;
-    map_display = (24, 24);
-    selected_tile = (29, 25);
+    map_display = (0, 0);
+    selected_tile = (0, 0);
     pane_state = Tile;
     current_player = 0;
     players = Array.make options.player_count Player.new_player

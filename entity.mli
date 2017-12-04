@@ -12,13 +12,24 @@ type entity =
 
 type unit_class = Civilian | Military
 
-type unit_type
+type unit_type = 
+  | Worker
+  | Scout
+  | Warrior
+  | WorkBoat
+  | Archer
+  | Trireme
+  | Spearman
+  | Chariot
+  | Horseman
+  | Swordsman
+  | Catapult
 
 (* [health entity] is the health of [entity] (>= 0) *)
 val health : entity -> int
 
 (* [tile entity] is the tile that [entity] is located on *)
-val tile : entity -> World.tile
+val tile : entity -> tile
 
 (* [is_city entity] is whether the entity represents a city *)
 val is_city : entity -> bool
@@ -99,3 +110,6 @@ val relative_str : entity -> entity -> float
 
 (* [set_health entity i] returns [entity] with health set to [i] *)
 val set_health : entity -> int -> entity
+
+(* [get_unit_type u] is the unit type for [u] *)
+val get_unit_type : unit_entity -> unit_type
