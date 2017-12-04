@@ -29,6 +29,10 @@ val science_rate : player -> science
 (* [techs player] is the list of technologies that [player] has researched *)
 val techs : player -> Tech.tech list
 
+(* [current_tech player] is [None] if [player] is not researching a tech and
+ * [Some t] if [player] is researching t *)
+val current_tech : player -> Tech.tech option
+
 (* [entities player] is the list of refs of entities that [player] owns *)
 val entities : player -> Entity.entity ref list
 
