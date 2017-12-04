@@ -60,6 +60,9 @@ val elevation : tile -> elevation
  * Returns None otherwise. *)
 val resource : tile -> resource option
 
+(* [is_strategic res] returns whether [res] is a stregic resource *)
+val is_strategic : resource -> bool
+
 (* [improvement tile] returns [Some improvement] if [tile] contains an improvement.
  * Returns None otherwise. *)
 val improvement : tile -> improvement option
@@ -83,7 +86,7 @@ val movement_cost : tile -> int
 val is_adjacent : tile -> tile -> bool
 
 (* [adjacent_tiles tile map] returns a list of all tiles that are adjacent to
- * [tile] on [map] *)
+ * [tile] on [map], including [tile] *)
 val adjacent_tiles : tile -> map -> tile list
 
 (* Temporary *)

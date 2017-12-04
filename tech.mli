@@ -21,3 +21,6 @@ val tech_cost : tech -> int
 
 (* [prereqs tech] is the list of prereqs for researching [tech] *)
 val prereqs : tech -> tech list
+
+(* [tech_list] is a list of all techs *)
+val tech_list : tech list

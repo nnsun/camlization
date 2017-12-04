@@ -161,8 +161,9 @@ let combat e1 e2 =
   combat_round e1 e2
 
 
-let make_move state unit_entity_ref tile =
-  let moves_left = Entity.moves_left !unit_entity_ref in
+let make_move state entity_ref tile =
+  let unit_entity = Entity.get_unit_entity !entity_ref in
+  let moves_left = Entity.moves_left unit_entity in
   if moves_left <= 0 then state else
     let cost = World.movement_cost tile in
     let update_tile unit_entity tile =
@@ -171,28 +172,28 @@ let make_move state unit_entity_ref tile =
       let opponent_opt = tile_contains_enemy st t_ref in
       match opponent_opt with
       | None ->
-        let _ =
-          unit_entity_ref :=
-            Entity.subtract_moves_left !unit_entity_ref cost in
-        let _ =
-          unit_entity_ref :=
-            Entity.set_tile !unit_entity_ref tile in
+        let unit_entity =
+          Entity.subtract_moves_left unit_entity cost in
+        let unit_entity =
+          Entity.set_tile unit_entity tile in
+        let _ = entity_ref := Entity.Unit unit_entity in
         state
       | Some o ->
-        let (new_e1, new_e2) = combat (Entity.Unit !unit_entity_ref) (!o) in
+        let (new_e1, new_e2) = combat (Entity.Unit unit_entity) (!o) in
         let new_ue1 = (
           match new_e1 with
           | Entity.Unit u -> u
           | _ -> failwith "Error: expected Unit but got City"
         ) in
-        let _ = unit_entity_ref := new_ue1 in
+        let unit_entity = new_ue1 in
         let _ = o := new_e2 in
         if tile_contains_enemy state tile = None then
-          let _ = unit_entity_ref := update_tile !unit_entity_ref tile in
+          let unit_entity = update_tile unit_entity tile in
+          let _ = entity_ref := Entity.Unit unit_entity in
           state
         else state in
 
-    if World.is_adjacent (Entity.tile (Entity.Unit !unit_entity_ref)) tile then
+    if World.is_adjacent (Entity.tile (Entity.Unit unit_entity)) tile then
       if World.elevation tile = World.Peak then state
       else if World.terrain tile = World.Ice then state
       else if World.terrain tile = World.Ocean &&
@@ -201,7 +202,45 @@ let make_move state unit_entity_ref tile =
         let techs = Player.techs player in
         let is_optics tech = if tech = Tech.Optics then true else false in
         if not (List.exists is_optics techs) then state
-        else go_to_tile state unit_entity_ref tile
+        else go_to_tile state unit_entity tile
       else
-        go_to_tile state unit_entity_ref tile
+        go_to_tile state unit_entity tile
     else state
+
+let strategics state =
+  let p = state.players.(state.current_player) in
+  let city_refs = Player.filter_city_refs p in
+  let rec cycle_cities acc refs =
+    match refs with
+    | [] -> acc
+    | a::b ->
+      let adj_tiles = World.adjacent_tiles (Entity.tile !a) state.map in
+      let rec check_tiles inner_acc tiles =
+        match tiles with
+        | [] -> acc
+        | c::d ->
+          if World.resource c = Some World.Horses
+              && World.improvement c = Some World.Pasture then
+            check_tiles (World.Horses::inner_acc) d
+          else if World.resource c = Some World.Iron
+              && World.improvement c = Some World.Mine then
+            check_tiles (World.Iron::inner_acc) d
+          else check_tiles acc d in
+      cycle_cities (List.rev_append acc (check_tiles [] adj_tiles)) b in
+  cycle_cities [] city_refs
+
+let available_techs state =
+  let p = state.players.(state.current_player) in
+  let researched = Player.techs p in
+  let rec cycle_techs acc lst =
+    match lst with
+    | [] -> acc
+    | a::b ->
+      let prereqs = Tech.prereqs a in
+      if not (List.mem a researched) &&
+          List.for_all (fun t -> List.mem t researched) prereqs then
+        cycle_techs (a::acc) b
+      else cycle_techs acc b in
+  cycle_techs [] Tech.tech_list
+
+
