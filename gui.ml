@@ -82,22 +82,39 @@ let player_bar (w, h) gst =
 let left_pane (w, h) gst =
   let pane_width = pane_width w in
   let text = A.(fg white ++ bg black) in
+  let (col, row) = gst.selected_tile in
+  let entities = State.entities (col, row) gst in
+  let pane_content = match gst.pane_state with
+  | Tile -> I.vcat [
+      I.hsnap pane_width (I.(string text "TILE"));
+      I.hsnap pane_width (I.(string text "City: C, Tech: T, Unit: U"))
+    ]
+  | Unit u -> I.vcat [
+    I.hsnap pane_width (I.(string A.(text ++ st underline)) "UNITS");
+    I.hsnap pane_width (I.(string text "City: C, Tech: T, Tile: S"));
+    I.void 1 1;
+    I.hsnap pane_width (I.string text "MOVEMENT:");
+    I.hsnap pane_width (I.hcat [I.uchar text 8598 1 1; (I.string text " 1 ");
+                                I.uchar text 8593 1 1; (I.string text " 2 ");
+                                I.uchar text 8599 1 1; (I.string text " 3 ")]);
+    I.hsnap pane_width (I.hcat [I.uchar text 8601 1 1; (I.string text " 6 ");
+                                I.uchar text 8595 1 1; (I.string text " 5 ");
+                                I.uchar text 8600 1 1; (I.string text " 4 ");
+                                ]);
+    I.void 1 1;
+    I.hsnap pane_width (I.string text "HEALTH: ");
+    I.void 1 1;
+    I.hsnap pane_width (I.string text "SELECT UNIT WITH U")]
+  | City c -> I.vcat [
+      I.hsnap pane_width (I.(string text "CITY"));
+      I.hsnap pane_width (I.(string text "Tech: T, Unit: U, Tile: S"))
+    ]
+  | Tech t -> I.vcat [
+      I.hsnap pane_width (I.(string text "TECH"));
+      I.hsnap pane_width (I.(string text "City: C, Unit: U, Tile: S"))
+    ] in
   I.zcat [
-    I.vcat [
-      I.hsnap pane_width (I.(string A.(text ++ st underline)) "UNITS");
-      I.void 1 1;
-      I.hsnap pane_width (I.string text "MOVEMENT:");
-      I.hsnap pane_width (I.hcat [I.uchar text 8598 1 1; (I.string text " 1 ");
-                                  I.uchar text 8593 1 1; (I.string text " 2 ");
-                                  I.uchar text 8599 1 1; (I.string text " 3 ")]);
-      I.hsnap pane_width (I.hcat [I.uchar text 8601 1 1; (I.string text " 6 ");
-                                  I.uchar text 8595 1 1; (I.string text " 5 ");
-                                  I.uchar text 8600 1 1; (I.string text " 4 ");
-                                  ]);
-      I.void 1 1;
-      I.hsnap pane_width (I.string text "HEALTH: ");
-      I.void 1 1;
-      I.hsnap pane_width (I.string text "SELECT UNIT WITH U")];
+    pane_content;
     I.(char A.(fg white ++ bg black) ' ' pane_width (h - top_padding - bottom_padding))
   ] |> I.pad ~t:top_padding
 
@@ -294,6 +311,10 @@ let rec main t gst =
     main t new_gst
   | `Resize (nw, nh) -> main t gst
   | `Key (`Enter, []) -> main t gst
+  | `Key (`Uchar 117, []) -> main t {gst with pane_state = Unit 0}
+  | `Key (`Uchar 99, []) -> main t {gst with pane_state = City 0}
+  | `Key (`Uchar 116, []) -> main t {gst with pane_state = Tech 0}
+  | `Key (`Uchar 115, []) -> main t {gst with pane_state = Tile}
   | _ -> main t gst
 
 let new_state t gst =
