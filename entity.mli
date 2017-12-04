@@ -54,7 +54,7 @@ val production_stock : city_entity -> int
  * Returns: a tuple with a new city_entity with the updated hammer stock as the
  * first value and [Some unit_entity] if the unit_entity was built, or [None] if
  * production hasn't finished as it second value *)
-val set_production : city_entity -> city_entity * unit_entity option
+val set_production : city_entity -> city_entity * unit_type option
 
 (* [gold_per_turn city] is the amount of gold that [city] is generating per turn *)
 val gold_per_turn : city_entity -> int

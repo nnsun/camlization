@@ -145,11 +145,23 @@ let unit_class utype = (List.assoc utype unit_attributes_map).uclass
 
 let moves_left unit = (snd unit).moves_left
 
-let set_production city = failwith "Unimplemented"
-  (* let production_stock = (snd city).production_stock + production_per_turn city in
+let set_production city =
+  let stock = (snd city).production_stock + production_per_turn city in
   let unit_production = (snd city).unit_production in
+  let finished_flag = ref false in
   let new_city_info =
     match unit_production with
-    | None -> { (snd city) with production_stock = production_stock }
+    | None -> { (snd city) with production_stock = stock }
     | Some u ->
-      let cost = unit_cost u in *)
+      let cost = unit_cost u in
+      if stock >= cost then
+        let _ = finished_flag := true in
+        { (snd city) with
+          production_stock = 0;
+          unit_production = None
+        }
+      else { (snd city) with production_stock = stock } in
+  let output =
+    if !finished_flag then unit_production else None in
+  ((fst city,new_city_info), output)
+
