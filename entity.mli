@@ -87,4 +87,4 @@ val moves_left : unit_entity -> int
 
 (* [new_unit unit_type tile] returns a new entity of type Unit with
  * unit type [unit_type] on tile [tile] *)
- val new_unit : unit_type -> World.tile -> entity
+val new_unit : unit_type -> World.tile ref -> entity
