@@ -120,6 +120,8 @@ let get_city_entity entity =
     | Unit u -> u
     | _ -> failwith "Error: expected Unit but got City"
 
+let growth_req pop = 15 + 5 * pop
+
 let population city = (snd city).population
 
 let is_capital city = (snd city).is_capital
@@ -180,10 +182,10 @@ let new_unit utype tile =
 let set_growth city =
   let stock = (snd city).food_stock + food_per_turn city in
   let pop = (snd city).population in
-  let growth_req = 15 + 5 * pop in
-  if stock >= growth_req then
+  let req = growth_req pop in
+  if stock >= req then
     (fst city,
-      { (snd city) with food_stock = stock - growth_req; population = pop })
+      { (snd city) with food_stock = stock - req; population = pop })
   else
     (fst city, { (snd city) with food_stock = stock })
 

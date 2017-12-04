@@ -321,6 +321,47 @@ let tile_unit_str units =
   if List.length units = 0 then ""
   else string_of_int (List.length units) ^ " units"
 
+let char_for_frac f =
+  if f < 0.15 then 2581
+  else if f < 0.30 then 2582
+  else if f < 0.45 then 2583
+  else if f < 0.60 then 2585
+  else if f < 0.75 then 2586
+  else if f < 0.90 then 2587
+  else 2588
+
+let city_imgs (col, row) gst =
+  match State.city (col, row) gst with
+  | Some city ->
+    let text s = I.string A.(fg (gray 8) ++ st bold) s in
+    let pop_attr = A.(fg green ++ st bold) in
+    let prod_attr = A.(fg yellow ++ st bold) in
+    let top = text "░░░░░░░░░░░░" in
+    let mid =
+      let background = text "░░░░░░░░░░░░░░" in
+      let pop = Entity.population city in
+      let pop_frac = float_of_int (Entity.food_stock city)
+        /. (float_of_int (Entity.growth_req pop)) in
+      let pop_text =
+        I.uchar pop_attr (char_for_frac pop_frac) 1 1 in
+      let prod_frac = float_of_int (Entity.production_stock city)
+        /. (float_of_int (69)) in
+      let prod_text =
+        I.uchar prod_attr (char_for_frac prod_frac) 1 1 in
+      I.(
+        background </> I.hcat [
+          I.string pop_attr (string_of_int pop);
+          pop_text;
+          text "░❰CITY❱░";
+          prod_text
+        ]
+      )
+    in
+    let bottom = text "░░░░░░░░░░░░░░" in
+    (top, mid, bottom)
+
+  | None -> (I.empty, I.empty, I.empty)
+
 let tile_img is_selected (col, row) (left_col, top_row) gst (w, h) =
   let color = if is_selected then A.(fg blue) else A.(fg (gray 3)) in
   let text_color = A.(fg white) in
@@ -331,13 +372,14 @@ let tile_img is_selected (col, row) (left_col, top_row) gst (w, h) =
   let top = initial_tile_top + (tile_height*(row - top_row)) + odd_even_col_offset + top_underline_offset in
   let t = World.get_tile gst.map col row in
   let units = State.units (col, row) gst in
+  let (city_top, city_mid, city_bot) = city_imgs (col, row) gst in
   grid [
     if row = top_row || is_selected then [I.void 5 1; I.string color_underline "            "] else [];
-    [I.void 4 1; I.uchar color 0x2571 1 1; I.hsnap 12 (I.string color "            "); I.uchar color 0x2572 1 1];
-    [I.void 3 1; I.uchar color 0x2571 1 1; I.hsnap 14 (I.string color "              "); I.uchar color 0x2572 1 1];
-    [I.void 2 1; I.uchar color 0x2571 1 1; I.hsnap 16 (I.string text_color (tile_unit_str units)); I.uchar color 0x2572 1 1];
-    [I.void 1 1; I.uchar color 0x2571 1 1; I.hsnap 18 I.empty; I.uchar color 0x2572 1 1];
-    [I.uchar color 0x2571 1 1; I.hsnap 20 I.empty; I.uchar color 0x2572 1 1];
+    [I.void 4 1; I.uchar color 0x2571 1 1; I.hsnap 12 city_top; I.uchar color 0x2572 1 1];
+    [I.void 3 1; I.uchar color 0x2571 1 1; I.hsnap 14 city_mid; I.uchar color 0x2572 1 1];
+    [I.void 2 1; I.uchar color 0x2571 1 1; I.hsnap 16 city_bot; I.uchar color 0x2572 1 1];
+    [I.void 1 1; I.uchar color 0x2571 1 1; I.hsnap 18 (I.string text_color " "); I.uchar color 0x2572 1 1];
+    [I.uchar color 0x2571 1 1; I.hsnap 20 (I.string text_color (tile_unit_str units)); I.uchar color 0x2572 1 1];
     [I.uchar color 0x2572 1 1; I.hsnap 20 I.(I.string text_color (improvement_opt_str t)); I.uchar color 0x2571 1 1];
     [I.void 1 1; I.uchar color 0x2572 1 1; I.hsnap 18 (resource_opt_img t); I.uchar color 0x2571 1 1];
     [I.void 2 1; I.uchar color 0x2572 1 1; I.hsnap 16 (feature_opt_img t); I.uchar color 0x2571 1 1];

@@ -45,6 +45,10 @@ val get_city_entity : entity -> city_entity
  * [entity] represents a unit, and generates an exception otherwise *)
 val get_unit_entity : entity -> unit_entity
 
+(* [growth_req pop] is how much food is required for a city's population to
+ * increase at a given population *)
+val growth_req : int -> int
+
 (* [population city] is the population of [city] *)
 val population : city_entity -> int
 
