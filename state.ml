@@ -125,11 +125,33 @@ let tile_contains_enemy state tile =
         else cycle_players b in
   cycle_players (Array.to_list state.players)
 
-let combat e1 e2 = failwith ""
-  (* let _ = Random.self_init () in
-  let combat e1 e2 =
+let combat e1 e2 =
+  let _ = Random.self_init () in
+  let rec combat_round e1 e2 =
     let e1_str = Entity.relative_str e1 e2 in
-    let e2_str = Entity.relative_str e2 e1 in *)
+    let e2_str = Entity.relative_str e2 e1 in
+    if e1_str = 0. || e2_str = 0. then (e1, e2)
+    else
+      let rand_float = Random.float 1. in
+      let health_drop =
+        if rand_float <= e1_str /. (e1_str +. e2_str) then
+          int_of_float (20. *. (3. *. e1_str +. e2_str) /.
+                        (3. *. e2_str +. e1_str))
+        else 0 in
+      let new_e2 = Entity.set_health e2 (Entity.health e2 - health_drop) in
+      if Entity.health new_e2 <= 0 then (e1, new_e2)
+      else
+        let rand_float = Random.float 1. in
+        let health_drop =
+          if rand_float <= e2_str /. (e1_str +. e2_str) then
+            int_of_float (20. *. (3. *. e2_str +. e1_str) /.
+                          (3. *. e1_str +. e2_str))
+          else 0 in
+          let new_e1 = Entity.set_health e1 (Entity.health e1 - health_drop) in
+          if Entity.health new_e1 <= 0 then (new_e1, new_e2)
+          else combat_round new_e1 new_e2 in
+  combat_round e1 e2
+
 
 let make_move state unit_entity_ref tile =
   let cost = World.movement_cost tile in
