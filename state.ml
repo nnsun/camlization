@@ -154,23 +154,25 @@ let combat e1 e2 =
 
 
 let make_move state unit_entity_ref tile =
-  let cost = World.movement_cost tile in
-  let go_to_tile st e_ref t_ref = failwith "" in
-    (* let opponent_opt = tile_contains_enemy st t_ref in
-    match opponent_opt with
-    | None ->
-    | Some o -> *)
+  let moves_left = Entity.moves_left !unit_entity_ref in
+  if moves_left <= 0 then state else
+    let cost = World.movement_cost tile in
+    let go_to_tile st e_ref t_ref = failwith "" in
+      (* let opponent_opt = tile_contains_enemy st t_ref in
+      match opponent_opt with
+      | None ->
+      | Some o -> *)
 
-  if World.is_adjacent (Entity.tile (Entity.Unit !unit_entity_ref)) tile then
-    if World.elevation tile = World.Peak then state
-    else if World.terrain tile = World.Ice then state
-    else if World.terrain tile = World.Ocean &&
-            World.terrain tile = World.Coast then
-      let player = state.players.(state.current_player) in
-      let techs = Player.techs player in
-      let is_optics tech = if tech = Tech.Optics then true else false in
-      if not (List.exists is_optics techs) then state
-      else go_to_tile state unit_entity_ref tile
-    else
-      go_to_tile state unit_entity_ref tile
-  else state
+    if World.is_adjacent (Entity.tile (Entity.Unit !unit_entity_ref)) tile then
+      if World.elevation tile = World.Peak then state
+      else if World.terrain tile = World.Ice then state
+      else if World.terrain tile = World.Ocean &&
+              World.terrain tile = World.Coast then
+        let player = state.players.(state.current_player) in
+        let techs = Player.techs player in
+        let is_optics tech = if tech = Tech.Optics then true else false in
+        if not (List.exists is_optics techs) then state
+        else go_to_tile state unit_entity_ref tile
+      else
+        go_to_tile state unit_entity_ref tile
+    else state

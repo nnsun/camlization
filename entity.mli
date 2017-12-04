@@ -99,3 +99,7 @@ val relative_str : entity -> entity -> float
 
 (* [set_health entity i] returns [entity] with health set to [i] *)
 val set_health : entity -> int -> entity
+
+(* [subtract_moves_left unit_entity cost] returns [entity] with cost fewer
+ * moves left, or 0 moves left if the difference is less than 0 *)
+val subtract_moves_left : unit_entity -> int -> unit_entity
