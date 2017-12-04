@@ -157,8 +157,8 @@ let make_move state unit_entity_ref tile =
   let moves_left = Entity.moves_left !unit_entity_ref in
   if moves_left <= 0 then state else
     let cost = World.movement_cost tile in
-    let update_tile unit_entity_ref tile =
-      Entity.set_tile !unit_entity_ref tile in
+    let update_tile unit_entity tile =
+      Entity.set_tile unit_entity tile in
     let go_to_tile st e_ref t_ref =
       let opponent_opt = tile_contains_enemy st t_ref in
       match opponent_opt with
@@ -171,15 +171,18 @@ let make_move state unit_entity_ref tile =
             Entity.set_tile !unit_entity_ref tile in
         state
       | Some o ->
-          let (new_e1, new_e2) = combat (Entity.Unit !unit_entity_ref) (!o) in
-          let new_ue1 = (
-            match new_e1 with
-            | Entity.Unit u -> u
-            | _ -> failwith "Error: expected Unit but got City"
-          ) in
-          let _ = unit_entity_ref := new_ue1 in
-          let _ = o := new_e2 in
-          state in
+        let (new_e1, new_e2) = combat (Entity.Unit !unit_entity_ref) (!o) in
+        let new_ue1 = (
+          match new_e1 with
+          | Entity.Unit u -> u
+          | _ -> failwith "Error: expected Unit but got City"
+        ) in
+        let _ = unit_entity_ref := new_ue1 in
+        let _ = o := new_e2 in
+        if tile_contains_enemy state tile = None then
+          let _ = unit_entity_ref := update_tile !unit_entity_ref tile in
+          state
+        else state in
 
     if World.is_adjacent (Entity.tile (Entity.Unit !unit_entity_ref)) tile then
       if World.elevation tile = World.Peak then state
