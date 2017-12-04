@@ -360,6 +360,30 @@ let next_pane_state pst tile_changing =
   | City c -> if tile_changing then City 0 else City (c+1)
   | Tech t -> if tile_changing then Tech 0 else Tech (t+1)
 
+let move_unit_tile gst dir =
+  let (max_cols, max_rows) = World.map_dimensions gst.map in
+  let (col, row) = gst.selected_tile in
+  match dir with
+  | `TopLeft -> if col - 1 > 0 then (col - 1, row) else (col, row)
+  | `TopMiddle -> if row - 1 > 0 then (col, row - 1) else (col, row)
+  | `TopRight -> if col + 1 < max_cols then (col + 1, row) else (col, row)
+  | `BottomLeft -> if col - 1 > 0 && row + 1 < max_rows then (col - 1, row + 1) else (col, row)
+  | `BottomMiddle -> if row + 1 < max_rows then (col, row + 1) else (col, row)
+  | `BottomRight -> if col + 1 < max_cols && row + 1 < max_rows then (col + 1, row + 1) else (col, row)
+
+let move_unit gst dir =
+  match gst.pane_state with
+  | Unit u ->
+    let (col, row) = gst.selected_tile in
+    let units = State.unit_refs (col,row) gst in
+    let current_unit_num = u mod (List.length units) in
+    let current_unit = List.nth units current_unit_num in
+    let (new_col, new_row) = move_unit_tile gst dir in
+    if (col, row) <> (new_col, new_row) then
+      State.make_move gst current_unit (World.get_tile gst.map new_col new_row)
+    else gst
+  | _ -> gst
+
 let rec main t gst =
   let (w, h) = Term.size t in
   Term.image t (img t (w, h) gst);
@@ -393,6 +417,12 @@ let rec main t gst =
   | `Key (`Uchar 116, []) -> main t {gst with pane_state = Tech 0}
   | `Key (`Uchar 115, []) -> main t {gst with pane_state = Tile}
   | `Key (`Uchar 46, []) -> main t {gst with pane_state = next_pane_state gst.pane_state false}
+  | `Key (`Uchar 49, []) -> main t (move_unit gst `TopLeft)
+  | `Key (`Uchar 50, []) -> main t (move_unit gst `TopMiddle)
+  | `Key (`Uchar 51, []) -> main t (move_unit gst `TopRight)
+  | `Key (`Uchar 52, []) -> main t (move_unit gst `BottomLeft)
+  | `Key (`Uchar 53, []) -> main t (move_unit gst `BottomMiddle)
+  | `Key (`Uchar 54, []) -> main t (move_unit gst `BottomRight)
   | _ -> main t gst
 
 let new_state t gst =
