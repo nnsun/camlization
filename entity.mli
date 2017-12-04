@@ -12,7 +12,7 @@ type entity =
 
 type unit_class = Civilian | Military
 
-type unit_type = 
+type unit_type =
   | Worker
   | Scout
   | Warrior
@@ -98,7 +98,7 @@ val moves_left : unit_entity -> int
 
 (* [new_unit unit_type tile] returns a new entity of type Unit with
  * unit type [unit_type] on tile [tile] *)
-val new_unit : unit_type -> World.tile -> entity
+val new_unit : unit_type -> tile -> entity
 
 (* [set_growth city] calculates the new food stockpile and population
  * of [city] after a turn and returns the new city_entity *)
@@ -117,3 +117,7 @@ val get_unit_type : unit_entity -> unit_type
 (* [subtract_moves_left unit_entity cost] returns [entity] with cost fewer
  * moves left, or 0 moves left if the difference is less than 0 *)
 val subtract_moves_left : unit_entity -> int -> unit_entity
+
+(* [set_tile unit_entity tile] returns [unit_entity] with the tile location
+ * set to [tile] *)
+val set_tile : unit_entity -> tile -> unit_entity
