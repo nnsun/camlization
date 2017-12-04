@@ -91,4 +91,11 @@ val new_unit : unit_type -> World.tile -> entity
 
 (* [set_growth city] calculates the new food stockpile and population
  * of [city] after a turn and returns the new city_entity *)
- val set_growth : city_entity -> city_entity
+val set_growth : city_entity -> city_entity
+
+(* [relative_str e1 e2] returns the relative strength of [e1] prior to
+ * initiating combat with [e2] *)
+val relative_str : entity -> entity -> float
+
+(* [set_health entity i] returns [entity] with health set to [i] *)
+val set_health : entity -> int -> entity

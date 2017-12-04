@@ -125,8 +125,11 @@ let tile_contains_enemy state tile =
         else cycle_players b in
   cycle_players (Array.to_list state.players)
 
-let combat e1 e2 = failwith "Unimplemented"
-
+let combat e1 e2 = failwith ""
+  (* let _ = Random.self_init () in
+  let combat e1 e2 =
+    let e1_str = Entity.relative_str e1 e2 in
+    let e2_str = Entity.relative_str e2 e1 in *)
 
 let make_move state unit_entity_ref tile =
   let cost = World.movement_cost tile in

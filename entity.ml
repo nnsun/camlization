@@ -86,6 +86,11 @@ type entity =
   | City of city_entity
   | Unit of unit_entity
 
+let shared_info e =
+  match e with
+  | City c -> fst c
+  | Unit u -> fst u
+
 let health entity =
   match entity with
   | City e -> (fst e).health
@@ -179,3 +184,21 @@ let set_growth city =
       { (snd city) with food_stock = stock - growth_req; population = pop })
   else
     (fst city, { (snd city) with food_stock = stock })
+
+let relative_str e1 e2 =
+  (* TODO: Add unit bonuses *)
+  let (health, str) =
+    match e1 with
+    | City c ->
+      ((fst c).health, (snd c).population)
+    | Unit u ->
+      ((fst u).health, (List.assoc  ((snd u).name) unit_attributes_map).strength) in
+  (float_of_int health) /. 100. *. (float_of_int str)
+
+let set_health entity new_health =
+  let entity_info = { (shared_info entity) with health = new_health } in
+  match entity with
+  | City c ->
+    City (entity_info, snd c )
+  | Unit u ->
+    Unit (entity_info, snd u)
