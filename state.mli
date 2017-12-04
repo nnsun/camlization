@@ -61,3 +61,11 @@ val next_turn : game_state -> game_state
 (* [entities coord gst] is the list of entities at the coordinates [coord] for
  * the given game state [gst] *)
 val entities : int * int -> game_state -> Entity.entity list
+
+(* [city coord gst] is the city at the coordinates [coord] is such exists, or
+ * None otherwise *)
+val city : int * int -> game_state -> Entity.city_entity option
+
+(* [units coord gst] is the list of units at the coordinates [coord] is such exists, or
+ * None otherwise *)
+val units : int * int -> game_state -> Entity.unit_entity list

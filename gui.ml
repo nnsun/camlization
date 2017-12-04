@@ -79,25 +79,44 @@ let player_bar (w, h) gst =
   let bar = Array.mapi pimg gst.players |> Array.to_list |> I.hcat in
   I.(void 1 (h - 4) <-> hsnap w bar)
 
+let tech_pane (w, h) gst = I.void 5 5
+
 let left_pane (w, h) gst =
   let pane_width = pane_width w in
   let text = A.(fg white ++ bg black) in
+  let (col, row) = gst.selected_tile in
+  let entities = State.entities (col, row) gst in
+  let pane_content = match gst.pane_state with
+  | Tile -> I.vcat [
+      I.hsnap pane_width (I.(string text "TILE"));
+      I.hsnap pane_width (I.(string text "City: C, Tech: T, Unit: U"))
+    ]
+  | Unit u -> I.vcat [
+    I.hsnap pane_width (I.(string A.(text ++ st underline)) "UNITS");
+    I.hsnap pane_width (I.(string text "City: C, Tech: T, Tile: S"));
+    I.void 1 1;
+    I.hsnap pane_width (I.string text "MOVEMENT:");
+    I.hsnap pane_width (I.hcat [I.uchar text 8598 1 1; (I.string text " 1 ");
+                                I.uchar text 8593 1 1; (I.string text " 2 ");
+                                I.uchar text 8599 1 1; (I.string text " 3 ")]);
+    I.hsnap pane_width (I.hcat [I.uchar text 8601 1 1; (I.string text " 6 ");
+                                I.uchar text 8595 1 1; (I.string text " 5 ");
+                                I.uchar text 8600 1 1; (I.string text " 4 ");
+                                ]);
+    I.void 1 1;
+    I.hsnap pane_width (I.string text "HEALTH: ");
+    I.void 1 1;
+    I.hsnap pane_width (I.string text "SELECT UNIT WITH U")]
+  | City c -> I.vcat [
+      I.hsnap pane_width (I.(string text "CITY"));
+      I.hsnap pane_width (I.(string text "Tech: T, Unit: U, Tile: S"))
+    ]
+  | Tech t -> I.vcat [
+      I.hsnap pane_width (I.(string text "TECH"));
+      I.hsnap pane_width (I.(string text "City: C, Unit: U, Tile: S"))
+    ] in
   I.zcat [
-    I.vcat [
-      I.hsnap pane_width (I.(string A.(text ++ st underline)) "UNITS");
-      I.void 1 1;
-      I.hsnap pane_width (I.string text "MOVEMENT:");
-      I.hsnap pane_width (I.hcat [I.uchar text 8598 1 1; (I.string text " 1 ");
-                                  I.uchar text 8593 1 1; (I.string text " 2 ");
-                                  I.uchar text 8599 1 1; (I.string text " 3 ")]);
-      I.hsnap pane_width (I.hcat [I.uchar text 8601 1 1; (I.string text " 6 ");
-                                  I.uchar text 8595 1 1; (I.string text " 5 ");
-                                  I.uchar text 8600 1 1; (I.string text " 4 ");
-                                  ]);
-      I.void 1 1;
-      I.hsnap pane_width (I.string text "HEALTH: ");
-      I.void 1 1;
-      I.hsnap pane_width (I.string text "SELECT UNIT WITH U")];
+    pane_content;
     I.(char A.(fg white ++ bg black) ' ' pane_width (h - top_padding - bottom_padding))
   ] |> I.pad ~t:top_padding
 
@@ -226,6 +245,7 @@ let tile_img is_selected (col, row) (left_col, top_row) gst (w, h) =
   let left = initial_tile_left w + (tile_width*(col - left_col)) in
   let top = initial_tile_top + (tile_height*(row - top_row)) + odd_even_col_offset + top_underline_offset in
   let tile = World.get_tile gst.map col row in
+  let units = State.units (col, row) gst in
   grid [
     if row = top_row || is_selected then [I.void 5 1; I.string color_underline "            "] else [];
     [I.void 4 1; I.uchar color 0x2571 1 1; I.string color "            "; I.uchar color 0x2572 1 1];
@@ -235,7 +255,7 @@ let tile_img is_selected (col, row) (left_col, top_row) gst (w, h) =
     [I.uchar color 0x2571 1 1; I.hsnap 20 (I.string text_color (elevation_str tile)); I.uchar color 0x2572 1 1];
     [I.uchar color 0x2572 1 1; I.hsnap 20 (I.string text_color (resource_opt_str tile)); I.uchar color 0x2571 1 1];
     [I.void 1 1; I.uchar color 0x2572 1 1; I.hsnap 18 (I.string text_color (improvement_opt_str tile)); I.uchar color 0x2571 1 1];
-    [I.void 2 1; I.uchar color 0x2572 1 1; I.hsnap 16 (tile_yields_img tile); I.uchar color 0x2571 1 1];
+    [I.void 2 1; I.uchar color 0x2572 1 1; I.hsnap 16 (I.string text_color (string_of_int (List.length units) ^ " units")); I.uchar color 0x2571 1 1];
     [I.void 3 1; I.uchar color 0x2572 1 1; I.string color "              "; I.uchar color 0x2571 1 1];
     [I.void 4 1; I.uchar color 0x2572 1 1; I.string color_underline "            "; I.uchar color 0x2571 1 1];
   ] |> I.pad ~l:left ~t:top
@@ -294,6 +314,10 @@ let rec main t gst =
     main t new_gst
   | `Resize (nw, nh) -> main t gst
   | `Key (`Enter, []) -> main t gst
+  | `Key (`Uchar 117, []) -> main t {gst with pane_state = Unit 0}
+  | `Key (`Uchar 99, []) -> main t {gst with pane_state = City 0}
+  | `Key (`Uchar 116, []) -> main t {gst with pane_state = Tech 0}
+  | `Key (`Uchar 115, []) -> main t {gst with pane_state = Tile}
   | _ -> main t gst
 
 let new_state t gst =
