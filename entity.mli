@@ -113,3 +113,7 @@ val set_health : entity -> int -> entity
 
 (* [get_unit_type u] is the unit type for [u] *)
 val get_unit_type : unit_entity -> unit_type
+
+(* [subtract_moves_left unit_entity cost] returns [entity] with cost fewer
+ * moves left, or 0 moves left if the difference is less than 0 *)
+val subtract_moves_left : unit_entity -> int -> unit_entity

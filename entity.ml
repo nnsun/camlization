@@ -199,9 +199,16 @@ let relative_str e1 e2 =
   (float_of_int health) /. 100. *. (float_of_int str)
 
 let set_health entity new_health =
+  let new_health = if new_health < 0 then 0 else new_health in
   let entity_info = { (shared_info entity) with health = new_health } in
   match entity with
   | City c ->
     City (entity_info, snd c )
   | Unit u ->
     Unit (entity_info, snd u)
+
+let subtract_moves_left unit_entity cost =
+  let diff = (snd unit_entity).moves_left - cost in
+  let new_unit_info =
+    { (snd unit_entity) with moves_left = (if diff < 0 then 0 else diff) } in
+  (fst unit_entity, new_unit_info)
