@@ -62,6 +62,8 @@ let next_turn state =
   let player = state.players.(state.current_player) in
   let player = Player.set_gold player in
   let player = Player.set_science player in
+  let player = Player.set_production player in
+  let player = Player.set_growth player in
   state.players.(state.current_player) <- player;
   {
     state with

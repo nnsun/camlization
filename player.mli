@@ -42,5 +42,9 @@ val set_gold : player -> player
 val set_science : player -> player
 
 (* [set_production player] calculates production for each city, and creates new
- * if production has finished *)
+ * units if production has finished *)
 val set_production : player -> player
+
+(* [set_growth player] calculates growth for each city, and adjusts food
+ * stockpile levels and population *)
+ val set_growth : player -> player
