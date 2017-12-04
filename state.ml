@@ -74,7 +74,7 @@ let entities coordinates gst =
   let valid_entity e =
     let entity = !e in
     Entity.health entity != 0
-    && (World.coordinates !(Entity.tile entity) = coordinates)
+    && (World.coordinates (Entity.tile entity) = coordinates)
   in
   let entities_of_player p = List.filter valid_entity (Player.entities p) in
   let players = Array.map entities_of_player gst.players in
@@ -102,7 +102,47 @@ let city coordinates gst =
     )
   with _ -> None
 
-let make_move state unit_entity tile =
-  if World.is_adjacent !(Entity.tile (Entity.Unit unit_entity)) tile then
-    failwith "Unimplemented"
-  else state
+let rec satisfies_pred pred lst =
+  match lst with
+  | [] -> None
+  | a::b ->
+    if pred a then Some a else satisfies_pred pred b
+
+let tile_contains_enemy state tile =
+  let player = state.players.(state.current_player) in
+  let rec cycle_players players =
+    match players with
+    | [] -> None
+    | a::b ->
+      if a = player then cycle_players b
+      else
+        let units_ref_list = Player.filter_unit_refs a in
+        let is_on_tile unit_ref = Entity.tile !unit_ref = !tile in
+        let sat_pred_result = satisfies_pred is_on_tile units_ref_list in
+        if sat_pred_result <> None then sat_pred_result
+        else cycle_players b in
+  cycle_players (Array.to_list state.players)
+
+
+let make_move state unit_entity_ref tile_ref = failwith ""
+  (* let cost = World.movement_cost tile_ref in
+  let u_entity =
+  let go_to_tile st e_ref t_ref = failwith "" in
+    let opponent_opt = tile_contains_enemy st t_ref in
+    match opponent_opt with
+    | None ->
+    | Some o ->
+
+  if World.is_adjacent !(Entity.tile (Entity.Unit !unit_entity_ref)) tile then
+    if World.elevation tile = World.Peak then state
+    else if World.terrain tile = World.Ice then state
+    else if World.terrain tile = World.Ocean &&
+            World.terrain tile = World.Coast then
+      let player = state.players.(state.current_player) in
+      let techs = Player.techs player in
+      let is_optics tech = if tech = Tech.Optics then true else false in
+      if not (List.exists is_optics techs) then state
+      else go_to_tile state unit_entity_ref tile_ref
+    else
+      go_to_tile state unit_entity_ref tile_ref
+  else state *)

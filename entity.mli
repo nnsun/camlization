@@ -18,7 +18,7 @@ type unit_type
 val health : entity -> int
 
 (* [tile entity] is the tile that [entity] is located on *)
-val tile : entity -> World.tile ref
+val tile : entity -> World.tile
 
 (* [is_city entity] is whether the entity represents a city *)
 val is_city : entity -> bool
@@ -87,7 +87,7 @@ val moves_left : unit_entity -> int
 
 (* [new_unit unit_type tile] returns a new entity of type Unit with
  * unit type [unit_type] on tile [tile] *)
-val new_unit : unit_type -> World.tile ref -> entity
+val new_unit : unit_type -> World.tile -> entity
 
 (* [set_growth city] calculates the new food stockpile and population
  * of [city] after a turn and returns the new city_entity *)
