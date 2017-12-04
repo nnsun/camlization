@@ -243,4 +243,18 @@ let available_techs state =
       else cycle_techs acc b in
   cycle_techs [] Tech.tech_list
 
-
+let available_units state =
+  let p = state.players.(state.current_player) in
+  let researched = Player.techs p in
+  let rec cycle_units acc lst =
+    match lst with
+    | [] -> acc
+    | a::b ->
+      let prereq_opt = Entity.tech_req a in
+      let new_acc =
+        match prereq_opt with
+        | None -> a::acc
+        | Some t ->
+          if List.mem t researched then a::acc else acc in
+      cycle_units new_acc b in
+  cycle_units [] Entity.units_list

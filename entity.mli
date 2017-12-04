@@ -128,3 +128,10 @@ val subtract_moves_left : unit_entity -> int -> unit_entity
 (* [set_tile unit_entity tile] returns [unit_entity] with the tile location
  * set to [tile] *)
 val set_tile : unit_entity -> tile -> unit_entity
+
+(* [units_list] is the list of all [unit_type]s *)
+val units_list : unit_type list
+
+(* [tech_req utype] is [None] if [utype] doesn't have a tech requirement
+ * and [Some t] if utype requires [t] to be researched to be built  *)
+val tech_req : unit_type -> Tech.tech option

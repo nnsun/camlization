@@ -228,3 +228,12 @@ let subtract_moves_left unit_entity cost =
 
 let set_tile unit_entity tile =
   ( {(fst unit_entity) with tile = tile }, snd unit_entity )
+
+let units_list =
+  let rec prepend acc lst =
+    match lst with
+    | [] -> acc
+    | a::b -> prepend ((fst a)::acc) b in
+  prepend [] unit_attributes_map
+
+let tech_req utype = (List.assoc utype unit_attributes_map).tech_req
