@@ -7,9 +7,9 @@ open State
 
 let is_mac_os = true
 
-let left_padding = 2
+let left_padding = 1
 let top_padding = 1
-let right_padding = 2
+let right_padding = 0
 let bottom_padding = 4
 let gui_bar_padding = 2
 let tile_width = 17
@@ -35,7 +35,7 @@ let status_bar (w, h) gst =
       then I.string A.(fg yellow ++ bg black) ("(+" ^ string_of_int rate ^ ")")
     else I.string A.(fg red ++ bg black) ("(" ^ string_of_int rate ^ ")")
   in
-  let status = I.hsnap ?align:(Some `Right) w (I.hcat [
+  let status = I.hsnap ~align:`Right w (I.hcat [
     I.string A.(empty ++ bg black) ("Turns: " ^ string_of_int (State.turns gst));
     I.string A.(empty ++ bg black) (
       "  "
@@ -77,7 +77,7 @@ let player_bar (w, h) gst =
       ])
   in
   let bar = Array.mapi pimg gst.players |> Array.to_list |> I.hcat in
-  I.(void 1 (h - 4) <-> hsnap w bar)
+  I.(pad ~l:(pane_width w) ~t:(h - 4) (hsnap (w - pane_width w) bar))
 
 let tech_pane (w, h) gst = I.void 5 5
 
@@ -122,21 +122,19 @@ let unit_list_img ul selected_unit =
     | [] -> I.void 1 1
     | u :: us -> let arrow = if selected_unit = current_unit then I.uchar text 129170 1 1 else I.void 1 1 in
       I.vcat [I.hcat [arrow; I.string text (unit_str u); I.void 1 1; I.uchar health 9829 1 1; I.void 1 1;
-                      I.string health (string_of_int (Entity.health (Entity.Unit u)))]; 
+                      I.string health (string_of_int (Entity.health (Entity.Unit u)))];
               unit_list_img_helper us selected_unit (current_unit+1)] in
   unit_list_img_helper ul selected_unit 0
 
 let left_pane (w, h) gst =
   let pane_width = pane_width w in
   let text = A.(fg white ++ bg black) in
+  let underlined = A.(fg white ++ bg black ++ st underline) in
   let (col, row) = gst.selected_tile in
   let pane_content = match gst.pane_state with
-  | Tile -> let tile = World.get_tile gst.map col row in
-    I.vcat [
-      I.hsnap pane_width (I.(string A.(text ++ st underline) "TILE"));
-      I.hsnap pane_width (I.(string text "City: C, Tech: T, Unit: U"));
-      I.void 1 1;
-      I.hsnap pane_width (tile_yields_img tile)
+  | Tile -> I.vcat [
+      I.hsnap pane_width (I.(string text "TILE"));
+      I.hsnap pane_width (I.(string text "City: C, Tech: T, Units: U"))
     ]
   | Unit u -> let units = State.units (col, row) gst in
     let num_units = List.length units in
@@ -144,31 +142,39 @@ let left_pane (w, h) gst =
       I.hsnap pane_width (I.(string A.(text ++ st underline)) "UNITS");
       I.hsnap pane_width (I.(string text "City: C, Tech: T, Tile: S"));
       I.void 1 1;
-      I.hsnap pane_width (I.string A.(text ++ st underline) "MOVEMENT:");
-      I.hsnap pane_width (I.hcat [I.uchar text 8598 1 1; (I.string text " 1 ");
-                                  I.uchar text 8593 1 1; (I.string text " 2 ");
-                                  I.uchar text 8599 1 1; (I.string text " 3 ")]);
-      I.hsnap pane_width (I.hcat [I.uchar text 8601 1 1; (I.string text " 4 ");
-                                  I.uchar text 8595 1 1; (I.string text " 5 ");
-                                  I.uchar text 8600 1 1; (I.string text " 6 ");
-                                  ]);
+      I.hsnap pane_width (I.string text "MOVEMENT:");
+      I.hsnap pane_width (I.string text "___");
+      I.hsnap pane_width (I.string text "/   \\");
+      I.hsnap pane_width (I.string text ",--(     )--.");
+      I.hsnap pane_width (I.(hcat [
+        string text "/    \\_"; string underlined "2"; string text "_/    \\"
+      ]));
+      I.hsnap pane_width (I.string text "\\  1 /   \\ 3  /");
+      I.hsnap pane_width (I.string text ")--(     )--(");
+      I.hsnap pane_width (I.string text "/  4 \\___/ 6  \\");
+      I.hsnap pane_width (I.string text "\\    / 5 \\    /");
+      I.hsnap pane_width (I.string text "`--(     )--'");
+      I.hsnap pane_width (I.string text "\\___/");
+      I.void 1 1;
+      I.hsnap pane_width (I.string text "HEALTH: ");
       I.void 1 1;
       I.hsnap pane_width (I.string text "SELECT UNIT WITH .");
       I.void 1 1;
       if num_units > 0 then
         I.hsnap ~align: `Left pane_width (unit_list_img units (u mod num_units))
-      else I.void 1 1]
+      else I.void 1 1
+    ]
   | City c -> I.vcat [
       I.hsnap pane_width (I.(string A.(text ++ st underline) "CITY"));
-      I.hsnap pane_width (I.(string text "Tech: T, Unit: U, Tile: S"))
+      I.hsnap pane_width (I.(string text "Tech: T, Units: U, Tile: S"))
     ]
   | Tech t -> I.vcat [
       I.hsnap pane_width (I.(string A.(text ++ st underline) "TECH"));
-      I.hsnap pane_width (I.(string text "City: C, Unit: U, Tile: S"))
+      I.hsnap pane_width (I.(string text "City: C, Units: U, Tile: S"))
     ] in
   I.zcat [
     pane_content;
-    I.(char A.(fg white ++ bg black) ' ' pane_width (h - top_padding - bottom_padding))
+    I.(char A.(fg white ++ bg black) ' ' pane_width (h - top_padding))
   ] |> I.pad ~t:top_padding
 
 let ui_img (w, h) gst =
@@ -188,69 +194,74 @@ let calculate_tiles_w_h (w, h) =
                 float_of_int tile_height |> floor |> int_of_float in
   (tiles_w, tiles_h)
 
-let terrain_str tile =
+let terrain_img tile =
   World.(
     match terrain tile with
-    | Grassland -> "Grassland"
-    | Plains -> "Plains"
-    | Desert -> "Desert"
-    | Tundra -> "Tundra"
-    | Ice -> "Ice"
-    | Ocean -> "Ocean"
-    | Coast -> "Coast"
-    | Lake -> "Lake")
+    | Grassland -> I.string A.(fg green) ",.,.,.,,.,.,.,"
+    | Plains -> I.string A.(fg green) "______________"
+    | Desert -> I.string A.(fg lightyellow) "____↟______↟__"
+    | Tundra -> I.string A.(fg (gray 1)) "______________"
+    | Ice -> I.string A.(fg lightblue) "______________"
+    | Ocean -> I.string A.(fg blue) "=============="
+    | Coast -> I.string A.(fg lightyellow) "=_____↟↟_____="
+    | Lake -> I.string A.(fg blue) "--------------")
 
-let feature_str f =
+let feature_img f =
   World.(
     match f with
-    | Forest -> "Forest"
-    | Jungle -> "Jungle"
-    | Oasis -> "Oasis"
-    | FloodPlains -> "Flood Plains")
+    | Forest -> I.string A.(fg green) "↟ ↟  ↟↟ ↟ ↟↟"
+    | Jungle -> I.string A.(fg green) "↟↟↟↟↟↟↟↟↟↟↟↟"
+    | Oasis -> I.string A.(fg blue) "↟__↟"
+    | FloodPlains -> I.string A.(fg blue) "====")
 
-let feature_opt_str tile =
+let feature_opt_img tile =
   World.(
     match feature tile with
-    | Some f -> feature_str f
-    | None -> "")
+    | Some f -> feature_img f
+    | None -> I.empty)
 
-let elevation_str tile =
-  World.(
-    match elevation tile with
-    | Flatland -> "Flatland"
-    | Hill -> "Hill"
-    | Peak -> "Peak")
+let elevation_img u tile =
+  let str =
+    World.(
+      match elevation tile with
+      | Flatland -> "            "
+      | Hill -> "◠◠◠◠◠◠◠◠◠◠◠◠"
+      | Peak -> "△^△^△^^△^△^△^△"
+    ) in
+  I.string A.(fg (if u then blue else (gray 7)) ++ st underline) str
 
-let resource_str r = (* TODO: Make sure player has researched it *)
+let resource_img r = (* TODO: Make sure player has researched it *)
   World.(
     match r with
-    | Fish -> "Fish"
-    | Crab -> "Crab"
-    | Gold -> "Gold"
-    | Silver -> "Silver"
-    | Gems -> "Gem"
-    | Salt -> "Salt"
-    | Iron -> "Iron"
-    | Marble -> "Marble"
-    | Stone -> "Stone"
-    | Wheat -> "Wheat"
-    | Corn -> "Corn"
-    | Rice -> "Rice"
-    | Furs -> "Furs"
-    | Ivory -> "Ivory"
-    | Deer -> "Deer"
-    | Sheep -> "Sheep"
-    | Cattle -> "Cattle"
-    | Horses -> "Horses"
-    | Cotton -> "Cotton"
-    | Banana -> "Banana"
-    | Sugar -> "Sugar")
+    | Fish -> I.string A.empty "Fish"
+    | Crab -> I.string A.empty "Crab"
+    | Gold -> I.string A.(fg yellow) "Gold"
+    | Silver -> I.string A.(fg (gray 10)) "Silver"
+    | Gems -> I.string A.(fg lightmagenta) "Gem"
+    | Salt -> I.string A.empty "Salt"
+    | Iron -> I.string A.(fg (gray 10)) "Iron"
+    | Marble -> I.string A.(fg (gray 10)) "Marble"
+    | Stone -> I.string A.(fg (gray 10)) "Stone"
+    | Wheat -> I.string A.(fg lightyellow) "⇞⇞⇞⇞⇞⇞"
+    | Corn -> I.string A.(fg yellow) "⇞⇞⇞⇞⇞⇞"
+    | Rice -> I.string A.empty "⇞⇞⇞⇞⇞⇞"
+    | Furs -> I.string A.empty "Furs"
+    | Ivory -> I.string A.empty "Ivory"
+    | Deer -> I.string A.empty "Deer"
+    | Sheep -> I.string A.empty "Sheep"
+    | Cattle -> I.string A.empty "Cattle"
+    | Horses -> I.string A.empty "Horses"
+    | Cotton -> I.string A.empty "Cotton"
+    | Banana -> I.string A.(fg yellow) "◡◡◡◡◡◡"
+    | Sugar -> I.string A.empty "Sugar"
+  )
 
-let resource_opt_str tile =
+let resource_opt_img tile =
   World.(
     match resource tile with
-    | Some r -> resource_str r
-    | None -> "")
+    | Some r -> resource_img r
+    | None -> I.empty
+  )
 
 let improvement_str i =
   World.(
@@ -269,28 +280,50 @@ let improvement_opt_str tile =
     | Some i -> improvement_str i
     | None -> "")
 
+let tile_yields_img tile =
+  World.(
+    let y = tile_yields tile in
+    I.(hcat [
+      uchar A.(fg green) 127823 1 1;
+      void 1 1;
+      string A.(fg green) (string_of_int y.food);
+      void 1 1;
+      uchar A.(fg yellow) 11044 1 1;
+      void 1 1;
+      string A.(fg yellow) (string_of_int y.gold);
+      void 1 1;
+      uchar A.(fg blue) 128296 1 1;
+      void 1 1;
+      string A.(fg blue) (string_of_int y.production);
+    ])
+  )
+
+let tile_unit_str units =
+  if List.length units = 0 then ""
+  else string_of_int (List.length units) ^ " units"
+
 let tile_img is_selected (col, row) (left_col, top_row) gst (w, h) =
-  let color = if is_selected then A.(fg blue) else A.(fg white) in
+  let color = if is_selected then A.(fg blue) else A.(fg (gray 3)) in
   let text_color = A.(fg white) in
   let color_underline = A.(color ++ st underline) in
   let odd_even_col_offset = if col mod 2 = 1 then (tile_height/2) else 0 in
   let top_underline_offset = if row = top_row || is_selected then 0 else 1 in
   let left = initial_tile_left w + (tile_width*(col - left_col)) in
   let top = initial_tile_top + (tile_height*(row - top_row)) + odd_even_col_offset + top_underline_offset in
-  let tile = World.get_tile gst.map col row in
+  let t = World.get_tile gst.map col row in
   let units = State.units (col, row) gst in
   grid [
     if row = top_row || is_selected then [I.void 5 1; I.string color_underline "            "] else [];
-    [I.void 4 1; I.uchar color 0x2571 1 1; I.string color "            "; I.uchar color 0x2572 1 1];
-    [I.void 3 1; I.uchar color 0x2571 1 1; I.string color "              "; I.uchar color 0x2572 1 1];
-    [I.void 2 1; I.uchar color 0x2571 1 1; I.hsnap 16 (I.string text_color (terrain_str tile)); I.uchar color 0x2572 1 1];
-    [I.void 1 1; I.uchar color 0x2571 1 1; I.hsnap 18 (I.string text_color (feature_opt_str tile)); I.uchar color 0x2572 1 1];
-    [I.uchar color 0x2571 1 1; I.hsnap 20 (I.string text_color (elevation_str tile)); I.uchar color 0x2572 1 1];
-    [I.uchar color 0x2572 1 1; I.hsnap 20 (I.string text_color (resource_opt_str tile)); I.uchar color 0x2571 1 1];
-    [I.void 1 1; I.uchar color 0x2572 1 1; I.hsnap 18 (I.string text_color (improvement_opt_str tile)); I.uchar color 0x2571 1 1];
-    [I.void 2 1; I.uchar color 0x2572 1 1; I.hsnap 16 (I.string text_color (string_of_int (List.length units) ^ " units")); I.uchar color 0x2571 1 1];
-    [I.void 3 1; I.uchar color 0x2572 1 1; I.string color "              "; I.uchar color 0x2571 1 1];
-    [I.void 4 1; I.uchar color 0x2572 1 1; I.string color_underline "            "; I.uchar color 0x2571 1 1];
+    [I.void 4 1; I.uchar color 0x2571 1 1; I.hsnap 12 (I.string color "            "); I.uchar color 0x2572 1 1];
+    [I.void 3 1; I.uchar color 0x2571 1 1; I.hsnap 14 (I.string color "              "); I.uchar color 0x2572 1 1];
+    [I.void 2 1; I.uchar color 0x2571 1 1; I.hsnap 16 (I.string text_color (tile_unit_str units)); I.uchar color 0x2572 1 1];
+    [I.void 1 1; I.uchar color 0x2571 1 1; I.hsnap 18 I.empty; I.uchar color 0x2572 1 1];
+    [I.uchar color 0x2571 1 1; I.hsnap 20 I.empty; I.uchar color 0x2572 1 1];
+    [I.uchar color 0x2572 1 1; I.hsnap 20 I.(I.string text_color (improvement_opt_str t)); I.uchar color 0x2571 1 1];
+    [I.void 1 1; I.uchar color 0x2572 1 1; I.hsnap 18 (resource_opt_img t); I.uchar color 0x2571 1 1];
+    [I.void 2 1; I.uchar color 0x2572 1 1; I.hsnap 16 (feature_opt_img t); I.uchar color 0x2571 1 1];
+    [I.void 3 1; I.uchar color 0x2572 1 1; I.hsnap 14 (terrain_img t); I.uchar color 0x2571 1 1];
+    [I.void 4 1; I.uchar color 0x2572 1 1; I.hsnap 12 (elevation_img is_selected t); I.uchar color 0x2571 1 1];
   ] |> I.pad ~l:left ~t:top
 
 let rec game_map_helper img (w, h) gst tiles_w tiles_h (col, row) (left_col, top_row) (map_cols, map_rows) =

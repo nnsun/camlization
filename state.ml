@@ -49,7 +49,7 @@ let initial_game_state options =
     players = Array.make options.player_count Player.new_player
   }
 
-let turns gst = gst.player_turns mod Array.length gst.players
+let turns gst = gst.player_turns / Array.length gst.players
 
 let date gst =
   let date = initial_year + (turns gst * years_per_turn) in
@@ -68,6 +68,7 @@ let next_turn state =
   {
     state with
     current_player = (state.current_player + 1) mod (Array.length state.players);
+    player_turns = state.player_turns + 1
   }
 
 let entities coordinates gst =
