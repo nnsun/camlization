@@ -59,9 +59,10 @@ let date gst =
 let game_map gst = !(gst.map)
 
 let next_turn state =
-  let old_p = state.players.(state.current_player) in
-  let new_p = Player.set_gold old_p in
-  state.players.(state.current_player) <- new_p;
+  let player = state.players.(state.current_player) in
+  let player = Player.set_gold player in
+  let player = Player.set_science player in
+  state.players.(state.current_player) <- player;
   {
     state with
     current_player = (state.current_player + 1) mod (Array.length state.players);
