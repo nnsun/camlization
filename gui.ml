@@ -79,8 +79,6 @@ let player_bar (w, h) gst =
   let bar = Array.mapi pimg gst.players |> Array.to_list |> I.hcat in
   I.(pad ~l:(pane_width w) ~t:(h - 4) (hsnap (w - pane_width w) bar))
 
-let tech_pane (w, h) gst = I.void 5 5
-
 let tile_yields_img tile =
   World.(
     let y = tile_yields tile in
@@ -116,62 +114,83 @@ let unit_str u =
 
 let unit_list_img ul selected_unit =
   let rec unit_list_img_helper ul selected_unit current_unit =
-    let text = A.(fg white ++ bg black) in
     let health = A.(fg red ++ bg black) in
     match ul with
     | [] -> I.void 1 1
-    | u :: us -> let arrow = if selected_unit = current_unit then I.uchar text 129170 1 1 else I.void 1 1 in
-      I.vcat [I.hcat [arrow; I.string text (unit_str u); I.void 1 1; I.uchar health 9829 1 1; I.void 1 1;
-                      I.string health (string_of_int (Entity.health (Entity.Unit u)))];
-              unit_list_img_helper us selected_unit (current_unit+1)] in
+    | u :: us ->
+      let text =
+        if selected_unit = current_unit
+        then A.(fg white ++ bg black ++ st bold)
+        else A.(fg white ++ bg black) in
+      let arrow =
+        if selected_unit = current_unit
+        then I.(I.uchar text 9654 1 1 <|> I.void 1 1)
+        else I.void 2 1 in
+      I.vcat [
+        I.hcat [
+          arrow;
+          I.string text (unit_str u);
+          I.void 1 1;
+          I.uchar health 9829 1 1;
+          I.void 1 1;
+          I.string health (string_of_int (Entity.health (Entity.Unit u)))
+        ];
+        unit_list_img_helper us selected_unit (current_unit+1)
+      ] in
   unit_list_img_helper ul selected_unit 0
 
 let left_pane (w, h) gst =
   let pane_width = pane_width w in
+  let snap img = I.hsnap pane_width img in
   let text = A.(fg white ++ bg black) in
   let underlined = A.(fg white ++ bg black ++ st underline) in
   let (col, row) = gst.selected_tile in
   let pane_content = match gst.pane_state with
   | Tile -> I.vcat [
-      I.hsnap pane_width (I.(string text "TILE"));
-      I.hsnap pane_width (I.(string text "City: C, Tech: T, Units: U"))
+      snap (I.(string text "TILE"));
+      snap (I.(string text "City: C, Tech: T, Units: U"))
     ]
   | Unit u -> let units = State.units (col, row) gst in
     let num_units = List.length units in
     I.vcat [
-      I.hsnap pane_width (I.(string A.(text ++ st underline)) "UNITS");
-      I.hsnap pane_width (I.(string text "City: C, Tech: T, Tile: S"));
+      snap (I.(string A.(text ++ st underline)) "UNITS");
+      snap (I.(string text "City: C, Tech: T, Tile: S"));
       I.void 1 1;
-      I.hsnap pane_width (I.string text "MOVEMENT:");
-      I.hsnap pane_width (I.string text "___");
-      I.hsnap pane_width (I.string text "/   \\");
-      I.hsnap pane_width (I.string text ",--(     )--.");
-      I.hsnap pane_width (I.(hcat [
+      snap (I.string text "MOVEMENT:");
+      snap (I.string text "___");
+      snap (I.string text "/   \\");
+      snap (I.string text ",--(     )--.");
+      snap (I.(hcat [
         string text "/    \\_"; string underlined "2"; string text "_/    \\"
       ]));
-      I.hsnap pane_width (I.string text "\\  1 /   \\ 3  /");
-      I.hsnap pane_width (I.string text ")--(     )--(");
-      I.hsnap pane_width (I.string text "/  4 \\___/ 6  \\");
-      I.hsnap pane_width (I.string text "\\    / 5 \\    /");
-      I.hsnap pane_width (I.string text "`--(     )--'");
-      I.hsnap pane_width (I.string text "\\___/");
+      snap (I.string text "\\  1 /   \\ 3  /");
+      snap (I.string text ")--(     )--(");
+      snap (I.string text "/  4 \\___/ 6  \\");
+      snap (I.string text "\\    / 5 \\    /");
+      snap (I.string text "`--(     )--'");
+      snap (I.string text "\\___/");
       I.void 1 1;
-      I.hsnap pane_width (I.string text "HEALTH: ");
+      snap (I.string text "HEALTH: ");
       I.void 1 1;
-      I.hsnap pane_width (I.string text "SELECT UNIT WITH .");
+      snap (I.string text "SELECT UNIT WITH .");
       I.void 1 1;
       if num_units > 0 then
         I.hsnap ~align: `Left pane_width (unit_list_img units (u mod num_units))
-      else I.void 1 1
+      else
+        snap (I.string text "NO UNITS IN THIS TILE")
     ]
   | City c -> I.vcat [
-      I.hsnap pane_width (I.(string A.(text ++ st underline) "CITY"));
-      I.hsnap pane_width (I.(string text "Tech: T, Units: U, Tile: S"))
+      snap (I.(string A.(text ++ st underline) "CITY"));
+      snap (I.(string text "Tech: T, Units: U, Tile: S"))
     ]
   | Tech t -> I.vcat [
-      I.hsnap pane_width (I.(string A.(text ++ st underline) "TECH"));
-      I.hsnap pane_width (I.(string text "City: C, Units: U, Tile: S"))
-    ] in
+      snap (I.(string A.(text ++ st underline) "TECH"));
+      snap (I.(string text "City: C, Units: U, Tile: S"));
+      I.void 1 1;
+      snap (I.(string text "CURRENT RESEARCH:"));
+      snap (I.(string text "Archery (4)"));
+      snap (I.(string text "Todo: possible techs to research"))
+    ]  in
   I.zcat [
     pane_content;
     I.(char A.(fg white ++ bg black) ' ' pane_width (h - top_padding))
