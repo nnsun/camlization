@@ -157,3 +157,7 @@ val reset_movement : unit_entity -> unit_entity
 (* [change_production entity utype] changes [entity]'s production to [utype]
  * Requires: [entity] is a City *)
 val change_production : entity ref -> unit_type -> unit
+
+(* [resource_req utype] is [None] if [utype] doesn't have a resource requirement
+ * and [Some res] if utype requires [res] to be built  *)
+ val resource_req : unit_type -> resource option

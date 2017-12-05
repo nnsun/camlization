@@ -138,10 +138,26 @@ let unit_type_str utype =
     | Chariot -> "Chariot"
     | Horseman -> "Horseman"
     | Swordsman -> "Swordsman"
-    | Catapult -> "Catapult"
-  )
+    | Catapult -> "Catapult")
 
 let unit_str u = unit_type_str (Entity.unit_type u)
+
+let improvement_str i =
+  World.(
+    match i with
+    | FishingBoats -> "Fishing Boats"
+    | Mine -> "Mine"
+    | Quarry -> "Quarry"
+    | Farm -> "Farm"
+    | Camp -> "Camp"
+    | Pasture -> "Pasture"
+    | Plantation -> "Plantation")
+
+let improvement_opt_str tile =
+  World.(
+    match improvement tile with
+    | Some i -> improvement_str i
+    | None -> "")
 
 let unit_list_img ul selected_unit =
   let rec unit_list_img_helper ul selected_unit current_unit =
@@ -206,6 +222,28 @@ let tab_img pst selected =
     ])
   ))
 
+let possible_improvements_img pi selected_pi =
+  let rec possible_improvements_img_helper pi selected_pi current_pi =
+    match pi with
+    | [] -> I.void 1 1
+    | i :: is ->
+      let text =
+        if selected_pi = current_pi
+        then A.(fg white ++ bg black ++ st bold)
+        else A.(fg white ++ bg black) in
+      let arrow =
+        if selected_pi = current_pi
+        then I.(I.uchar text 9654 1 1 <|> I.void 1 1)
+        else I.void 2 1 in
+      I.vcat [
+        I.hcat [
+          arrow;
+          I.string text (improvement_str i)
+        ];
+        possible_improvements_img_helper is selected_pi (current_pi+1)
+      ] in
+  possible_improvements_img_helper pi selected_pi 0
+
 let left_pane (w, h) gst =
   let player = gst.players.(gst.current_player) in
   let pane_width = pane_width w in
@@ -213,9 +251,10 @@ let left_pane (w, h) gst =
   let text = A.(fg white ++ bg black) in
   let underlined = A.(fg white ++ bg black ++ st underline) in
   let (col, row) = gst.selected_tile in
-  let tabs = [Tile; Unit (0, 0); City 0; Tech 0] in
+  let tile = World.get_tile gst.map col row in
   let pane_content = match gst.pane_state with
-  | Tile -> let tile = World.get_tile gst.map col row in
+  | Tile ->
+    let tabs = [Tile; Unit (0, 0); City 0; Tech 0] in
     I.vcat [
       snap (I.hcat (List.map (fun t -> tab_img t (t = Tile)) tabs));
       I.void 1 1;
@@ -223,6 +262,9 @@ let left_pane (w, h) gst =
     ]
   | Unit (u,i) -> let units = State.units (col, row) gst in
     let num_units = List.length units in
+    let possible_improvements = World.tile_possible_improvements tile in
+    let num_possible_improvements = List.length possible_improvements in
+    let tabs = [Tile; Unit (u, i); City 0; Tech 0] in
     I.vcat [
       snap (I.hcat (List.map (fun t -> tab_img t (t = ( Unit (u,i) ))) tabs));
       I.void 1 1;
@@ -245,11 +287,16 @@ let left_pane (w, h) gst =
       snap (I.string text "SELECT UNIT WITH ,");
       I.void 1 1;
       if num_units > 0 then
-        I.hsnap ~align: `Left pane_width (unit_list_img units (u mod num_units))
+        I.vcat [
+        I.hsnap ~align: `Left pane_width (unit_list_img units (u mod num_units));
+        I.void 1 1;
+        I.hsnap pane_width (I.string A.(fg white ++ bg black) "SELECT IMPROVEMENT WITH /");
+        I.hsnap ~align: `Left pane_width (possible_improvements_img possible_improvements (i mod num_possible_improvements))]
       else
         snap (I.string text "NO UNITS IN THIS TILE")
     ]
   | City c ->
+    let tabs = [Tile; Unit (0, 0); City c; Tech 0] in
     let empty_city =
       I.vcat [
         snap (I.hcat (List.map (fun t -> tab_img t (t = (City c))) tabs));
@@ -281,8 +328,7 @@ let left_pane (w, h) gst =
           )
           in
         I.vcat [
-          snap (I.(string A.(text ++ st underline) "CITY"));
-          snap (I.(string text "Tech: T, Units: U, Tile: S"));
+          snap (I.hcat (List.map (fun t -> tab_img t (t = (City c))) tabs));
           I.void 1 1;
           snap (I.(string text "CURRENT PRODUCTION:"));
           I.void 1 1;
@@ -306,6 +352,7 @@ let left_pane (w, h) gst =
       | None -> empty_city
     end
   | Tech t_index ->
+    let tabs = [Tile; Unit (0, 0); City 0; Tech t_index] in
     let current_tech = Player.current_tech player in
     let techs = State.available_techs gst in
     let tech_left t =
@@ -410,7 +457,7 @@ let elevation_img u tile =
     ) in
   I.string A.(fg (if u then blue else (gray 7)) ++ st underline) str
 
-let resource_img r = (* TODO: Make sure player has researched it *)
+let resource_img r =
   World.(
     match r with
     | Fish -> I.string A.empty "Fish"
@@ -440,25 +487,7 @@ let resource_opt_img tile =
   World.(
     match resource tile with
     | Some r -> resource_img r
-    | None -> I.empty
-  )
-
-let improvement_str i =
-  World.(
-    match i with
-    | FishingBoats -> "Fishing Boats"
-    | Mine -> "Mine"
-    | Quarry -> "Quarry"
-    | Farm -> "Farm"
-    | Camp -> "Camp"
-    | Pasture -> "Pasture"
-    | Plantation -> "Plantation")
-
-let improvement_opt_str tile =
-  World.(
-    match improvement tile with
-    | Some i -> improvement_str i
-    | None -> "")
+    | None -> I.empty)
 
 let tile_unit_str units =
   if List.length units = 0 then ""
@@ -661,6 +690,7 @@ let rec main t gst =
   | `Key (`Uchar 52, []) -> main t {gst with pane_state = Tech 0}
   | `Key (`Uchar 49, []) -> main t {gst with pane_state = Tile}
   | `Key (`Uchar 44, []) -> main t {gst with pane_state = next_pane_state gst.pane_state false false}
+  | `Key (`Uchar 47, []) -> main t {gst with pane_state = next_pane_state gst.pane_state false true}
   | `Key (`Uchar 46, []) ->
     let player = gst.players.(gst.current_player) in
     begin
