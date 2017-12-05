@@ -198,13 +198,15 @@ let new_city tile is_capital =
   )
 
 let combat_multiplier unit1 unit2 =
-  let unit1_type = unit_type(get_unit_entity (unit1)) in
-  if is_unit unit2 then
-    let unit2_type = unit_type (get_unit_entity (unit2)) in
-    if unit1_type = Spearman &&
-      (unit2_type = Chariot || unit2_type = Horseman) then 1.5
-    else 1.
-  else if unit1_type = Catapult then 1.25 else 1.
+  if is_unit unit1 then
+    let unit1_type = unit_type(get_unit_entity (unit1)) in
+    if is_unit unit2 then
+      let unit2_type = unit_type (get_unit_entity (unit2)) in
+      if unit1_type = Spearman &&
+        (unit2_type = Chariot || unit2_type = Horseman) then 1.5
+      else 1.
+    else if unit1_type = Catapult then 1.25 else 1.
+  else 1.
 
 let set_growth city =
   let stock = (snd city).food_stock + food_per_turn city in
