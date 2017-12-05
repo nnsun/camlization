@@ -15,7 +15,7 @@ type menu_state =
 type pane_state =
   | Tile
   | City of int
-  | Unit of int
+  | Unit of int * int
   | Tech of int
 
 type game_state = {
@@ -87,13 +87,25 @@ let unit_refs coordinates gst =
   List.filter (fun e -> Entity.is_unit !e) l
 
 let city coordinates gst =
-  let l = entities coordinates gst in
+  let l = List.filter Entity.is_city (entities coordinates gst) in
   try
     let entity = List.hd l in
     Entity.(
       match entity with
       | City c -> Some c
       | Unit u -> None
+    )
+  with _ -> None
+
+let city_ref coordinates gst =
+  let is_city e = Entity.is_city !e in
+  let l = List.filter is_city (entities_refs coordinates gst) in
+  try
+    let entity = List.hd l in
+    Entity.(
+      match !entity with
+      | City _ -> Some entity
+      | Unit _ -> None
     )
   with _ -> None
 
@@ -324,7 +336,7 @@ let next_turn state =
     player_turns = state.player_turns + 1
   }
 
-let found_city gst tile =
+let found_city gst tile worker_unit =
   let (col, row) = World.coordinates tile in
   let entity_refs = List.map (fun p -> Player.entities p) (gst.players |> Array.to_list) |> List.flatten in
   let entities = List.map (!) entity_refs in
@@ -356,7 +368,7 @@ let found_city gst tile =
       (col, row) = (c_col + 1, c_row + 2) ||
       (col, row) = (c_col - 1, c_row - 2) ||
       (col, row) = (c_col + 1, c_row - 2)
-    else 
+    else
       (col, row) = (c_col, c_row) ||
       (col, row) = (c_col - 1, c_row - 1) ||
       (col, row) = (c_col, c_row - 1) ||
@@ -383,5 +395,6 @@ let found_city gst tile =
     in
   if List.filter filter_close_cities cities |> List.length = 0 then
     let player = Player.found_city (gst.players.(gst.current_player)) tile in
+    let _ = worker_unit := Entity.set_health !worker_unit 0 in
     gst.players.(gst.current_player) <- player; gst
   else gst

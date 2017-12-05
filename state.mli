@@ -16,7 +16,7 @@ type menu_state =
 type pane_state =
   | Tile
   | City of int
-  | Unit of int
+  | Unit of int * int
   | Tech of int
 
 (* [game_state] represents the state of a running game *)
@@ -70,6 +70,10 @@ val entities : int * int -> game_state -> Entity.entity list
  * None otherwise *)
 val city : int * int -> game_state -> Entity.city_entity option
 
+(* [city_ref coord gst] is the entity ref at the coordinates [coord] if such
+ * exists, or None otherwise *)
+val city_ref : int * int -> game_state -> Entity.entity ref option
+
 (* [units coord gst] is the list of units at the coordinates [coord] *)
 val units : int * int -> game_state -> Entity.unit_entity list
 
@@ -92,4 +96,4 @@ val available_units : game_state -> Entity.unit_type list
 
 (* [found_city state tile] founds a city at [tile] if there are no cities
    within three tiles of [tile] *)
-val found_city : game_state -> World.tile -> game_state
+val found_city : game_state -> World.tile -> Entity.entity ref -> game_state

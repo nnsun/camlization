@@ -89,6 +89,12 @@ val is_adjacent : tile -> tile -> bool
  * [tile] on [map] *)
 val adjacent_tiles : tile -> map -> tile list
 
+(* [set_improvement map tile improvement] adds [improvement] to [tile] *)
+val set_improvement : map -> tile -> improvement -> unit
+
+(* [tile_possible_improvements tile] returns a list of the possible improvements for [tile] *)
+val tile_possible_improvements : tile -> improvement list
+
 (* Temporary *)
 val sample_tile : tile
 val sample_tile2 : tile

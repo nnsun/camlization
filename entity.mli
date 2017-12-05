@@ -155,5 +155,5 @@ val set_gold_per_turn : int -> entity -> entity
 val reset_movement : unit_entity -> unit_entity
 
 (* [change_production entity utype] changes [entity]'s production to [utype]
- * Requirs: [entity] is a City *)
-val change_production : entity -> unit_type -> entity
+ * Requires: [entity] is a City *)
+val change_production : entity ref -> unit_type -> unit
