@@ -88,7 +88,7 @@ type entity =
   | City of city_entity
   | Unit of unit_entity
 
-let get_unit_type u =
+let unit_type u =
   (snd u).name
 
 let shared_info e =

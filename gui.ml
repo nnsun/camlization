@@ -141,7 +141,7 @@ let unit_type_str utype =
     | Catapult -> "Catapult"
   )
 
-let unit_str u = unit_type_str (Entity.get_unit_type u)
+let unit_str u = unit_type_str (Entity.unit_type u)
 
 let unit_list_img ul selected_unit =
   let rec unit_list_img_helper ul selected_unit current_unit =
