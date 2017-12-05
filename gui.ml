@@ -96,6 +96,35 @@ let tile_yields_img tile =
       string A.(fg blue ++ bg black) (string_of_int y.production);
     ]))
 
+let progress_str f =
+  if f < 0.15 then "▁"
+  else if f < 0.30 then "▂"
+  else if f < 0.45 then "▃"
+  else if f < 0.60 then "▅"
+  else if f < 0.75 then "▆"
+  else if f < 0.90 then "▇"
+  else "█"
+
+let tech_str t =
+  Tech.(
+    match t with
+    | Agriculture -> "Agriculture"
+    | Fishing -> "Fishing"
+    | Sailing -> "Sailing"
+    | Optics -> "Optics"
+    | AnimalHusbandry -> "Animal Husbandry"
+    | Trapping -> "Trapping"
+    | HorsebackRiding -> "Horseback Riding"
+    | Mining -> "Mining"
+    | Masonry -> "Masonry"
+    | Calendar -> "Calendar"
+    | BronzeWorking -> "Bronze Working"
+    | IronWorking -> "Iron Working"
+    | Archery -> "Archery"
+    | TheWheel -> "The Wheel"
+    | Mathematics -> "Mathematics"
+  )
+
 let unit_str u =
   Entity.(
     match Entity.get_unit_type u with
@@ -140,6 +169,7 @@ let unit_list_img ul selected_unit =
   unit_list_img_helper ul selected_unit 0
 
 let left_pane (w, h) gst =
+  let player = gst.players.(gst.current_player) in
   let pane_width = pane_width w in
   let snap img = I.hsnap pane_width img in
   let text = A.(fg white ++ bg black) in
@@ -183,13 +213,31 @@ let left_pane (w, h) gst =
       snap (I.(string A.(text ++ st underline) "CITY"));
       snap (I.(string text "Tech: T, Units: U, Tile: S"))
     ]
-  | Tech t -> I.vcat [
+  | Tech t ->
+    let current_tech = Player.current_tech player in
+    let tech_left t =
+      if Player.science_rate player = 0 then 99
+      else
+        (Tech.tech_cost t - Player.science player)
+        / (Player.science_rate player) in
+    let tech_img t =
+      I.string text (tech_str t ^ " (" ^ (string_of_int (tech_left t)) ^ ")") in
+    I.vcat [
       snap (I.(string A.(text ++ st underline) "TECH"));
       snap (I.(string text "City: C, Units: U, Tile: S"));
       I.void 1 1;
       snap (I.(string text "CURRENT RESEARCH:"));
-      snap (I.(string text "Archery (4)"));
-      snap (I.(string text "Todo: possible techs to research"))
+      (
+        match current_tech with
+        | Some t -> tech_img t
+        | None -> snap I.(string text "Choose a Tech to Research")
+      );
+      I.void 1 2;
+      snap (I.string text "AVAILABLE TECHS:");
+      snap (I.vcat (List.map tech_img (State.available_techs gst)));
+      I.void 1 2;
+      snap (I.string text "RESEARCHED TECHS:");
+      snap (I.vcat (List.map tech_img (Player.techs player)))
     ]  in
   I.zcat [
     pane_content;
@@ -321,15 +369,6 @@ let tile_unit_str units =
   if List.length units = 0 then ""
   else string_of_int (List.length units) ^ " units"
 
-let string_for_frac f =
-  if f < 0.15 then "▁"
-  else if f < 0.30 then "▂"
-  else if f < 0.45 then "▃"
-  else if f < 0.60 then "▅"
-  else if f < 0.75 then "▆"
-  else if f < 0.90 then "▇"
-  else "█"
-
 let city_imgs (col, row) gst =
   match State.city (col, row) gst with
   | Some city ->
@@ -344,11 +383,11 @@ let city_imgs (col, row) gst =
       let pop_frac = float_of_int (Entity.food_stock city)
         /. (float_of_int (Entity.growth_req pop)) in
       let pop_text =
-        I.string pop_attr (string_for_frac pop_frac) in
+        I.string pop_attr (progress_str pop_frac) in
       let prod_frac = float_of_int (Entity.production_stock city)
         /. (float_of_int (69)) in
       let prod_text =
-        I.string prod_attr (string_for_frac prod_frac) in
+        I.string prod_attr (progress_str prod_frac) in
       I.(
         hsnap 14 (hcat [
           string pop_attr (string_of_int pop);
