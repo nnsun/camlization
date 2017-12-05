@@ -150,3 +150,6 @@ val set_production_per_turn : int -> entity -> entity
  * to [n]
  * Requires: [entity] is a City *)
 val set_gold_per_turn : int -> entity -> entity
+
+(* [reset_movement u] returns [u] with moves left reset to the full amount *)
+val reset_movement : unit_entity -> unit_entity
