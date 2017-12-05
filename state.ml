@@ -167,51 +167,54 @@ let make_move state entity_ref tile =
     let unit_entity = Entity.get_unit_entity !entity_ref in
     let moves_left = Entity.moves_left unit_entity in
     if moves_left <= 0 then state else
-      let cost = World.movement_cost tile in
-      let update_tile unit_entity tile =
-        Entity.set_tile unit_entity tile in
-      let go_to_tile st e_ref t_ref =
-        let opponent_opt = tile_contains_enemy st t_ref in
-        match opponent_opt with
-        | None ->
-          let unit_entity =
-            Entity.subtract_moves_left unit_entity cost in
-          let unit_entity =
-            Entity.set_tile unit_entity tile in
-          let _ = entity_ref := Entity.Unit unit_entity in
+    let cost = World.movement_cost tile in
+    let update_tile unit_entity tile =
+      Entity.set_tile unit_entity tile in
+    let go_to_tile st e_ref t_ref =
+      let opponent_opt = tile_contains_enemy st t_ref in
+      match opponent_opt with
+      | None ->
+        let unit_entity =
+          Entity.subtract_moves_left unit_entity cost in
+        let unit_entity =
+          Entity.set_tile unit_entity tile in
+        let _ = entity_ref := Entity.Unit unit_entity in
+        state
+      | Some o ->
+        if Entity.unit_class
+                (Entity.unit_type unit_entity) = Entity.Civilian then
           state
-        | Some o ->
-          if Entity.unit_class
-                  (Entity.unit_type unit_entity) = Entity.Civilian then
-            state
-          else
-            let (new_e1, new_e2) = combat (Entity.Unit unit_entity) (!o) in
-            let new_ue1 = (
-              match new_e1 with
-              | Entity.Unit u -> u
-              | _ -> failwith "Error: expected Unit but got City"
-            ) in
-            let unit_entity = new_ue1 in
-            let _ = o := new_e2 in
-            if tile_contains_enemy state tile = None then
-              let unit_entity = update_tile unit_entity tile in
-              let _ = entity_ref := Entity.Unit unit_entity in
-              state
-            else state in
-
-      if World.is_adjacent (Entity.tile (Entity.Unit unit_entity)) tile then
-        if World.elevation tile = World.Peak then state
-        else if World.terrain tile = World.Ice then state
-        else if World.terrain tile = World.Ocean ||
-                World.terrain tile = World.Coast then
-          let techs = Player.techs player in
-          let is_optics tech =
-            if tech = Tech.Optics then true else false in
-          if not (List.exists is_optics techs) then state
-          else go_to_tile state unit_entity tile
         else
-          go_to_tile state unit_entity tile
-      else state
+          let (new_e1, new_e2) = combat (Entity.Unit unit_entity) (!o) in
+          let new_ue1 = (
+            match new_e1 with
+            | Entity.Unit u -> u
+            | _ -> failwith "Error: expected Unit but got City"
+          ) in
+          let unit_entity = new_ue1 in
+          let _ = o := new_e2 in
+          if tile_contains_enemy state tile = None then
+            let unit_entity = update_tile unit_entity tile in
+            let _ = entity_ref := Entity.Unit unit_entity in
+            state
+          else state in
+
+    let utype = Entity.unit_type unit_entity in
+    let unit_tile = Entity.tile (Entity.Unit unit_entity) in
+    let terrain = World.terrain tile in
+    if not (World.is_adjacent unit_tile tile) then state else
+    if World.elevation tile = World.Peak then state
+    else if terrain = World.Ice then state
+    else if utype <> Entity.Trireme &&
+          (terrain = World.Ocean || terrain = World.Coast) then
+      let techs = Player.techs player in
+      let is_optics tech =
+        if tech = Tech.Optics then true else false in
+      if not (List.exists is_optics techs) then state
+      else go_to_tile state unit_entity tile
+    else if utype = Entity.Trireme &&
+            (terrain <> World.Ocean && terrain <> World.Coast) then state
+    else go_to_tile state unit_entity tile
 
 let strategics state =
   let p = state.players.(state.current_player) in
