@@ -138,10 +138,26 @@ let unit_type_str utype =
     | Chariot -> "Chariot"
     | Horseman -> "Horseman"
     | Swordsman -> "Swordsman"
-    | Catapult -> "Catapult"
-  )
+    | Catapult -> "Catapult")
 
 let unit_str u = unit_type_str (Entity.unit_type u)
+
+let improvement_str i =
+  World.(
+    match i with
+    | FishingBoats -> "Fishing Boats"
+    | Mine -> "Mine"
+    | Quarry -> "Quarry"
+    | Farm -> "Farm"
+    | Camp -> "Camp"
+    | Pasture -> "Pasture"
+    | Plantation -> "Plantation")
+
+let improvement_opt_str tile =
+  World.(
+    match improvement tile with
+    | Some i -> improvement_str i
+    | None -> "")
 
 let unit_list_img ul selected_unit =
   let rec unit_list_img_helper ul selected_unit current_unit =
@@ -170,6 +186,28 @@ let unit_list_img ul selected_unit =
       ] in
   unit_list_img_helper ul selected_unit 0
 
+let possible_improvements_img pi selected_pi =
+  let rec possible_improvements_img_helper pi selected_pi current_pi =
+    match pi with
+    | [] -> I.void 1 1
+    | i :: is ->
+      let text =
+        if selected_pi = current_pi
+        then A.(fg white ++ bg black ++ st bold)
+        else A.(fg white ++ bg black) in
+      let arrow =
+        if selected_pi = current_pi
+        then I.(I.uchar text 9654 1 1 <|> I.void 1 1)
+        else I.void 2 1 in
+      I.vcat [
+        I.hcat [
+          arrow;
+          I.string text (improvement_str i)
+        ];
+        possible_improvements_img_helper is selected_pi (current_pi+1)
+      ] in
+  possible_improvements_img_helper pi selected_pi 0
+
 let left_pane (w, h) gst =
   let player = gst.players.(gst.current_player) in
   let pane_width = pane_width w in
@@ -177,16 +215,19 @@ let left_pane (w, h) gst =
   let text = A.(fg white ++ bg black) in
   let underlined = A.(fg white ++ bg black ++ st underline) in
   let (col, row) = gst.selected_tile in
+  let tile = World.get_tile gst.map col row in
   let pane_content = match gst.pane_state with
-  | Tile -> let tile = World.get_tile gst.map col row in
+  | Tile -> 
     I.vcat [
       snap (I.(string A.(text ++ st underline) "TILE"));
       snap (I.(string text "City: C, Tech: T, Units: U"));
       I.void 1 1;
       snap (tile_yields_img tile)
     ]
-  | Unit u -> let units = State.units (col, row) gst in
+  | Unit (u,i) -> let units = State.units (col, row) gst in
     let num_units = List.length units in
+    let possible_improvements = World.tile_possible_improvements tile in
+    let num_possible_improvements = List.length possible_improvements in
     I.vcat [
       snap (I.(string A.(text ++ st underline)) "UNITS");
       snap (I.(string text "City: C, Tech: T, Tile: S"));
@@ -210,21 +251,35 @@ let left_pane (w, h) gst =
       snap (I.string text "SELECT UNIT WITH ,");
       I.void 1 1;
       if num_units > 0 then
-        I.hsnap ~align: `Left pane_width (unit_list_img units (u mod num_units))
+        I.vcat [  
+        I.hsnap ~align: `Left pane_width (unit_list_img units (u mod num_units));
+        I.void 1 1;
+        I.hsnap pane_width (I.string A.(fg white ++ bg black) "SELECT IMPROVEMENT WITH /");
+        I.hsnap ~align: `Left pane_width (possible_improvements_img possible_improvements (i mod num_possible_improvements))]
       else
         snap (I.string text "NO UNITS IN THIS TILE")
     ]
   | City c ->
+    let empty_city =
+      I.vcat [
+        snap (I.(string A.(text ++ st underline) "CITY"));
+        snap (I.(string text "Tech: T, Units: U, Tile: S"));
+        I.void 1 1;
+        snap (I.string text "NO CITY AT THIS TILE")
+      ]
+    in
     begin
-      match State.city (col, row) gst with
-      | Some city ->
+      match State.city_ref (col, row) gst with
+      | Some entity_ref ->
+        if not (Player.player_owns_entity player entity_ref) then empty_city else
+        let city = Entity.get_city_entity !entity_ref in
         let current_unit = Entity.unit_production city in
         let units = State.available_units gst in
         let turns_left u =
           if Entity.production_per_turn city = 0 then 99
           else
-            (Entity.unit_cost u - Entity.production_stock city)
-            / (Entity.production_per_turn city)
+            max 1 ((Entity.unit_cost u - Entity.production_stock city)
+            / (Entity.production_per_turn city))
           in
         let unit_img i u show show_selected =
           if i = (c mod List.length units) && show && show_selected then
@@ -244,7 +299,7 @@ let left_pane (w, h) gst =
           I.void 1 1;
           (
             match current_unit with
-            | Some u -> snap I.(string text (unit_type_str u))
+            | Some u -> snap (unit_img (-1) u true false)
             | None -> snap I.(string text "Choose a Unit to build")
           );
           I.void 1 2;
@@ -259,13 +314,7 @@ let left_pane (w, h) gst =
             )
           );
         ]
-      | None ->
-        I.vcat [
-          snap (I.(string A.(text ++ st underline) "CITY"));
-          snap (I.(string text "Tech: T, Units: U, Tile: S"));
-          I.void 1 1;
-          snap (I.string text "NO CITY AT THIS TILE")
-        ]
+      | None -> empty_city
     end
   | Tech t_index ->
     let current_tech = Player.current_tech player in
@@ -273,8 +322,8 @@ let left_pane (w, h) gst =
     let tech_left t =
       if Player.science_rate player = 0 then 99
       else
-        (Tech.tech_cost t - Player.science player)
-        / (Player.science_rate player) in
+        max 1 ((Tech.tech_cost t - Player.science player)
+        / (Player.science_rate player)) in
     let tech_img i t show show_selected =
       if i = (t_index mod List.length techs) && show && show_selected then
       I.string A.(fg white ++ bg black ++ st bold) (
@@ -307,6 +356,7 @@ let left_pane (w, h) gst =
           | None -> I.vcat (List.mapi (fun i t -> tech_img i t true true) techs)
         )
       );
+      I.void 1 1;
       snap (I.string text "SELECT TECH WITH ,");
       snap (I.string text "CONFIRM WITH .");
       I.void 1 2;
@@ -372,7 +422,7 @@ let elevation_img u tile =
     ) in
   I.string A.(fg (if u then blue else (gray 7)) ++ st underline) str
 
-let resource_img r = (* TODO: Make sure player has researched it *)
+let resource_img r =
   World.(
     match r with
     | Fish -> I.string A.empty "Fish"
@@ -402,25 +452,7 @@ let resource_opt_img tile =
   World.(
     match resource tile with
     | Some r -> resource_img r
-    | None -> I.empty
-  )
-
-let improvement_str i =
-  World.(
-    match i with
-    | FishingBoats -> "Fishing Boats"
-    | Mine -> "Mine"
-    | Quarry -> "Quarry"
-    | Farm -> "Farm"
-    | Camp -> "Camp"
-    | Pasture -> "Pasture"
-    | Plantation -> "Plantation")
-
-let improvement_opt_str tile =
-  World.(
-    match improvement tile with
-    | Some i -> improvement_str i
-    | None -> "")
+    | None -> I.empty)
 
 let tile_unit_str units =
   if List.length units = 0 then ""
@@ -470,18 +502,19 @@ let move_unit_tile gst dir =
   let (col, row) = gst.selected_tile in
   match dir with
   | `TopLeft ->
-    if col - 1 > 0 && row > 0 then
+    if col - 1 >= 0 && row > 0 then
       if (col mod 2 = 1) then (col - 1, row)
       else (col - 1, row - 1)
     else (col, row)
-  | `TopMiddle -> if row - 1 > 0 && row > 0 then (col, row - 1) else (col, row)
+  | `TopMiddle -> if row - 1 >= 0 then (col, row - 1) else (col, row)
   | `TopRight ->
-    if col + 1 < max_cols && row > 0 then
+    if col + 1 < max_cols then
       if (col mod 2 = 1) then (col + 1, row)
-      else (col + 1, row - 1)
+      else if row > 0 then (col + 1, row - 1)
+      else (col, row)
     else (col, row)
   | `BottomLeft ->
-    if col - 1 > 0 && row + 1 < max_rows then
+    if col - 1 >= 0 && row + 1 < max_rows then
       if (col mod 2 = 1) then
         (col - 1, row - 1)
       else (col - 1, row)
@@ -550,16 +583,16 @@ let select_tile direction gst =
   | `Left -> (max 0 (current_col - 1), current_row)
   | `Right -> (min (max_cols - 1) (current_col + 1), current_row)
 
-let next_pane_state pst tile_changing =
+let next_pane_state pst tile_changing is_improvement_key =
   match pst with
   | Tile -> Tile
-  | Unit u -> if tile_changing then Unit 0 else Unit (u+1)
+  | Unit (u, i) -> if tile_changing then Unit (0,0) else if is_improvement_key then Unit (u, i+1) else Unit (u+1, i)
   | City c -> if tile_changing then City (0) else City (c+1)
   | Tech t -> if tile_changing then Tech (0) else Tech (t+1)
 
 let move_unit gst dir =
   match gst.pane_state with
-  | Unit u ->
+  | Unit (u,_) ->
     let (col, row) = gst.selected_tile in
     let units = State.unit_refs (col,row) gst in
     let num_units = List.length units in
@@ -575,7 +608,7 @@ let move_unit gst dir =
 
 let found_city gst =
   match gst.pane_state with
-  | Unit u ->
+  | Unit (u,_) ->
     let (col, row) = gst.selected_tile in
     let tile = World.get_tile gst.map col row in
     let units = State.unit_refs (col,row) gst in
@@ -612,32 +645,45 @@ let rec main t gst =
     let new_gst = { gst with
       selected_tile = select_tile direction gst;
       map_display = new_map_display;
-      pane_state = next_pane_state gst.pane_state true
+      pane_state = next_pane_state gst.pane_state true false
     } in
     main t new_gst
   | `Resize (nw, nh) -> main t gst
   | `Key (`Enter, []) -> main t (State.next_turn gst)
-  | `Key (`Uchar 117, []) -> main t {gst with pane_state = Unit 0}
+  | `Key (`Uchar 117, []) -> main t {gst with pane_state = Unit (0,0)}
   | `Key (`Uchar 99, []) -> main t {gst with pane_state = City 0}
   | `Key (`Uchar 116, []) -> main t {gst with pane_state = Tech 0}
   | `Key (`Uchar 115, []) -> main t {gst with pane_state = Tile}
-  | `Key (`Uchar 44, []) -> main t {gst with pane_state = next_pane_state gst.pane_state false}
+  | `Key (`Uchar 44, []) -> main t {gst with pane_state = next_pane_state gst.pane_state false false}
+  | `Key (`Uchar 47, []) -> main t {gst with pane_state = next_pane_state gst.pane_state false true}
   | `Key (`Uchar 46, []) ->
+    let player = gst.players.(gst.current_player) in
     begin
       match gst.pane_state with
       | Tech i ->
-        let techs = State.available_techs gst in
-        let tech = List.nth techs (i mod List.length techs) in
-        gst.players.(gst.current_player) <- Player.research_tech (gst.players.(gst.current_player)) tech;
+        if Player.current_tech player = None then (
+          let techs = State.available_techs gst in
+          let tech = List.nth techs (i mod List.length techs) in
+          gst.players.(gst.current_player) <- Player.research_tech (gst.players.(gst.current_player)) tech
+        );
         main t gst
       | City i ->
+        let city_ref = State.city_ref gst.selected_tile gst in
         begin
-          match State.city_ref gst.selected_tile gst with
+          match city_ref with
           | Some entity ->
-          let prods = State.available_units gst in
-          let prod = List.nth prods (i mod List.length prods) in
-          Entity.change_production entity prod;
-          main t gst
+            if List.mem entity (Player.entities player) then
+            Entity.(
+              match !entity with
+              | City city ->
+                if Entity.unit_production city = None then (
+                  let prods = State.available_units gst in
+                  let prod = List.nth prods (i mod List.length prods) in
+                  Entity.change_production entity prod
+                );
+                main t gst
+              | _ -> main t gst
+            ) else main t gst
           | None ->
           main t gst
         end

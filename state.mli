@@ -16,7 +16,7 @@ type menu_state =
 type pane_state =
   | Tile
   | City of int
-  | Unit of int
+  | Unit of int * int
   | Tech of int
 
 (* [game_state] represents the state of a running game *)
