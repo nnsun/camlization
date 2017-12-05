@@ -41,7 +41,7 @@ let status_bar (w, h) gst =
       "  "
       ^ date gst
     );
-    I.string A.(empty ++ bg black) "  QUIT "
+    I.string A.(empty ++ bg black) "  QUIT: ESC "
   ]) in
   let metrics = I.hcat [
     I.void 1 1;
@@ -537,7 +537,7 @@ let move_unit gst dir =
       let current_unit_num = u mod num_units in
       let current_unit = List.nth units current_unit_num in
       let (new_col, new_row) = move_unit_tile gst dir in
-      if (col, row) <> (new_col, new_row) then
+      if (col, row) <> (new_col, new_row) && Player.player_owns_entity (gst.players.(gst.current_player)) current_unit then
         State.make_move gst current_unit (World.get_tile gst.map new_col new_row)
       else gst
     else gst

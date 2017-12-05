@@ -258,3 +258,6 @@ let set_gold_per_turn n entity =
 
 let reset_movement (e_info, u_info) =
   (e_info, {u_info with moves_left = movement_points u_info.name})
+
+let change_production entity utype =
+  (snd (get_city_entity entity)).unit_production = utype
