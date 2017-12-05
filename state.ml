@@ -58,19 +58,6 @@ let date gst =
 
 let game_map gst = gst.map
 
-let next_turn state =
-  let player = state.players.(state.current_player) in
-  let player = Player.set_gold player in
-  let player = Player.set_science player in
-  let player = Player.set_production player in
-  let player = Player.set_growth player in
-  state.players.(state.current_player) <- player;
-  {
-    state with
-    current_player = (state.current_player + 1) mod (Array.length state.players);
-    player_turns = state.player_turns + 1
-  }
-
 let entities_refs coordinates gst =
   let valid_entity e =
     let entity = !e in
@@ -109,6 +96,25 @@ let city coordinates gst =
       | Unit u -> None
     )
   with _ -> None
+
+let next_turn state =
+  let player = state.players.(state.current_player) in
+  let player = Player.set_gold player in
+  let player = Player.set_science player in
+  let player = Player.set_production player in
+  let player = Player.set_growth player in
+  let valid_entity e =
+    let entity = !e in
+    Entity.health entity != 0 in
+  let entities_of_player = List.filter valid_entity (Player.entities player) in
+  let units_of_player = List.filter (fun e -> Entity.is_unit !e) entities_of_player in
+  List.iter (fun e -> let u = Entity.get_unit_entity (!e) in e := Entity.Unit (Entity.reset_movement u)) units_of_player;
+  state.players.(state.current_player) <- player;
+  {
+    state with
+    current_player = (state.current_player + 1) mod (Array.length state.players);
+    player_turns = state.player_turns + 1
+  }
 
 let rec satisfies_pred pred lst =
   match lst with
