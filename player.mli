@@ -38,6 +38,9 @@ val current_tech : player -> Tech.tech option
 (* [entities player] is the list of refs of entities that [player] owns *)
 val entities : player -> Entity.entity ref list
 
+(* [player_owns_entity p e] returns whether player [p] has entity [e] *)
+val player_owns_entity : player -> Entity.entity ref -> bool
+
 (* [set_gold player] calculates the new gold balance of [player] after a turn
    and returns the new state of player *)
 val set_gold : player -> player
