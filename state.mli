@@ -70,12 +70,10 @@ val entities : int * int -> game_state -> Entity.entity list
  * None otherwise *)
 val city : int * int -> game_state -> Entity.city_entity option
 
-(* [units coord gst] is the list of units at the coordinates [coord] if such
- * exists, or None otherwise *)
+(* [units coord gst] is the list of units at the coordinates [coord] *)
 val units : int * int -> game_state -> Entity.unit_entity list
 
-(* [unit_refs coord gst] is the list of unit refs at the coordinates [coord] if
- * such exists, or None otherwise *)
+(* [unit_refs coord gst] is the list of unit refs at the coordinates [coord] *)
 val unit_refs : int * int -> game_state -> Entity.entity ref list
 
 (* [make_move game_state unit tile] returns the resultant game state from attempting to

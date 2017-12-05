@@ -76,6 +76,9 @@ let current_tech p = p.current_tech
 
 let entities p = p.entities
 
+let player_owns_entity p e =
+  List.exists (fun elt -> elt = e) p.entities
+
 let set_gold p =
   { p with gold = p.gold + gold_rate p - maintenance p }
 
