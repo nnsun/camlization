@@ -247,28 +247,22 @@ let left_pane (w, h) gst =
           snap (I.string text "NO CITY AT THIS TILE")
         ]
     end
-  | Tech t ->
+  | Tech t_index ->
     let current_tech = Player.current_tech player in
     let tech_left t =
       if Player.science_rate player = 0 then 99
       else
         (Tech.tech_cost t - Player.science player)
         / (Player.science_rate player) in
-    let tech_img t =
-      match current_tech with
-      | Some c ->
-        if t = c then
-        I.string A.(fg white ++ bg black ++ st bold) (
-          "▶ " ^ tech_str t ^ " (" ^ (string_of_int (tech_left t)) ^ ")"
-        )
-        else
-        I.string text (
-          "  " ^ tech_str t ^ " (" ^ (string_of_int (tech_left t)) ^ ")"
-        )
-      | None ->
-        I.string text (
-          "  " ^ tech_str t ^ " (" ^ (string_of_int (tech_left t)) ^ ")"
-        )
+    let tech_img i t show_selected =
+      if i = t_index && show_selected then
+      I.string A.(fg white ++ bg black ++ st bold) (
+        "▶ " ^ tech_str t ^ " (" ^ (string_of_int (tech_left t)) ^ ")"
+      )
+      else
+      I.string text (
+        "  " ^ tech_str t ^ " (" ^ (string_of_int (tech_left t)) ^ ")"
+      )
     in
     I.vcat [
       snap (I.(string A.(text ++ st underline) "TECH"));
@@ -278,7 +272,7 @@ let left_pane (w, h) gst =
       I.void 1 1;
       (
         match current_tech with
-        | Some t -> tech_img t
+        | Some t -> tech_img (-1) t false
         | None -> snap I.(string text "Choose a Tech to research")
       );
       I.void 1 2;
@@ -286,12 +280,12 @@ let left_pane (w, h) gst =
       I.void 1 1;
       snap (
         I.hsnap ~align:`Left (pane_width - 8) (
-          I.vcat (List.map tech_img (State.available_techs gst))
+          I.vcat (List.mapi (fun i t -> tech_img i t true) (State.available_techs gst))
         )
       );
       I.void 1 2;
       snap (I.string text "RESEARCHED TECHS:");
-      snap (I.vcat (List.map tech_img (Player.techs player)))
+      snap (I.vcat (List.mapi (fun i t -> tech_img i t false) (Player.techs player)))
     ]
   in
   I.zcat [
