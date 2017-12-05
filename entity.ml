@@ -182,12 +182,12 @@ let new_unit utype tile =
     }
   )
 
-let new_city tile =
+let new_city tile is_capital =
   City (
     { health = 100; tile = tile },
     {
       population = 1;
-      is_capital = true;
+      is_capital = is_capital;
       food_stock = 0;
       unit_production = None;
       production_stock = 0;

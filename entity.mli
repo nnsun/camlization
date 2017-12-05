@@ -104,8 +104,9 @@ val moves_left : unit_entity -> int
  * unit type [unit_type] on tile [tile] *)
 val new_unit : unit_type -> tile -> entity
 
-(* [new_city tile] returns a new city of type City on tile [tile] *)
-val new_city : tile -> entity
+(* [new_city tile is_capital] returns a new city of type City on tile [tile],
+ * setting it as a capital if [is_capital] is true *)
+val new_city : tile -> bool -> entity
 
 (* [set_growth city] calculates the new food stockpile and population
  * of [city] after a turn and returns the new city_entity *)

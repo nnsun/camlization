@@ -26,7 +26,7 @@ let new_player2 = {
   current_tech = None;
   science = 0;
   techs = [];
-  entities = [ref (Entity.new_city World.sample_tile2)];
+  entities = [ref (Entity.new_city World.sample_tile2 true)];
   num_cities = 1;
   num_units = 0;
 }
@@ -140,5 +140,6 @@ let research_tech player tech =
   { player with current_tech = Some tech }
 
 let found_city player tile =
-  { player with num_cities = player.num_cities + 1; 
-                entities = ref (Entity.new_city tile) :: player.entities }
+  let is_capital = if player.num_cities = 0 then true else false in
+  { player with num_cities = player.num_cities + 1;
+          entities = ref (Entity.new_city tile is_capital) :: player.entities }
