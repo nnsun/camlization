@@ -137,4 +137,4 @@ let set_growth p =
   cycle_cities city_refs
 
 let research_tech player tech =
-  player.current_tech = tech
+  { player with current_tech = Some tech }
