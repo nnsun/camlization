@@ -95,6 +95,9 @@ val set_improvement : map -> tile -> improvement -> unit
 (* [tile_possible_improvements tile] returns a list of the possible improvements for [tile] *)
 val tile_possible_improvements : tile -> improvement list
 
+(* [defense_multiplier tile] returns the tile defense multiplier of [tile] *)
+val defense_multiplier : tile -> float
+
 (* Temporary *)
 val sample_tile : tile
 val sample_tile2 : tile

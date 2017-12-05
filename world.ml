@@ -294,11 +294,18 @@ let tile_possible_improvements tile =
   let i_list = match resource tile with
     | None -> []
     | Some r -> [(improvement_for_resource r)] in
-  let i_list2 = 
-    if i_list <> [Farm] && tile.elevation = Flatland && 
+  let i_list2 =
+    if i_list <> [Farm] && tile.elevation = Flatland &&
       (tile.terrain = Grassland || tile.terrain = Plains) then
       Farm :: i_list
     else i_list in
   if i_list <> [Mine] && tile.elevation = Hill then
     Mine :: i_list
   else i_list2
+
+let defense_multiplier tile =
+  let feature_bonus =
+    match tile.feature with
+    | Some Forest | Some Jungle -> 0.5
+    | _ -> 0. in
+  feature_bonus +. (if tile.elevation = Hill then 1.25 else 1.)

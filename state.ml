@@ -134,9 +134,11 @@ let tile_contains_enemy state tile =
 
 let combat e1 e2 =
   let _ = Random.self_init () in
+  let tile = Entity.tile e2 in
   let rec combat_round e1 e2 =
     let e1_str = Entity.relative_str e1 e2 in
-    let e2_str = Entity.relative_str e2 e1 in
+    let e2_str = World.(Entity.relative_str e2 e1) in
+    let e2_str = (World.defense_multiplier tile) *. e2_str in
     if e1_str = 0. || e2_str = 0. then (e1, e2)
     else
       let rand_float = Random.float 1. in
@@ -148,6 +150,8 @@ let combat e1 e2 =
       let new_e2 = Entity.set_health e2 (Entity.health e2 - health_drop) in
       if Entity.health new_e2 <= 0 then (e1, new_e2)
       else
+        let e2_str = World.(Entity.relative_str new_e2 e1) in
+        let e2_str = (World.defense_multiplier tile) *. e2_str in
         let rand_float = Random.float 1. in
         let health_drop =
           if rand_float <= e2_str /. (e1_str +. e2_str) then
