@@ -27,7 +27,7 @@ let grid xxs = xxs |> List.map I.hcat |> I.vcat
 
 let status_bar (w, h) gst =
   let player = gst.players.(gst.current_player) in
-  let science_text = string_of_int (Player.science_rate player) in
+  let science_text = "+" ^ string_of_int (Player.science_rate player) in
   let gold_text = string_of_int (Player.gold player) in
   let gold_rate =
     let rate = Player.gold_rate player in
@@ -224,12 +224,27 @@ let left_pane (w, h) gst =
         (Tech.tech_cost t - Player.science player)
         / (Player.science_rate player) in
     let tech_img t =
-      I.string text (tech_str t ^ " (" ^ (string_of_int (tech_left t)) ^ ")") in
+      match current_tech with
+      | Some c ->
+        if t = c then
+        I.string A.(fg white ++ bg black ++ st bold) (
+          "▶ " ^ tech_str t ^ " (" ^ (string_of_int (tech_left t)) ^ ")"
+        )
+        else
+        I.string text (
+          "  " ^ tech_str t ^ " (" ^ (string_of_int (tech_left t)) ^ ")"
+        )
+      | None ->
+        I.string text (
+          "  " ^ tech_str t ^ " (" ^ (string_of_int (tech_left t)) ^ ")"
+        )
+    in
     I.vcat [
       snap (I.(string A.(text ++ st underline) "TECH"));
       snap (I.(string text "City: C, Units: U, Tile: S"));
       I.void 1 1;
       snap (I.(string text "CURRENT RESEARCH:"));
+      I.void 1 1;
       (
         match current_tech with
         | Some t -> tech_img t
@@ -237,7 +252,12 @@ let left_pane (w, h) gst =
       );
       I.void 1 2;
       snap (I.string text "AVAILABLE TECHS:");
-      snap (I.vcat (List.map tech_img (State.available_techs gst)));
+      I.void 1 1;
+      snap (
+        I.hsnap ~align:`Left (pane_width - 8) (
+          I.vcat (List.map tech_img (State.available_techs gst))
+        )
+      );
       I.void 1 2;
       snap (I.string text "RESEARCHED TECHS:");
       snap (I.vcat (List.map tech_img (Player.techs player)))
