@@ -365,6 +365,35 @@ let city_imgs (col, row) gst =
 
   | None -> (I.empty, I.empty, I.empty)
 
+let move_unit_tile gst dir =
+  let (max_cols, max_rows) = World.map_dimensions gst.map in
+  let (col, row) = gst.selected_tile in
+  match dir with
+  | `TopLeft ->
+    if col - 1 > 0 && row > 0 then
+      if (col mod 2 = 1) then (col - 1, row)
+      else (col - 1, row - 1)
+    else (col, row)
+  | `TopMiddle -> if row - 1 > 0 && row > 0 then (col, row - 1) else (col, row)
+  | `TopRight ->
+    if col + 1 < max_cols && row > 0 then
+      if (col mod 2 = 1) then (col + 1, row)
+      else (col + 1, row - 1)
+    else (col, row)
+  | `BottomLeft ->
+    if col - 1 > 0 && row + 1 < max_rows then
+      if (col mod 2 = 1) then
+        (col - 1, row - 1)
+      else (col - 1, row)
+    else (col, row)
+  | `BottomMiddle -> if row + 1 < max_rows then (col, row + 1) else (col, row)
+  | `BottomRight ->
+    if col + 1 < max_cols && row + 1 < max_rows then
+      if (col mod 2 = 1) then
+        (col + 1, row + 1)
+      else (col + 1, row)
+    else (col, row)
+
 let tile_img is_selected (col, row) (left_col, top_row) gst (w, h) =
   let color = if is_selected then A.(fg blue) else A.(fg (gray 3)) in
   let text_color = A.(fg white) in
@@ -377,7 +406,11 @@ let tile_img is_selected (col, row) (left_col, top_row) gst (w, h) =
   let units = State.units (col, row) gst in
   let (city_top, city_mid, city_bot) = city_imgs (col, row) gst in
   grid [
-    if row = top_row || is_selected then [I.void 5 1; I.string color_underline "            "] else [];
+    if row = top_row then [I.void 5 1; I.string color_underline "            "] 
+    else if is_selected then 
+      let (above_col, above_row) = move_unit_tile gst `TopMiddle in
+      [I.void 5 1; I.hsnap 12 (elevation_img true (World.get_tile gst.map above_col above_row))]
+    else [];
     [I.void 4 1; I.uchar color 0x2571 1 1; I.hsnap 12 city_top; I.uchar color 0x2572 1 1];
     [I.void 3 1; I.uchar color 0x2571 1 1; I.hsnap 14 city_mid; I.uchar color 0x2572 1 1];
     [I.void 2 1; I.uchar color 0x2571 1 1; I.hsnap 16 city_bot; I.uchar color 0x2572 1 1];
@@ -423,35 +456,6 @@ let next_pane_state pst tile_changing =
   | Unit u -> if tile_changing then Unit 0 else Unit (u+1)
   | City c -> if tile_changing then City 0 else City (c+1)
   | Tech t -> if tile_changing then Tech 0 else Tech (t+1)
-
-let move_unit_tile gst dir =
-  let (max_cols, max_rows) = World.map_dimensions gst.map in
-  let (col, row) = gst.selected_tile in
-  match dir with
-  | `TopLeft ->
-    if col - 1 > 0 && row > 0 then
-      if (col mod 2 = 1) then (col - 1, row)
-      else (col - 1, row - 1)
-    else (col, row)
-  | `TopMiddle -> if row - 1 > 0 && row > 0 then (col, row - 1) else (col, row)
-  | `TopRight ->
-    if col + 1 < max_cols && row > 0 then
-      if (col mod 2 = 1) then (col + 1, row)
-      else (col + 1, row - 1)
-    else (col, row)
-  | `BottomLeft ->
-    if col - 1 > 0 && row + 1 < max_rows then
-      if (col mod 2 = 1) then
-        (col - 1, row - 1)
-      else (col - 1, row)
-    else (col, row)
-  | `BottomMiddle -> if row + 1 < max_rows then (col, row + 1) else (col, row)
-  | `BottomRight ->
-    if col + 1 < max_cols && row + 1 < max_rows then
-      if (col mod 2 = 1) then
-        (col + 1, row + 1)
-      else (col + 1, row)
-    else (col, row)
 
 let move_unit gst dir =
   match gst.pane_state with
