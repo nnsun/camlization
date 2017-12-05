@@ -58,7 +58,7 @@ let status_bar (w, h) gst =
 
 let player_bar (w, h) gst =
   let pimg i p =
-    let player_string = " PLAYER " ^ string_of_int i ^ " " in
+    let player_string = " PLAYER " ^ string_of_int (i+1) ^ " " in
     let len = String.length player_string in
     if gst.current_player = i
     then
@@ -176,9 +176,12 @@ let left_pane (w, h) gst =
   let underlined = A.(fg white ++ bg black ++ st underline) in
   let (col, row) = gst.selected_tile in
   let pane_content = match gst.pane_state with
-  | Tile -> I.vcat [
-      snap (I.(string text "TILE"));
-      snap (I.(string text "City: C, Tech: T, Units: U"))
+  | Tile -> let tile = World.get_tile gst.map col row in
+    I.vcat [
+      snap (I.(string A.(text ++ st underline) "TILE"));
+      snap (I.(string text "City: C, Tech: T, Units: U"));
+      I.void 1 1;
+      snap (tile_yields_img tile)
     ]
   | Unit u -> let units = State.units (col, row) gst in
     let num_units = List.length units in
@@ -346,24 +349,6 @@ let improvement_opt_str tile =
     match improvement tile with
     | Some i -> improvement_str i
     | None -> "")
-
-let tile_yields_img tile =
-  World.(
-    let y = tile_yields tile in
-    I.(hcat [
-      uchar A.(fg green) 127823 1 1;
-      void 1 1;
-      string A.(fg green) (string_of_int y.food);
-      void 1 1;
-      uchar A.(fg yellow) 11044 1 1;
-      void 1 1;
-      string A.(fg yellow) (string_of_int y.gold);
-      void 1 1;
-      uchar A.(fg blue) 128296 1 1;
-      void 1 1;
-      string A.(fg blue) (string_of_int y.production);
-    ])
-  )
 
 let tile_unit_str units =
   if List.length units = 0 then ""
