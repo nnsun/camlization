@@ -642,7 +642,10 @@ let move_unit gst dir =
       let current_unit = List.nth units current_unit_num in
       let (new_col, new_row) = move_unit_tile gst dir in
       if (col, row) <> (new_col, new_row) && Player.player_owns_entity (gst.players.(gst.current_player)) current_unit then
-        State.make_move gst current_unit (World.get_tile gst.map new_col new_row)
+        let gst', success = State.make_move gst current_unit (World.get_tile gst.map new_col new_row) in
+        if not success then gst' else { gst' with
+          selected_tile = (new_col, new_row)
+        }
       else gst
     else gst
   | _ -> gst
