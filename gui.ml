@@ -559,7 +559,7 @@ let found_city gst =
     if num_units > 0 then
       let current_unit_num = u mod num_units in
       let current_unit = List.nth units current_unit_num in
-      if Entity.get_unit_type (Entity.get_unit_entity !current_unit) = Entity.Worker then
+      if Entity.unit_type (Entity.get_unit_entity !current_unit) = Entity.Worker then
         State.found_city gst tile
       else gst
     else gst
