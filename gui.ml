@@ -581,6 +581,23 @@ let rec main t gst =
   | `Key (`Uchar 116, []) -> main t {gst with pane_state = Tech 0}
   | `Key (`Uchar 115, []) -> main t {gst with pane_state = Tile}
   | `Key (`Uchar 44, []) -> main t {gst with pane_state = next_pane_state gst.pane_state false}
+  | `Key (`Uchar 46, []) ->
+    begin
+      match gst.pane_state with
+      | Tech i ->
+        let tech = List.nth (State.available_techs gst) i in
+        gst.players.(gst.current_player) <- Player.research_tech (gst.players.(gst.current_player)) tech;
+        main t gst
+      | City i ->
+        let tech = List.nth (State.available_techs gst) i in
+        main t { gst with
+          players =
+            let arr = Array.copy (gst.players) in
+            arr.(gst.current_player) <- Player.research_tech (gst.players.(gst.current_player)) tech;
+            arr
+        }
+      | _ -> main t gst
+    end
   | `Key (`Uchar 49, []) -> main t (move_unit gst `TopLeft)
   | `Key (`Uchar 50, []) -> main t (move_unit gst `TopMiddle)
   | `Key (`Uchar 51, []) -> main t (move_unit gst `TopRight)
