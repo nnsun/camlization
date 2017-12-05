@@ -271,3 +271,5 @@ let reset_movement (e_info, u_info) =
 let change_production entity_ref utype =
   let city_info = snd (get_city_entity !entity_ref) in
   entity_ref := City (shared_info !entity_ref, { city_info with unit_production = Some utype })
+
+let resource_req utype = (List.assoc utype unit_attributes_map).res_req
