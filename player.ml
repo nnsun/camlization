@@ -84,7 +84,7 @@ let set_science p =
   match p.current_tech with
   | Some tech ->
     if new_science >= Tech.tech_cost tech then
-      { p with science = 0; techs = tech::p.techs }
+      { p with science = 0; techs = tech::p.techs; current_tech = None }
     else { p with science = new_science }
   | _ -> p
 
