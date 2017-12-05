@@ -205,14 +205,14 @@ let make_move state entity_ref tile =
     if not (World.is_adjacent unit_tile tile) then state else
     if World.elevation tile = World.Peak then state
     else if terrain = World.Ice then state
-    else if utype <> Entity.Trireme &&
+    else if utype <> Entity.Trireme && utype <> Entity.WorkBoat &&
           (terrain = World.Ocean || terrain = World.Coast) then
       let techs = Player.techs player in
       let is_optics tech =
         if tech = Tech.Optics then true else false in
       if not (List.exists is_optics techs) then state
       else go_to_tile state unit_entity tile
-    else if utype = Entity.Trireme &&
+    else if (utype = Entity.Trireme || utype = Entity.WorkBoat) &&
             (terrain <> World.Ocean && terrain <> World.Coast) then state
     else go_to_tile state unit_entity tile
 
