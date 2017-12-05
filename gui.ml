@@ -125,9 +125,9 @@ let tech_str t =
     | Mathematics -> "Mathematics"
   )
 
-let unit_str u =
+let unit_type_str utype =
   Entity.(
-    match Entity.get_unit_type u with
+    match utype with
     | Worker -> "Worker"
     | Scout -> "Scout"
     | Warrior -> "Warrior"
@@ -140,6 +140,8 @@ let unit_str u =
     | Swordsman -> "Swordsman"
     | Catapult -> "Catapult"
   )
+
+let unit_str u = unit_type_str (Entity.get_unit_type u)
 
 let unit_list_img ul selected_unit =
   let rec unit_list_img_helper ul selected_unit current_unit =
@@ -212,10 +214,39 @@ let left_pane (w, h) gst =
       else
         snap (I.string text "NO UNITS IN THIS TILE")
     ]
-  | City c -> I.vcat [
-      snap (I.(string A.(text ++ st underline) "CITY"));
-      snap (I.(string text "Tech: T, Units: U, Tile: S"))
-    ]
+  | City c ->
+    begin
+      match State.city (col, row) gst with
+      | Some city ->
+        let unit_img u = I.string text (unit_type_str u) in
+        I.vcat [
+          snap (I.(string A.(text ++ st underline) "CITY"));
+          snap (I.(string text "Tech: T, Units: U, Tile: S"));
+          I.void 1 1;
+          snap (I.(string text "CURRENT PRODUCTION:"));
+          I.void 1 1;
+          (
+            match Entity.unit_production city with
+            | Some u -> snap I.(string text (unit_type_str u))
+            | None -> snap I.(string text "Choose a Unit to build")
+          );
+          I.void 1 2;
+          snap (I.string text "BUILDABLE UNITS:");
+          I.void 1 1;
+          snap (
+            I.hsnap ~align:`Left (pane_width - 8) (
+              I.vcat (List.map unit_img (State.available_units gst))
+            )
+          );
+        ]
+      | None ->
+        I.vcat [
+          snap (I.(string A.(text ++ st underline) "CITY"));
+          snap (I.(string text "Tech: T, Units: U, Tile: S"));
+          I.void 1 1;
+          snap (I.string text "NO CITY AT THIS TILE")
+        ]
+    end
   | Tech t ->
     let current_tech = Player.current_tech player in
     let tech_left t =
@@ -248,7 +279,7 @@ let left_pane (w, h) gst =
       (
         match current_tech with
         | Some t -> tech_img t
-        | None -> snap I.(string text "Choose a Tech to Research")
+        | None -> snap I.(string text "Choose a Tech to research")
       );
       I.void 1 2;
       snap (I.string text "AVAILABLE TECHS:");
@@ -261,7 +292,8 @@ let left_pane (w, h) gst =
       I.void 1 2;
       snap (I.string text "RESEARCHED TECHS:");
       snap (I.vcat (List.map tech_img (Player.techs player)))
-    ]  in
+    ]
+  in
   I.zcat [
     pane_content;
     I.(char A.(fg white ++ bg black) ' ' pane_width (h - top_padding))
@@ -450,8 +482,8 @@ let tile_img is_selected (col, row) (left_col, top_row) gst (w, h) =
   let units = State.units (col, row) gst in
   let (city_top, city_mid, city_bot) = city_imgs (col, row) gst in
   grid [
-    if row = top_row then [I.void 5 1; I.string color_underline "            "] 
-    else if is_selected then 
+    if row = top_row then [I.void 5 1; I.string color_underline "            "]
+    else if is_selected then
       let (above_col, above_row) = move_unit_tile gst `TopMiddle in
       [I.void 5 1; I.hsnap 12 (elevation_img true (World.get_tile gst.map above_col above_row))]
     else [];
@@ -498,8 +530,8 @@ let next_pane_state pst tile_changing =
   match pst with
   | Tile -> Tile
   | Unit u -> if tile_changing then Unit 0 else Unit (u+1)
-  | City c -> if tile_changing then City 0 else City (c+1)
-  | Tech t -> if tile_changing then Tech 0 else Tech (t+1)
+  | City c -> if tile_changing then City (-1) else City (c+1)
+  | Tech t -> if tile_changing then Tech (-1) else Tech (t+1)
 
 let move_unit gst dir =
   match gst.pane_state with
@@ -546,8 +578,8 @@ let rec main t gst =
   | `Resize (nw, nh) -> main t gst
   | `Key (`Enter, []) -> main t (State.next_turn gst)
   | `Key (`Uchar 117, []) -> main t {gst with pane_state = Unit 0}
-  | `Key (`Uchar 99, []) -> main t {gst with pane_state = City 0}
-  | `Key (`Uchar 116, []) -> main t {gst with pane_state = Tech 0}
+  | `Key (`Uchar 99, []) -> main t {gst with pane_state = City (-1)}
+  | `Key (`Uchar 116, []) -> main t {gst with pane_state = Tech (-1)}
   | `Key (`Uchar 115, []) -> main t {gst with pane_state = Tile}
   | `Key (`Uchar 46, []) -> main t {gst with pane_state = next_pane_state gst.pane_state false}
   | `Key (`Uchar 49, []) -> main t (move_unit gst `TopLeft)
