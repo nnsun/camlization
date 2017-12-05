@@ -70,6 +70,10 @@ val entities : int * int -> game_state -> Entity.entity list
  * None otherwise *)
 val city : int * int -> game_state -> Entity.city_entity option
 
+(* [city_ref coord gst] is the entity ref at the coordinates [coord] if such
+ * exists, or None otherwise *)
+val city_ref : int * int -> game_state -> Entity.entity ref option
+
 (* [units coord gst] is the list of units at the coordinates [coord] *)
 val units : int * int -> game_state -> Entity.unit_entity list
 

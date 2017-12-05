@@ -218,7 +218,24 @@ let left_pane (w, h) gst =
     begin
       match State.city (col, row) gst with
       | Some city ->
-        let unit_img u = I.string text (unit_type_str u) in
+        let current_unit = Entity.unit_production city in
+        let units = State.available_units gst in
+        let turns_left u =
+          if Entity.production_per_turn city = 0 then 99
+          else
+            (Entity.unit_cost u - Entity.production_stock city)
+            / (Entity.production_per_turn city)
+          in
+        let unit_img i u show show_selected =
+          if i = (c mod List.length units) && show && show_selected then
+          I.string A.(fg white ++ bg black ++ st bold) (
+            "▶ " ^ unit_type_str u ^ " (" ^ (string_of_int (turns_left u)) ^ ")"
+          )
+          else
+          I.string text (
+            "  " ^ unit_type_str u ^ " (" ^ (string_of_int (turns_left u)) ^ ")"
+          )
+          in
         I.vcat [
           snap (I.(string A.(text ++ st underline) "CITY"));
           snap (I.(string text "Tech: T, Units: U, Tile: S"));
@@ -226,7 +243,7 @@ let left_pane (w, h) gst =
           snap (I.(string text "CURRENT PRODUCTION:"));
           I.void 1 1;
           (
-            match Entity.unit_production city with
+            match current_unit with
             | Some u -> snap I.(string text (unit_type_str u))
             | None -> snap I.(string text "Choose a Unit to build")
           );
@@ -235,7 +252,10 @@ let left_pane (w, h) gst =
           I.void 1 1;
           snap (
             I.hsnap ~align:`Left (pane_width - 8) (
-              I.vcat (List.map unit_img (State.available_units gst))
+              match current_unit with
+              | Some curr ->
+              I.vcat (List.mapi (fun i u -> unit_img i u (u = curr) false) units)
+              | None -> I.vcat (List.mapi (fun i u -> unit_img i u true true) units)
             )
           );
         ]
@@ -256,7 +276,7 @@ let left_pane (w, h) gst =
         (Tech.tech_cost t - Player.science player)
         / (Player.science_rate player) in
     let tech_img i t show show_selected =
-      if i = (t_index mod List.length techs) && show_selected then
+      if i = (t_index mod List.length techs) && show && show_selected then
       I.string A.(fg white ++ bg black ++ st bold) (
         "▶ " ^ tech_str t ^ " (" ^ (string_of_int (tech_left t)) ^ ")"
       )
@@ -415,14 +435,18 @@ let city_imgs (col, row) gst =
     let prod_attr = A.(fg yellow ++ st bold) in
     let top = text "░░░░░░░░░░░░" in
     let mid =
-      let background = text "░░░░░░░░░░░░░░" in
       let pop = Entity.population city in
       let pop_frac = float_of_int (Entity.food_stock city)
         /. (float_of_int (Entity.growth_req pop)) in
       let pop_text =
         I.string pop_attr (progress_str pop_frac) in
-      let prod_frac = float_of_int (Entity.production_stock city)
-        /. (float_of_int (69)) in
+      let prod_frac =
+        match Entity.unit_production city with
+        | Some u ->
+          float_of_int (Entity.production_stock city)
+          /. float_of_int (Entity.unit_cost u)
+        | None -> 0.0
+      in
       let prod_text =
         I.string prod_attr (progress_str prod_frac) in
       I.(
@@ -433,7 +457,7 @@ let city_imgs (col, row) gst =
           white_text "CITY";
           text "❱░";
           prod_text
-        ]) </> background
+        ])
       )
     in
     let bottom = text "░░░░░░░░░░░░░░░░" in
@@ -590,8 +614,17 @@ let rec main t gst =
         let tech = List.nth techs (i mod List.length techs) in
         gst.players.(gst.current_player) <- Player.research_tech (gst.players.(gst.current_player)) tech;
         main t gst
-      | City i -> (* todo *)
-        main t gst
+      | City i ->
+        begin
+          match State.city_ref gst.selected_tile gst with
+          | Some entity ->
+          let prods = State.available_units gst in
+          let prod = List.nth prods (i mod List.length prods) in
+          Entity.change_production entity prod;
+          main t gst
+          | None ->
+          main t gst
+        end
       | _ -> main t gst
     end
   | `Key (`Uchar 49, []) -> main t (move_unit gst `TopLeft)

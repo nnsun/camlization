@@ -97,6 +97,17 @@ let city coordinates gst =
     )
   with _ -> None
 
+let city_ref coordinates gst =
+  let l = entities_refs coordinates gst in
+  try
+    let entity = List.hd l in
+    Entity.(
+      match !entity with
+      | City _ -> Some entity
+      | Unit _ -> None
+    )
+  with _ -> None
+
 let rec satisfies_pred pred lst =
   match lst with
   | [] -> None

@@ -259,6 +259,6 @@ let set_gold_per_turn n entity =
 let reset_movement (e_info, u_info) =
   (e_info, {u_info with moves_left = movement_points u_info.name})
 
-let change_production entity utype =
-  let city_info = snd (get_city_entity entity) in
-  City (shared_info entity, { city_info with unit_production = Some utype })
+let change_production entity_ref utype =
+  let city_info = snd (get_city_entity !entity_ref) in
+  entity_ref := City (shared_info !entity_ref, { city_info with unit_production = Some utype })
