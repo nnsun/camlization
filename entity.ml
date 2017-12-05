@@ -260,4 +260,5 @@ let reset_movement (e_info, u_info) =
   (e_info, {u_info with moves_left = movement_points u_info.name})
 
 let change_production entity utype =
-  (snd (get_city_entity entity)).unit_production = utype
+  let city_info = snd (get_city_entity entity) in
+  City (shared_info entity, { city_info with unit_production = Some utype })
