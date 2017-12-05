@@ -506,7 +506,12 @@ let city_imgs (col, row) gst =
     let white_text s = I.string A.(fg white ++ st bold) s in
     let pop_attr = A.(fg green ++ st bold) in
     let prod_attr = A.(fg yellow ++ st bold) in
-    let top = text "░░░░░░░░░░░░" in
+    let top =
+      let health = A.(fg red) in
+      I.(hsnap 12 (hcat [
+        I.uchar health 9829 1 1;
+        I.string health (string_of_int (Entity.health (Entity.City city)))
+      ])) in
     let mid =
       let pop = Entity.population city in
       let pop_frac = float_of_int (Entity.food_stock city)
