@@ -60,3 +60,6 @@ val filter_city_refs : player -> Entity.entity ref list
 
 (* [filter_unit_refs player] is the list of refs of units that [player] owns *)
 val filter_unit_refs : player -> Entity.entity ref list
+
+(* [research_tech player tech] updates the current research of [player] to [tech] *)
+val research_tech : player -> Tech.tech -> player
