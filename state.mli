@@ -82,9 +82,9 @@ val unit_refs : int * int -> game_state -> Entity.entity ref list
 
 (* [make_move game_state unit tile] returns the resultant game state from attempting to
  * move [unit] to [tile].
- * Returns  [game_state] if move cannot be made, and the resultant [game_state] if
- * the move is legal *)
-val make_move : game_state -> Entity.entity ref -> World.tile -> game_state
+ * Returns  [game_state, false] if move cannot be made, and [game_state, true] if
+ * the move is legal, with [game_state] being the new state *)
+val make_move : game_state -> Entity.entity ref -> World.tile -> game_state * bool
 
 (* [available_techs state] returns a list of techs that the current player
  * is able to research *)
