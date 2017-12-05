@@ -136,17 +136,17 @@ val units_list : unit_type list
  * and [Some t] if utype requires [t] to be researched to be built  *)
 val tech_req : unit_type -> Tech.tech option
 
-(* [set_food_per_turn entity n] returns [entity] with the food per turn set
+(* [set_food_per_turn n entity] returns [entity] with the food per turn set
  * to [n]
  * Requires: [entity] is a City *)
-val set_food_per_turn : entity -> int -> entity
+val set_food_per_turn : int -> entity -> entity
 
-(* [set_food_per_turn entity n] returns [entity] with the production per turn set
+(* [set_food_per_turn n entity] returns [entity] with the production per turn set
  * to [n]
  * Requires: [entity] is a City *)
-val set_production_per_turn : entity -> int-> entity
+val set_production_per_turn : int -> entity -> entity
 
-(* [set_food_per_turn entity n] returns [entity] with the gold per turn set
+(* [set_food_per_turn n entity] returns [entity] with the gold per turn set
  * to [n]
  * Requires: [entity] is a City *)
-val set_gold_per_turn : entity -> int -> entity
+val set_gold_per_turn : int -> entity -> entity

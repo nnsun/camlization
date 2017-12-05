@@ -244,14 +244,14 @@ let units_list =
 
 let tech_req utype = (List.assoc utype unit_attributes_map).tech_req
 
-let set_food_per_turn entity n =
+let set_food_per_turn n entity =
   let entity = get_city_entity entity in
   City ((fst entity), { (snd entity) with food = n })
 
-let set_production_per_turn entity n =
+let set_production_per_turn n entity =
   let entity = get_city_entity entity in
   City ((fst entity), { (snd entity) with production = n })
 
-let set_gold_per_turn entity n =
+let set_gold_per_turn n entity =
   let entity = get_city_entity entity in
   City ((fst entity), { (snd entity) with gold = n })

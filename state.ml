@@ -162,51 +162,53 @@ let combat e1 e2 =
 
 
 let make_move state entity_ref tile =
-  let unit_entity = Entity.get_unit_entity !entity_ref in
-  let moves_left = Entity.moves_left unit_entity in
-  if moves_left <= 0 then state else
-    let cost = World.movement_cost tile in
-    let update_tile unit_entity tile =
-      Entity.set_tile unit_entity tile in
-    let go_to_tile st e_ref t_ref =
-      let opponent_opt = tile_contains_enemy st t_ref in
-      match opponent_opt with
-      | None ->
-        let unit_entity =
-          Entity.subtract_moves_left unit_entity cost in
-        let unit_entity =
-          Entity.set_tile unit_entity tile in
-        let _ = entity_ref := Entity.Unit unit_entity in
-        state
-      | Some o ->
-        let (new_e1, new_e2) = combat (Entity.Unit unit_entity) (!o) in
-        let new_ue1 = (
-          match new_e1 with
-          | Entity.Unit u -> u
-          | _ -> failwith "Error: expected Unit but got City"
-        ) in
-        let unit_entity = new_ue1 in
-        let _ = o := new_e2 in
-        if tile_contains_enemy state tile = None then
-          let unit_entity = update_tile unit_entity tile in
+  let player = state.players.(state.current_player) in
+  if not (List.mem entity_ref (Player.entities player)) then state
+  else
+    let unit_entity = Entity.get_unit_entity !entity_ref in
+    let moves_left = Entity.moves_left unit_entity in
+    if moves_left <= 0 then state else
+      let cost = World.movement_cost tile in
+      let update_tile unit_entity tile =
+        Entity.set_tile unit_entity tile in
+      let go_to_tile st e_ref t_ref =
+        let opponent_opt = tile_contains_enemy st t_ref in
+        match opponent_opt with
+        | None ->
+          let unit_entity =
+            Entity.subtract_moves_left unit_entity cost in
+          let unit_entity =
+            Entity.set_tile unit_entity tile in
           let _ = entity_ref := Entity.Unit unit_entity in
           state
-        else state in
+        | Some o ->
+          let (new_e1, new_e2) = combat (Entity.Unit unit_entity) (!o) in
+          let new_ue1 = (
+            match new_e1 with
+            | Entity.Unit u -> u
+            | _ -> failwith "Error: expected Unit but got City"
+          ) in
+          let unit_entity = new_ue1 in
+          let _ = o := new_e2 in
+          if tile_contains_enemy state tile = None then
+            let unit_entity = update_tile unit_entity tile in
+            let _ = entity_ref := Entity.Unit unit_entity in
+            state
+          else state in
 
-    if World.is_adjacent (Entity.tile (Entity.Unit unit_entity)) tile then
-      if World.elevation tile = World.Peak then state
-      else if World.terrain tile = World.Ice then state
-      else if World.terrain tile = World.Ocean ||
-              World.terrain tile = World.Coast then
-        let player = state.players.(state.current_player) in
-        let techs = Player.techs player in
-        let is_optics tech =
-          if tech = Tech.Optics then true else false in
-        if not (List.exists is_optics techs) then state
-        else go_to_tile state unit_entity tile
-      else
-        go_to_tile state unit_entity tile
-    else state
+      if World.is_adjacent (Entity.tile (Entity.Unit unit_entity)) tile then
+        if World.elevation tile = World.Peak then state
+        else if World.terrain tile = World.Ice then state
+        else if World.terrain tile = World.Ocean ||
+                World.terrain tile = World.Coast then
+          let techs = Player.techs player in
+          let is_optics tech =
+            if tech = Tech.Optics then true else false in
+          if not (List.exists is_optics techs) then state
+          else go_to_tile state unit_entity tile
+        else
+          go_to_tile state unit_entity tile
+      else state
 
 let strategics state =
   let p = state.players.(state.current_player) in
@@ -285,17 +287,28 @@ let worked_tiles city map =
         take (n - 1) (a::acc) b in
   take pop [] sorted_tiles
 
-(* let set_city_yields state =
+let set_city_yields state =
   let p = state.players.(state.current_player) in
   let city_entities = Player.filter_city_refs p in
   let rec cycle_cities cities =
     match cities with
     | [] -> ()
     | a::b ->
-      let worked = worked_tiles a state.map in
-      let city_tile = Entity.tile a in
+      let worked = worked_tiles !a state.map in
+      let city_tile = Entity.tile !a in
       let worked = city_tile::worked in
+      let food =
+        List.fold_left (fun g t -> g + World.food_gen t) 0 worked
+            + (if Entity.is_capital (Entity.get_city_entity !a) then 4 else 0) in
+      let production =
+        List.fold_left (fun g t -> g + World.production_gen t) 0 worked
+            + (if Entity.is_capital (Entity.get_city_entity !a) then 4 else 0) in
       let gold =
         List.fold_left (fun g t -> g + World.gold_gen t) 0 worked
-            + (if ) in *)
-
+            + (if Entity.is_capital (Entity.get_city_entity !a) then 4 else 0) in
+      let new_entity = !a |> (Entity.set_food_per_turn food) |>
+                            (Entity.set_production_per_turn production) |>
+                            (Entity.set_gold_per_turn gold) in
+      let _ = a := new_entity in
+      cycle_cities b in
+  cycle_cities city_entities
