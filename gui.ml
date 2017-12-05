@@ -552,9 +552,10 @@ let move_unit_tile gst dir =
   let (col, row) = gst.selected_tile in
   match dir with
   | `TopLeft ->
-    if col - 1 >= 0 && row > 0 then
+    if col - 1 >= 0 then
       if (col mod 2 = 1) then (col - 1, row)
-      else (col - 1, row - 1)
+      else if row - 1 >= 0 then (col - 1, row - 1)
+      else (col - 1, row)
     else (col, row)
   | `TopMiddle -> if row - 1 >= 0 then (col, row - 1) else (col, row)
   | `TopRight ->
@@ -566,7 +567,7 @@ let move_unit_tile gst dir =
   | `BottomLeft ->
     if col - 1 >= 0 && row + 1 < max_rows then
       if (col mod 2 = 1) then
-        (col - 1, row - 1)
+        (col - 1, row + 1)
       else (col - 1, row)
     else (col, row)
   | `BottomMiddle -> if row + 1 < max_rows then (col, row + 1) else (col, row)
