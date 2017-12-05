@@ -223,7 +223,7 @@ let left_pane (w, h) gst =
         let turns_left u =
           if Entity.production_per_turn city = 0 then 99
           else
-            (Entity.unit_cost u - Entity.production_stock city)
+            1 + (Entity.unit_cost u - Entity.production_stock city)
             / (Entity.production_per_turn city)
           in
         let unit_img i u show show_selected =
@@ -273,7 +273,7 @@ let left_pane (w, h) gst =
     let tech_left t =
       if Player.science_rate player = 0 then 99
       else
-        (Tech.tech_cost t - Player.science player)
+        1 + (Tech.tech_cost t - Player.science player)
         / (Player.science_rate player) in
     let tech_img i t show show_selected =
       if i = (t_index mod List.length techs) && show && show_selected then
@@ -307,6 +307,7 @@ let left_pane (w, h) gst =
           | None -> I.vcat (List.mapi (fun i t -> tech_img i t true true) techs)
         )
       );
+      I.void 1 1;
       snap (I.string text "SELECT TECH WITH ,");
       snap (I.string text "CONFIRM WITH .");
       I.void 1 2;
@@ -626,18 +627,27 @@ let rec main t gst =
     begin
       match gst.pane_state with
       | Tech i ->
-        let techs = State.available_techs gst in
-        let tech = List.nth techs (i mod List.length techs) in
-        gst.players.(gst.current_player) <- Player.research_tech (gst.players.(gst.current_player)) tech;
+        if Player.current_tech (gst.players.(gst.current_player)) = None then (
+          let techs = State.available_techs gst in
+          let tech = List.nth techs (i mod List.length techs) in
+          gst.players.(gst.current_player) <- Player.research_tech (gst.players.(gst.current_player)) tech
+        );
         main t gst
       | City i ->
         begin
           match State.city_ref gst.selected_tile gst with
           | Some entity ->
-          let prods = State.available_units gst in
-          let prod = List.nth prods (i mod List.length prods) in
-          Entity.change_production entity prod;
-          main t gst
+            Entity.(
+              match !entity with
+              | City city ->
+                if Entity.unit_production city = None then (
+                  let prods = State.available_units gst in
+                  let prod = List.nth prods (i mod List.length prods) in
+                  Entity.change_production entity prod
+                );
+                main t gst
+              | _ -> main t gst
+            )
           | None ->
           main t gst
         end
