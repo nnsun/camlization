@@ -249,13 +249,14 @@ let left_pane (w, h) gst =
     end
   | Tech t_index ->
     let current_tech = Player.current_tech player in
+    let techs = State.available_techs gst in
     let tech_left t =
       if Player.science_rate player = 0 then 99
       else
         (Tech.tech_cost t - Player.science player)
         / (Player.science_rate player) in
     let tech_img i t show show_selected =
-      if i = t_index && show_selected then
+      if i = (t_index mod List.length techs) && show_selected then
       I.string A.(fg white ++ bg black ++ st bold) (
         "▶ " ^ tech_str t ^ " (" ^ (string_of_int (tech_left t)) ^ ")"
       )
@@ -282,8 +283,8 @@ let left_pane (w, h) gst =
         I.hsnap ~align:`Left (pane_width - 8) (
           match current_tech with
           | Some curr ->
-            I.vcat (List.mapi (fun i t -> tech_img i t (t = curr) false) (State.available_techs gst))
-          | None -> I.vcat (List.mapi (fun i t -> tech_img i t true true) (State.available_techs gst))
+            I.vcat (List.mapi (fun i t -> tech_img i t (t = curr) false) techs)
+          | None -> I.vcat (List.mapi (fun i t -> tech_img i t true true) techs)
         )
       );
       snap (I.string text "SELECT TECH WITH ,");
@@ -585,17 +586,12 @@ let rec main t gst =
     begin
       match gst.pane_state with
       | Tech i ->
-        let tech = List.nth (State.available_techs gst) i in
+        let techs = State.available_techs gst in
+        let tech = List.nth techs (i mod List.length techs) in
         gst.players.(gst.current_player) <- Player.research_tech (gst.players.(gst.current_player)) tech;
         main t gst
-      | City i ->
-        let tech = List.nth (State.available_techs gst) i in
-        main t { gst with
-          players =
-            let arr = Array.copy (gst.players) in
-            arr.(gst.current_player) <- Player.research_tech (gst.players.(gst.current_player)) tech;
-            arr
-        }
+      | City i -> (* todo *)
+        main t gst
       | _ -> main t gst
     end
   | `Key (`Uchar 49, []) -> main t (move_unit gst `TopLeft)

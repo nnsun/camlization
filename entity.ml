@@ -186,7 +186,7 @@ let new_city tile =
   City (
     { health = 100; tile = tile },
     {
-      population = 500;
+      population = 1;
       is_capital = true;
       food_stock = 0;
       unit_production = None;
