@@ -215,16 +215,26 @@ let left_pane (w, h) gst =
         snap (I.string text "NO UNITS IN THIS TILE")
     ]
   | City c ->
+    let empty_city =
+      I.vcat [
+        snap (I.(string A.(text ++ st underline) "CITY"));
+        snap (I.(string text "Tech: T, Units: U, Tile: S"));
+        I.void 1 1;
+        snap (I.string text "NO CITY AT THIS TILE")
+      ]
+    in
     begin
-      match State.city (col, row) gst with
-      | Some city ->
+      match State.city_ref (col, row) gst with
+      | Some entity_ref ->
+        if not (Player.player_owns_entity player entity_ref) then empty_city else
+        let city = Entity.get_city_entity !entity_ref in
         let current_unit = Entity.unit_production city in
         let units = State.available_units gst in
         let turns_left u =
           if Entity.production_per_turn city = 0 then 99
           else
-            1 + (Entity.unit_cost u - Entity.production_stock city)
-            / (Entity.production_per_turn city)
+            max 1 ((Entity.unit_cost u - Entity.production_stock city)
+            / (Entity.production_per_turn city))
           in
         let unit_img i u show show_selected =
           if i = (c mod List.length units) && show && show_selected then
@@ -244,7 +254,7 @@ let left_pane (w, h) gst =
           I.void 1 1;
           (
             match current_unit with
-            | Some u -> snap I.(string text (unit_type_str u))
+            | Some u -> snap (unit_img (-1) u true false)
             | None -> snap I.(string text "Choose a Unit to build")
           );
           I.void 1 2;
@@ -259,13 +269,7 @@ let left_pane (w, h) gst =
             )
           );
         ]
-      | None ->
-        I.vcat [
-          snap (I.(string A.(text ++ st underline) "CITY"));
-          snap (I.(string text "Tech: T, Units: U, Tile: S"));
-          I.void 1 1;
-          snap (I.string text "NO CITY AT THIS TILE")
-        ]
+      | None -> empty_city
     end
   | Tech t_index ->
     let current_tech = Player.current_tech player in
@@ -273,8 +277,8 @@ let left_pane (w, h) gst =
     let tech_left t =
       if Player.science_rate player = 0 then 99
       else
-        1 + (Tech.tech_cost t - Player.science player)
-        / (Player.science_rate player) in
+        max 1 ((Tech.tech_cost t - Player.science player)
+        / (Player.science_rate player)) in
     let tech_img i t show show_selected =
       if i = (t_index mod List.length techs) && show && show_selected then
       I.string A.(fg white ++ bg black ++ st bold) (
@@ -625,19 +629,22 @@ let rec main t gst =
   | `Key (`Uchar 115, []) -> main t {gst with pane_state = Tile}
   | `Key (`Uchar 44, []) -> main t {gst with pane_state = next_pane_state gst.pane_state false false}
   | `Key (`Uchar 46, []) ->
+    let player = gst.players.(gst.current_player) in
     begin
       match gst.pane_state with
       | Tech i ->
-        if Player.current_tech (gst.players.(gst.current_player)) = None then (
+        if Player.current_tech player = None then (
           let techs = State.available_techs gst in
           let tech = List.nth techs (i mod List.length techs) in
           gst.players.(gst.current_player) <- Player.research_tech (gst.players.(gst.current_player)) tech
         );
         main t gst
       | City i ->
+        let city_ref = State.city_ref gst.selected_tile gst in
         begin
-          match State.city_ref gst.selected_tile gst with
+          match city_ref with
           | Some entity ->
+            if List.mem entity (Player.entities player) then
             Entity.(
               match !entity with
               | City city ->
@@ -648,7 +655,7 @@ let rec main t gst =
                 );
                 main t gst
               | _ -> main t gst
-            )
+            ) else main t gst
           | None ->
           main t gst
         end
