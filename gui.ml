@@ -320,11 +320,11 @@ let left_pane (w, h) gst =
         let unit_img i u show show_selected =
           if i = (c mod List.length units) && show && show_selected then
           I.string A.(fg white ++ bg black ++ st bold) (
-            "▶ " ^ unit_type_str u ^ " (" ^ (string_of_int (turns_left u)) ^ ")"
+            "▶ " ^ unit_type_str u ^ " (" ^ (string_of_int (turns_left u)) ^ " turns)"
           )
           else
           I.string text (
-            "  " ^ unit_type_str u ^ " (" ^ (string_of_int (turns_left u)) ^ ")"
+            "  " ^ unit_type_str u ^ " (" ^ (string_of_int (turns_left u)) ^ " turns)"
           )
           in
         I.vcat [
@@ -348,6 +348,10 @@ let left_pane (w, h) gst =
               | None -> I.vcat (List.mapi (fun i u -> unit_img i u true true) units)
             )
           );
+          I.void 1 2;
+          snap (I.string text "SELECT UNIT WITH ,");
+          I.void 1 1;
+          snap (I.string text "CONFIRM WITH .");
         ]
       | None -> empty_city
     end
@@ -355,19 +359,19 @@ let left_pane (w, h) gst =
     let tabs = [Tile; Unit (0, 0); City 0; Tech t_index] in
     let current_tech = Player.current_tech player in
     let techs = State.available_techs gst in
-    let tech_left t =
+    let turns_left t =
       if Player.science_rate player = 0 then 99
       else
-        max 1 ((Tech.tech_cost t - Player.science player)
-        / (Player.science_rate player)) in
+        max 1 (1 + ((Tech.tech_cost t - Player.science player)
+        / (Player.science_rate player))) in
     let tech_img i t show show_selected =
       if i = (t_index mod List.length techs) && show && show_selected then
       I.string A.(fg white ++ bg black ++ st bold) (
-        "▶ " ^ tech_str t ^ " (" ^ (string_of_int (tech_left t)) ^ ")"
+        "▶ " ^ tech_str t ^ " (" ^ (string_of_int (turns_left t)) ^ " turns)"
       )
       else
       I.string text (
-        "  " ^ tech_str t ^ " (" ^ (string_of_int (tech_left t)) ^ ")"
+        "  " ^ tech_str t ^ " (" ^ (string_of_int (turns_left t)) ^ " turns)"
       )
     in
     I.vcat [
@@ -391,8 +395,9 @@ let left_pane (w, h) gst =
           | None -> I.vcat (List.mapi (fun i t -> tech_img i t true true) techs)
         )
       );
-      I.void 1 1;
+      I.void 1 2;
       snap (I.string text "SELECT TECH WITH ,");
+      I.void 1 1;
       snap (I.string text "CONFIRM WITH .");
       I.void 1 2;
       snap (I.string text "RESEARCHED TECHS:");
@@ -424,13 +429,13 @@ let calculate_tiles_w_h (w, h) =
 let terrain_img tile =
   World.(
     match terrain tile with
-    | Grassland -> I.string A.(fg green) ",.,.,.,,.,.,.,"
+    | Grassland -> I.string A.(fg green) ",,,,,,,,,,,,,,,"
     | Plains -> I.string A.(fg green) "______________"
     | Desert -> I.string A.(fg lightyellow) "____↟______↟__"
     | Tundra -> I.string A.(fg (gray 1)) "______________"
     | Ice -> I.string A.(fg lightblue) "______________"
     | Ocean -> I.string A.(fg blue) "=============="
-    | Coast -> I.string A.(fg lightyellow) "=_____↟↟_____="
+    | Coast -> I.string A.(fg lightyellow) "=-._____↟↟_____.-="
     | Lake -> I.string A.(fg blue) "--------------")
 
 let feature_img f =
