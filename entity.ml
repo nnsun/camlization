@@ -197,6 +197,15 @@ let new_city tile =
     }
   )
 
+let combat_multiplier unit1 unit2 =
+  let unit1_type = unit_type(get_unit_entity (unit1)) in
+  if is_unit unit2 then
+    let unit2_type = unit_type (get_unit_entity (unit2)) in
+    if unit1_type = Spearman &&
+      (unit2_type = Chariot || unit2_type = Horseman) then 1.5
+    else 1.
+  else if unit1_type = Catapult then 1.25 else 1.
+
 let set_growth city =
   let stock = (snd city).food_stock + food_per_turn city in
   let pop = (snd city).population in
@@ -208,14 +217,14 @@ let set_growth city =
     (fst city, { (snd city) with food_stock = stock })
 
 let relative_str e1 e2 =
-  (* TODO: Add unit bonuses *)
   let (health, str) =
     match e1 with
     | City c ->
       ((fst c).health, (snd c).population)
     | Unit u ->
       ((fst u).health, (List.assoc  ((snd u).name) unit_attributes_map).strength) in
-  (float_of_int health) /. 100. *. (float_of_int str)
+  let unscaled_str = (float_of_int health) /. 100. *. (float_of_int str) in
+  (combat_multiplier e1 e2) *. unscaled_str
 
 let set_health entity new_health =
   let new_health = if new_health < 0 then 0 else new_health in
