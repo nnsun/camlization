@@ -324,7 +324,7 @@ let next_turn state =
     player_turns = state.player_turns + 1
   }
 
-let found_city gst tile =
+let found_city gst tile worker_unit =
   let (col, row) = World.coordinates tile in
   let entity_refs = List.map (fun p -> Player.entities p) (gst.players |> Array.to_list) |> List.flatten in
   let entities = List.map (!) entity_refs in
@@ -383,5 +383,6 @@ let found_city gst tile =
     in
   if List.filter filter_close_cities cities |> List.length = 0 then
     let player = Player.found_city (gst.players.(gst.current_player)) tile in
+    let _ = worker_unit := Entity.set_health !worker_unit 0 in 
     gst.players.(gst.current_player) <- player; gst
   else gst

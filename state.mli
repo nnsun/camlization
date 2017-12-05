@@ -92,4 +92,4 @@ val available_units : game_state -> Entity.unit_type list
 
 (* [found_city state tile] founds a city at [tile] if there are no cities
    within three tiles of [tile] *)
-val found_city : game_state -> World.tile -> game_state
+val found_city : game_state -> World.tile -> Entity.entity ref -> game_state

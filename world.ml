@@ -275,3 +275,7 @@ let adjacent_tiles tile map =
     let (x, y) = t in
     if x < 0 || x >= num_cols || y < 0 || y >= num_rows then false else true in
   List.map (fun (a, b) -> get_tile map a b) (List.filter (pred map) unfiltered)
+
+let set_improvement map tile improvement =
+  let (col, row) = tile.coordinates in
+  map.(row).(col) <- {tile with improvement = Some improvement}
