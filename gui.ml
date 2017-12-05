@@ -207,7 +207,7 @@ let left_pane (w, h) gst =
       I.void 1 1;
       snap (I.string text "HEALTH: ");
       I.void 1 1;
-      snap (I.string text "SELECT UNIT WITH .");
+      snap (I.string text "SELECT UNIT WITH ,");
       I.void 1 1;
       if num_units > 0 then
         I.hsnap ~align: `Left pane_width (unit_list_img units (u mod num_units))
@@ -254,7 +254,7 @@ let left_pane (w, h) gst =
       else
         (Tech.tech_cost t - Player.science player)
         / (Player.science_rate player) in
-    let tech_img i t show_selected =
+    let tech_img i t show show_selected =
       if i = t_index && show_selected then
       I.string A.(fg white ++ bg black ++ st bold) (
         "▶ " ^ tech_str t ^ " (" ^ (string_of_int (tech_left t)) ^ ")"
@@ -272,7 +272,7 @@ let left_pane (w, h) gst =
       I.void 1 1;
       (
         match current_tech with
-        | Some t -> tech_img (-1) t false
+        | Some t -> tech_img (-1) t true false
         | None -> snap I.(string text "Choose a Tech to research")
       );
       I.void 1 2;
@@ -280,12 +280,17 @@ let left_pane (w, h) gst =
       I.void 1 1;
       snap (
         I.hsnap ~align:`Left (pane_width - 8) (
-          I.vcat (List.mapi (fun i t -> tech_img i t true) (State.available_techs gst))
+          match current_tech with
+          | Some curr ->
+            I.vcat (List.mapi (fun i t -> tech_img i t (t = curr) false) (State.available_techs gst))
+          | None -> I.vcat (List.mapi (fun i t -> tech_img i t true true) (State.available_techs gst))
         )
       );
+      snap (I.string text "SELECT TECH WITH ,");
+      snap (I.string text "CONFIRM WITH .");
       I.void 1 2;
       snap (I.string text "RESEARCHED TECHS:");
-      snap (I.vcat (List.mapi (fun i t -> tech_img i t false) (Player.techs player)))
+      snap (I.vcat (List.mapi (fun i t -> tech_img i t true false) (Player.techs player)))
     ]
   in
   I.zcat [
@@ -524,8 +529,8 @@ let next_pane_state pst tile_changing =
   match pst with
   | Tile -> Tile
   | Unit u -> if tile_changing then Unit 0 else Unit (u+1)
-  | City c -> if tile_changing then City (-1) else City (c+1)
-  | Tech t -> if tile_changing then Tech (-1) else Tech (t+1)
+  | City c -> if tile_changing then City (0) else City (c+1)
+  | Tech t -> if tile_changing then Tech (0) else Tech (t+1)
 
 let move_unit gst dir =
   match gst.pane_state with
@@ -572,10 +577,10 @@ let rec main t gst =
   | `Resize (nw, nh) -> main t gst
   | `Key (`Enter, []) -> main t (State.next_turn gst)
   | `Key (`Uchar 117, []) -> main t {gst with pane_state = Unit 0}
-  | `Key (`Uchar 99, []) -> main t {gst with pane_state = City (-1)}
-  | `Key (`Uchar 116, []) -> main t {gst with pane_state = Tech (-1)}
+  | `Key (`Uchar 99, []) -> main t {gst with pane_state = City 0}
+  | `Key (`Uchar 116, []) -> main t {gst with pane_state = Tech 0}
   | `Key (`Uchar 115, []) -> main t {gst with pane_state = Tile}
-  | `Key (`Uchar 46, []) -> main t {gst with pane_state = next_pane_state gst.pane_state false}
+  | `Key (`Uchar 44, []) -> main t {gst with pane_state = next_pane_state gst.pane_state false}
   | `Key (`Uchar 49, []) -> main t (move_unit gst `TopLeft)
   | `Key (`Uchar 50, []) -> main t (move_unit gst `TopMiddle)
   | `Key (`Uchar 51, []) -> main t (move_unit gst `TopRight)
