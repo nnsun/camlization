@@ -15,7 +15,7 @@ type menu_state =
 type pane_state =
   | Tile
   | City of int
-  | Unit of int
+  | Unit of int * int
   | Tech of int
 
 type game_state = {

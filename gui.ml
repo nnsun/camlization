@@ -185,7 +185,7 @@ let left_pane (w, h) gst =
       I.void 1 1;
       snap (tile_yields_img tile)
     ]
-  | Unit u -> let units = State.units (col, row) gst in
+  | Unit (u,i) -> let units = State.units (col, row) gst in
     let num_units = List.length units in
     I.vcat [
       snap (I.(string A.(text ++ st underline)) "UNITS");
@@ -446,18 +446,19 @@ let move_unit_tile gst dir =
   let (col, row) = gst.selected_tile in
   match dir with
   | `TopLeft ->
-    if col - 1 > 0 && row > 0 then
+    if col - 1 >= 0 && row > 0 then
       if (col mod 2 = 1) then (col - 1, row)
       else (col - 1, row - 1)
     else (col, row)
-  | `TopMiddle -> if row - 1 > 0 && row > 0 then (col, row - 1) else (col, row)
+  | `TopMiddle -> if row - 1 >= 0 then (col, row - 1) else (col, row)
   | `TopRight ->
-    if col + 1 < max_cols && row > 0 then
+    if col + 1 < max_cols then
       if (col mod 2 = 1) then (col + 1, row)
-      else (col + 1, row - 1)
+      else if row > 0 then (col + 1, row - 1)
+      else (col, row)
     else (col, row)
   | `BottomLeft ->
-    if col - 1 > 0 && row + 1 < max_rows then
+    if col - 1 >= 0 && row + 1 < max_rows then
       if (col mod 2 = 1) then
         (col - 1, row - 1)
       else (col - 1, row)
@@ -526,16 +527,16 @@ let select_tile direction gst =
   | `Left -> (max 0 (current_col - 1), current_row)
   | `Right -> (min (max_cols - 1) (current_col + 1), current_row)
 
-let next_pane_state pst tile_changing =
+let next_pane_state pst tile_changing is_improvement_key =
   match pst with
   | Tile -> Tile
-  | Unit u -> if tile_changing then Unit 0 else Unit (u+1)
+  | Unit (u, i) -> if tile_changing then Unit (0,0) else if is_improvement_key then Unit (u, i+1) else Unit (u+1, i)
   | City c -> if tile_changing then City (0) else City (c+1)
   | Tech t -> if tile_changing then Tech (0) else Tech (t+1)
 
 let move_unit gst dir =
   match gst.pane_state with
-  | Unit u ->
+  | Unit (u,_) ->
     let (col, row) = gst.selected_tile in
     let units = State.unit_refs (col,row) gst in
     let num_units = List.length units in
@@ -551,7 +552,7 @@ let move_unit gst dir =
 
 let found_city gst =
   match gst.pane_state with
-  | Unit u ->
+  | Unit (u,_) ->
     let (col, row) = gst.selected_tile in
     let tile = World.get_tile gst.map col row in
     let units = State.unit_refs (col,row) gst in
@@ -588,16 +589,16 @@ let rec main t gst =
     let new_gst = { gst with
       selected_tile = select_tile direction gst;
       map_display = new_map_display;
-      pane_state = next_pane_state gst.pane_state true
+      pane_state = next_pane_state gst.pane_state true false
     } in
     main t new_gst
   | `Resize (nw, nh) -> main t gst
   | `Key (`Enter, []) -> main t (State.next_turn gst)
-  | `Key (`Uchar 117, []) -> main t {gst with pane_state = Unit 0}
+  | `Key (`Uchar 117, []) -> main t {gst with pane_state = Unit (0,0)}
   | `Key (`Uchar 99, []) -> main t {gst with pane_state = City 0}
   | `Key (`Uchar 116, []) -> main t {gst with pane_state = Tech 0}
   | `Key (`Uchar 115, []) -> main t {gst with pane_state = Tile}
-  | `Key (`Uchar 44, []) -> main t {gst with pane_state = next_pane_state gst.pane_state false}
+  | `Key (`Uchar 44, []) -> main t {gst with pane_state = next_pane_state gst.pane_state false false}
   | `Key (`Uchar 46, []) ->
     begin
       match gst.pane_state with
