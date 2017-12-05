@@ -334,3 +334,66 @@ let next_turn state =
     current_player = (state.current_player + 1) mod (Array.length state.players);
     player_turns = state.player_turns + 1
   }
+
+let found_city gst tile worker_unit =
+  let (col, row) = World.coordinates tile in
+  let entity_refs = List.map (fun p -> Player.entities p) (gst.players |> Array.to_list) |> List.flatten in
+  let entities = List.map (!) entity_refs in
+  let cities = List.filter Entity.is_city entities in
+  let filter_close_cities c =
+    let t = Entity.tile c in
+    let (c_col, c_row) = World.coordinates t in
+    if c_col mod 2 = 1 then
+      (col, row) = (c_col, c_row) ||
+      (col, row) = (c_col - 1, c_row) ||
+      (col, row) = (c_col, c_row - 1) ||
+      (col, row) = (c_col + 1, c_row) ||
+      (col, row) = (c_col + 1, c_row + 1) ||
+      (col, row) = (c_col, c_row + 1) ||
+      (col, row) = (c_col - 1, c_row + 1) ||
+      (col, row) = (c_col - 2, c_row - 1) ||
+      (col, row) = (c_col - 3, c_row - 1) ||
+      (col, row) = (c_col, c_row - 2) ||
+      (col, row) = (c_col, c_row - 3) ||
+      (col, row) = (c_col + 2, c_row - 1) ||
+      (col, row) = (c_col + 3, c_row - 1) ||
+      (col, row) = (c_col - 2, c_row + 1) ||
+      (col, row) = (c_col - 3, c_row + 1) ||
+      (col, row) = (c_col, c_row + 2) ||
+      (col, row) = (c_col, c_row + 3) ||
+      (col, row) = (c_col + 2, c_row + 1) ||
+      (col, row) = (c_col + 3, c_row + 2) ||
+      (col, row) = (c_col - 1, c_row + 2) ||
+      (col, row) = (c_col + 1, c_row + 2) ||
+      (col, row) = (c_col - 1, c_row - 2) ||
+      (col, row) = (c_col + 1, c_row - 2)
+    else 
+      (col, row) = (c_col, c_row) ||
+      (col, row) = (c_col - 1, c_row - 1) ||
+      (col, row) = (c_col, c_row - 1) ||
+      (col, row) = (c_col + 1, c_row - 1) ||
+      (col, row) = (c_col + 1, c_row) ||
+      (col, row) = (c_col, c_row + 1) ||
+      (col, row) = (c_col - 1, c_row) ||
+      (col, row) = (c_col - 2, c_row - 1) ||
+      (col, row) = (c_col - 3, c_row - 2) ||
+      (col, row) = (c_col, c_row - 2) ||
+      (col, row) = (c_col, c_row - 3) ||
+      (col, row) = (c_col + 2, c_row - 1) ||
+      (col, row) = (c_col + 3, c_row - 2) ||
+      (col, row) = (c_col - 2, c_row + 1) ||
+      (col, row) = (c_col - 3, c_row + 1) ||
+      (col, row) = (c_col, c_row + 2) ||
+      (col, row) = (c_col, c_row + 3) ||
+      (col, row) = (c_col + 2, c_row + 1) ||
+      (col, row) = (c_col + 3, c_row + 1) ||
+      (col, row) = (c_col - 1, c_row + 1) ||
+      (col, row) = (c_col + 1, c_row + 1) ||
+      (col, row) = (c_col - 1, c_row - 2) ||
+      (col, row) = (c_col + 1, c_row - 2)
+    in
+  if List.filter filter_close_cities cities |> List.length = 0 then
+    let player = Player.found_city (gst.players.(gst.current_player)) tile in
+    let _ = worker_unit := Entity.set_health !worker_unit 0 in 
+    gst.players.(gst.current_player) <- player; gst
+  else gst

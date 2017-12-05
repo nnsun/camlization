@@ -205,7 +205,7 @@ let left_pane (w, h) gst =
       snap (I.string text "`--(     )--'");
       snap (I.string text "\\___/");
       I.void 1 1;
-      snap (I.string text "HEALTH: ");
+      snap (I.string text "FOUND CITY WITH F ");
       I.void 1 1;
       snap (I.string text "SELECT UNIT WITH ,");
       I.void 1 1;
@@ -573,6 +573,22 @@ let move_unit gst dir =
     else gst
   | _ -> gst
 
+let found_city gst =
+  match gst.pane_state with
+  | Unit u ->
+    let (col, row) = gst.selected_tile in
+    let tile = World.get_tile gst.map col row in
+    let units = State.unit_refs (col,row) gst in
+    let num_units = List.length units in
+    if num_units > 0 then
+      let current_unit_num = u mod num_units in
+      let current_unit = List.nth units current_unit_num in
+      if Entity.unit_type (Entity.get_unit_entity !current_unit) = Entity.Worker then
+        State.found_city gst tile current_unit
+      else gst
+    else gst
+  | _ -> gst
+
 let rec main t gst =
   let (w, h) = Term.size t in
   Term.image t (img t (w, h) gst);
@@ -633,6 +649,7 @@ let rec main t gst =
   | `Key (`Uchar 52, []) -> main t (move_unit gst `BottomLeft)
   | `Key (`Uchar 53, []) -> main t (move_unit gst `BottomMiddle)
   | `Key (`Uchar 54, []) -> main t (move_unit gst `BottomRight)
+  | `Key (`Uchar 102, []) -> main t (found_city gst)
   | _ -> main t gst
 
 let new_state t gst =

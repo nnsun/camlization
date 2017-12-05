@@ -138,3 +138,7 @@ let set_growth p =
 
 let research_tech player tech =
   { player with current_tech = Some tech }
+
+let found_city player tile =
+  { player with num_cities = player.num_cities + 1; 
+                entities = ref (Entity.new_city tile) :: player.entities }

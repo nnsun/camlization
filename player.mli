@@ -66,3 +66,6 @@ val filter_unit_refs : player -> Entity.entity ref list
 
 (* [research_tech player tech] updates the current research of [player] to [tech] *)
 val research_tech : player -> Tech.tech -> player
+
+(* [found_city player tile] creates a new city for [player] at [tile] *)
+val found_city : player -> World.tile -> player
