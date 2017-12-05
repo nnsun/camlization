@@ -118,10 +118,10 @@ let get_city_entity entity =
   | City c -> c
   | _ -> failwith "Error: expected City but got Unit"
 
-  let get_unit_entity entity =
-    match entity with
-    | Unit u -> u
-    | _ -> failwith "Error: expected Unit but got City"
+let get_unit_entity entity =
+  match entity with
+  | Unit u -> u
+  | _ -> failwith "Error: expected Unit but got City"
 
 let growth_req pop = 15 + 5 * pop
 
@@ -244,14 +244,17 @@ let units_list =
 
 let tech_req utype = (List.assoc utype unit_attributes_map).tech_req
 
-let set_food_per_turn entity n =
+let set_food_per_turn n entity =
   let entity = get_city_entity entity in
   City ((fst entity), { (snd entity) with food = n })
 
-let set_production_per_turn entity n =
+let set_production_per_turn n entity =
   let entity = get_city_entity entity in
   City ((fst entity), { (snd entity) with production = n })
 
-let set_gold_per_turn entity n =
+let set_gold_per_turn n entity =
   let entity = get_city_entity entity in
   City ((fst entity), { (snd entity) with gold = n })
+
+let reset_movement (e_info, u_info) =
+  (e_info, {u_info with moves_left = movement_points u_info.name})
