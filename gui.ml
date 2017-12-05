@@ -365,6 +365,7 @@ let left_pane (w, h) gst =
         max 1 (1 + ((Tech.tech_cost t - Player.science player)
         / (Player.science_rate player))) in
     let tech_img i t show show_selected =
+      if List.length techs = 0 then I.empty else
       if i = (t_index mod List.length techs) && show && show_selected then
       I.string A.(fg white ++ bg black ++ st bold) (
         "▶ " ^ tech_str t ^ " (" ^ (string_of_int (turns_left t)) ^ " turns)"
