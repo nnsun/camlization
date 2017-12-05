@@ -179,12 +179,48 @@ let unit_list_img ul selected_unit =
           I.string text (unit_str u);
           I.void 1 1;
           I.uchar health 9829 1 1;
+          I.string health (string_of_int (Entity.health (Entity.Unit u)));
           I.void 1 1;
-          I.string health (string_of_int (Entity.health (Entity.Unit u)))
+          I.uchar text 8599 1 1;
+          I.string text (string_of_int (Entity.moves_left u))
         ];
         unit_list_img_helper us selected_unit (current_unit+1)
       ] in
   unit_list_img_helper ul selected_unit 0
+
+let tab_img pst selected =
+  let title_string =
+    match pst with
+    | Tile -> " TILE "
+    | Unit _ -> " UNITS "
+    | City _ -> " CITY "
+    | Tech _ -> " TECH "
+  in
+  let shortcut_string =
+    match pst with
+    | Tile -> "[1]"
+    | Unit _ -> "[2]"
+    | City _ -> "[3]"
+    | Tech _ -> "[4]"
+  in
+  let len = String.length title_string in
+  I.(void 1 1 <-> (
+    if selected
+    then I.pad ~t:2 (I.hsnap len (string A.(bg white) shortcut_string))
+      </> I.(vcat [
+      string A.(bg white) (String.make len ' ');
+      string A.(fg black ++ bg white) title_string;
+      string A.(bg white) (String.make len ' ');
+      string A.(bg white) (String.make len ' ');
+    ])
+    else I.pad ~t:2 (I.hsnap len (string A.(bg black) shortcut_string))
+      </> I.(vcat [
+      string A.(bg black) (String.make len ' ');
+      string A.(bg black) title_string;
+      string A.(bg black) (String.make len ' ');
+      string A.(bg black) (String.make len ' ');
+    ])
+  ))
 
 let possible_improvements_img pi selected_pi =
   let rec possible_improvements_img_helper pi selected_pi current_pi =
@@ -217,10 +253,10 @@ let left_pane (w, h) gst =
   let (col, row) = gst.selected_tile in
   let tile = World.get_tile gst.map col row in
   let pane_content = match gst.pane_state with
-  | Tile -> 
+  | Tile ->
+    let tabs = [Tile; Unit (0, 0); City 0; Tech 0] in
     I.vcat [
-      snap (I.(string A.(text ++ st underline) "TILE"));
-      snap (I.(string text "City: C, Tech: T, Units: U"));
+      snap (I.hcat (List.map (fun t -> tab_img t (t = Tile)) tabs));
       I.void 1 1;
       snap (tile_yields_img tile)
     ]
@@ -228,21 +264,21 @@ let left_pane (w, h) gst =
     let num_units = List.length units in
     let possible_improvements = World.tile_possible_improvements tile in
     let num_possible_improvements = List.length possible_improvements in
+    let tabs = [Tile; Unit (u, i); City 0; Tech 0] in
     I.vcat [
-      snap (I.(string A.(text ++ st underline)) "UNITS");
-      snap (I.(string text "City: C, Tech: T, Tile: S"));
+      snap (I.hcat (List.map (fun t -> tab_img t (t = ( Unit (u,i) ))) tabs));
       I.void 1 1;
       snap (I.string text "MOVEMENT:");
       snap (I.string text "___");
       snap (I.string text "/   \\");
       snap (I.string text ",--(     )--.");
       snap (I.(hcat [
-        string text "/    \\_"; string underlined "2"; string text "_/    \\"
+        string text "/    \\"; string underlined "[W]"; string text "/    \\"
       ]));
-      snap (I.string text "\\  1 /   \\ 3  /");
+      snap (I.string text "\\ [Q]/   \\[E] /");
       snap (I.string text ")--(     )--(");
-      snap (I.string text "/  4 \\___/ 6  \\");
-      snap (I.string text "\\    / 5 \\    /");
+      snap (I.string text "/ [A]\\___/[D] \\");
+      snap (I.string text "\\    /[S]\\    /");
       snap (I.string text "`--(     )--'");
       snap (I.string text "\\___/");
       I.void 1 1;
@@ -251,7 +287,7 @@ let left_pane (w, h) gst =
       snap (I.string text "SELECT UNIT WITH ,");
       I.void 1 1;
       if num_units > 0 then
-        I.vcat [  
+        I.vcat [
         I.hsnap ~align: `Left pane_width (unit_list_img units (u mod num_units));
         I.void 1 1;
         I.hsnap pane_width (I.string A.(fg white ++ bg black) "SELECT IMPROVEMENT WITH /");
@@ -260,10 +296,10 @@ let left_pane (w, h) gst =
         snap (I.string text "NO UNITS IN THIS TILE")
     ]
   | City c ->
+    let tabs = [Tile; Unit (0, 0); City c; Tech 0] in
     let empty_city =
       I.vcat [
-        snap (I.(string A.(text ++ st underline) "CITY"));
-        snap (I.(string text "Tech: T, Units: U, Tile: S"));
+        snap (I.hcat (List.map (fun t -> tab_img t (t = (City c))) tabs));
         I.void 1 1;
         snap (I.string text "NO CITY AT THIS TILE")
       ]
@@ -292,8 +328,7 @@ let left_pane (w, h) gst =
           )
           in
         I.vcat [
-          snap (I.(string A.(text ++ st underline) "CITY"));
-          snap (I.(string text "Tech: T, Units: U, Tile: S"));
+          snap (I.hcat (List.map (fun t -> tab_img t (t = (City c))) tabs));
           I.void 1 1;
           snap (I.(string text "CURRENT PRODUCTION:"));
           I.void 1 1;
@@ -317,6 +352,7 @@ let left_pane (w, h) gst =
       | None -> empty_city
     end
   | Tech t_index ->
+    let tabs = [Tile; Unit (0, 0); City 0; Tech t_index] in
     let current_tech = Player.current_tech player in
     let techs = State.available_techs gst in
     let tech_left t =
@@ -335,8 +371,7 @@ let left_pane (w, h) gst =
       )
     in
     I.vcat [
-      snap (I.(string A.(text ++ st underline) "TECH"));
-      snap (I.(string text "City: C, Units: U, Tile: S"));
+      snap (I.hcat (List.map (fun t -> tab_img t (t = (Tech t_index))) tabs));
       I.void 1 1;
       snap (I.(string text "CURRENT RESEARCH:"));
       I.void 1 1;
@@ -434,9 +469,9 @@ let resource_img r =
     | Iron -> I.string A.(fg (gray 10)) "Iron"
     | Marble -> I.string A.(fg (gray 10)) "Marble"
     | Stone -> I.string A.(fg (gray 10)) "Stone"
-    | Wheat -> I.string A.(fg lightyellow) "⇞⇞⇞⇞⇞⇞"
-    | Corn -> I.string A.(fg yellow) "⇞⇞⇞⇞⇞⇞"
-    | Rice -> I.string A.empty "⇞⇞⇞⇞⇞⇞"
+    | Wheat -> I.string A.(fg lightyellow) "Wheat"
+    | Corn -> I.string A.(fg yellow) "Corn"
+    | Rice -> I.string A.empty "Rice"
     | Furs -> I.string A.empty "Furs"
     | Ivory -> I.string A.empty "Ivory"
     | Deer -> I.string A.empty "Deer"
@@ -444,7 +479,7 @@ let resource_img r =
     | Cattle -> I.string A.empty "Cattle"
     | Horses -> I.string A.empty "Horses"
     | Cotton -> I.string A.empty "Cotton"
-    | Banana -> I.string A.(fg yellow) "◡◡◡◡◡◡"
+    | Banana -> I.string A.(fg yellow) "Bananas"
     | Sugar -> I.string A.empty "Sugar"
   )
 
@@ -485,9 +520,9 @@ let city_imgs (col, row) gst =
         hsnap 14 (hcat [
           string pop_attr (string_of_int pop);
           pop_text;
-          text "░❰";
+          text " ❰";
           white_text "CITY";
-          text "❱░";
+          text "❱ ";
           prod_text
         ])
       )
@@ -650,10 +685,10 @@ let rec main t gst =
     main t new_gst
   | `Resize (nw, nh) -> main t gst
   | `Key (`Enter, []) -> main t (State.next_turn gst)
-  | `Key (`Uchar 117, []) -> main t {gst with pane_state = Unit (0,0)}
-  | `Key (`Uchar 99, []) -> main t {gst with pane_state = City 0}
-  | `Key (`Uchar 116, []) -> main t {gst with pane_state = Tech 0}
-  | `Key (`Uchar 115, []) -> main t {gst with pane_state = Tile}
+  | `Key (`Uchar 50, []) -> main t {gst with pane_state = Unit (0,0)}
+  | `Key (`Uchar 51, []) -> main t {gst with pane_state = City 0}
+  | `Key (`Uchar 52, []) -> main t {gst with pane_state = Tech 0}
+  | `Key (`Uchar 49, []) -> main t {gst with pane_state = Tile}
   | `Key (`Uchar 44, []) -> main t {gst with pane_state = next_pane_state gst.pane_state false false}
   | `Key (`Uchar 47, []) -> main t {gst with pane_state = next_pane_state gst.pane_state false true}
   | `Key (`Uchar 46, []) ->
@@ -689,12 +724,12 @@ let rec main t gst =
         end
       | _ -> main t gst
     end
-  | `Key (`Uchar 49, []) -> main t (move_unit gst `TopLeft)
-  | `Key (`Uchar 50, []) -> main t (move_unit gst `TopMiddle)
-  | `Key (`Uchar 51, []) -> main t (move_unit gst `TopRight)
-  | `Key (`Uchar 52, []) -> main t (move_unit gst `BottomLeft)
-  | `Key (`Uchar 53, []) -> main t (move_unit gst `BottomMiddle)
-  | `Key (`Uchar 54, []) -> main t (move_unit gst `BottomRight)
+  | `Key (`Uchar 113, []) -> main t (move_unit gst `TopLeft)
+  | `Key (`Uchar 119, []) -> main t (move_unit gst `TopMiddle)
+  | `Key (`Uchar 101, []) -> main t (move_unit gst `TopRight)
+  | `Key (`Uchar 97, []) -> main t (move_unit gst `BottomLeft)
+  | `Key (`Uchar 115, []) -> main t (move_unit gst `BottomMiddle)
+  | `Key (`Uchar 100, []) -> main t (move_unit gst `BottomRight)
   | `Key (`Uchar 102, []) -> main t (found_city gst)
   | _ -> main t gst
 
