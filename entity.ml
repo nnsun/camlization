@@ -75,6 +75,9 @@ type city_info = {
   food_stock: int;
   unit_production : unit_type option;
   production_stock : int;
+  food : int;
+  production : int;
+  gold : int;
 }
 
 type city_entity = entity_info * city_info
@@ -132,18 +135,13 @@ let unit_production city = (snd city).unit_production
 
 let production_stock city = (snd city).production_stock
 
-let worked_tiles city =
-  let workable_tiles = World.adjacent_tiles (fst city).tile in
-  (* the first entry in workable_tiles is always the city tile itself *)
-  ()
-
-let gold_per_turn city = failwith "Unimplemented"
+let gold_per_turn city = (snd city).gold
 
 let science_per_turn city = (snd city).population * 2
 
-let production_per_turn city = failwith "Unimplemented"
+let production_per_turn city = (snd city).production
 
-let food_per_turn city = failwith "Unimplemented"
+let food_per_turn city = (snd city).food
 
 let movement_points utype = (List.assoc utype unit_attributes_map).movement
 
@@ -193,6 +191,9 @@ let new_city tile =
       food_stock = 0;
       unit_production = None;
       production_stock = 0;
+      food = 0;
+      production = 0;
+      gold = 0;
     }
   )
 
@@ -242,3 +243,15 @@ let units_list =
   prepend [] unit_attributes_map
 
 let tech_req utype = (List.assoc utype unit_attributes_map).tech_req
+
+let set_food_per_turn entity n =
+  let entity = get_city_entity entity in
+  City ((fst entity), { (snd entity) with food = n })
+
+let set_production_per_turn entity n =
+  let entity = get_city_entity entity in
+  City ((fst entity), { (snd entity) with production = n })
+
+let set_gold_per_turn entity n =
+  let entity = get_city_entity entity in
+  City ((fst entity), { (snd entity) with gold = n })

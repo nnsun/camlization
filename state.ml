@@ -265,3 +265,12 @@ let available_units state =
           if List.mem t researched then a::acc else acc in
       cycle_units new_acc b in
   cycle_units [] Entity.units_list
+
+
+let worked_tiles city map =
+  let workable_tiles = World.adjacent_tiles (Entity.tile city) map in
+  List.rev
+    (List.sort (fun a b ->
+        World.food_gen a + World.production_gen a + World.gold_gen a -
+        World.food_gen b - World.production_gen b - World.gold_gen b)
+    workable_tiles)
