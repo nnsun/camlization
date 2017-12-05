@@ -61,7 +61,7 @@ let game_map gst = gst.map
 let entities_refs coordinates gst =
   let valid_entity e =
     let entity = !e in
-    Entity.health entity != 0
+    Entity.health entity > 0
     && (World.coordinates (Entity.tile entity) = coordinates)
   in
   let entities_of_player p = List.filter valid_entity (Player.entities p) in
