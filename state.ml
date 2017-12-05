@@ -202,11 +202,12 @@ let make_move state entity_ref tile =
     if World.is_adjacent (Entity.tile (Entity.Unit unit_entity)) tile then
       if World.elevation tile = World.Peak then state
       else if World.terrain tile = World.Ice then state
-      else if World.terrain tile = World.Ocean &&
+      else if World.terrain tile = World.Ocean ||
               World.terrain tile = World.Coast then
         let player = state.players.(state.current_player) in
         let techs = Player.techs player in
-        let is_optics tech = if tech = Tech.Optics then true else false in
+        let is_optics tech =
+          if tech = Tech.Optics then true else false in
         if not (List.exists is_optics techs) then state
         else go_to_tile state unit_entity tile
       else
@@ -275,8 +276,32 @@ let available_units state =
 
 let worked_tiles city map =
   let workable_tiles = World.adjacent_tiles (Entity.tile city) map in
-  List.rev
+  let sorted_tiles = List.rev
     (List.sort (fun a b ->
         World.food_gen a + World.production_gen a + World.gold_gen a -
         World.food_gen b - World.production_gen b - World.gold_gen b)
-    workable_tiles)
+    workable_tiles) in
+  let pop = Entity.population (Entity.get_city_entity city) in
+  let rec take n acc lst =
+    if n <= 0 then acc
+    else
+      match lst with
+      | [] -> acc
+      | a::b ->
+        take (n - 1) (a::acc) b in
+  take pop [] sorted_tiles
+
+(* let set_city_yields state =
+  let p = state.players.(state.current_player) in
+  let city_entities = Player.filter_city_refs p in
+  let rec cycle_cities cities =
+    match cities with
+    | [] -> ()
+    | a::b ->
+      let worked = worked_tiles a state.map in
+      let city_tile = Entity.tile a in
+      let worked = city_tile::worked in
+      let gold =
+        List.fold_left (fun g t -> g + World.gold_gen t) 0 worked
+            + (if ) in *)
+
