@@ -203,7 +203,7 @@ let set_growth city =
   let req = growth_req pop in
   if stock >= req then
     (fst city,
-      { (snd city) with food_stock = stock - req; population = pop })
+      { (snd city) with food_stock = stock - req; population = pop + 1 })
   else
     (fst city, { (snd city) with food_stock = stock })
 
