@@ -282,16 +282,20 @@ let left_pane (w, h) gst =
       snap (I.string text "`--(     )--'");
       snap (I.string text "\\___/");
       I.void 1 1;
-      snap (I.string text "FOUND CITY WITH F ");
-      I.void 1 1;
-      snap (I.string text "SELECT UNIT WITH ,");
-      I.void 1 1;
       if num_units > 0 then
         I.vcat [
-        I.hsnap ~align: `Left pane_width (unit_list_img units (u mod num_units));
-        I.void 1 1;
-        I.hsnap pane_width (I.string A.(fg white ++ bg black) "SELECT IMPROVEMENT WITH /");
-        I.hsnap ~align: `Left pane_width (possible_improvements_img possible_improvements (i mod num_possible_improvements))]
+          I.hsnap ~align: `Left pane_width (unit_list_img units (u mod num_units));
+          I.void 1 1;
+          snap (I.string text "Found city with [F]");
+          I.void 1 1;
+          snap (I.string text "Select unit with [,]");
+          I.void 1 2;
+          I.hsnap pane_width (I.string A.(fg white ++ bg black) "IMPROVEMENTS:");
+          I.void 1 1;
+          I.hsnap ~align: `Left pane_width (possible_improvements_img possible_improvements (i mod num_possible_improvements));
+          I.void 1 1;
+          I.hsnap pane_width (I.string A.(fg white ++ bg black) "Select improvement with [/]");
+        ]
       else
         snap (I.string text "NO UNITS IN THIS TILE")
     ]
@@ -349,9 +353,9 @@ let left_pane (w, h) gst =
             )
           );
           I.void 1 2;
-          snap (I.string text "SELECT UNIT WITH ,");
+          snap (I.string text "Select Unit with [,]");
           I.void 1 1;
-          snap (I.string text "CONFIRM WITH .");
+          snap (I.string text "Confirm with [.]");
         ]
       | None -> empty_city
     end
@@ -383,13 +387,13 @@ let left_pane (w, h) gst =
       (
         match current_tech with
         | Some t -> tech_img (-1) t true false
-        | None -> snap I.(string text "Choose a Tech to research")
+        | None -> snap I.(string text "Choose research")
       );
       I.void 1 2;
       snap (I.string text "AVAILABLE TECHS:");
       I.void 1 1;
       snap (
-        I.hsnap ~align:`Left (pane_width - 8) (
+        snap (
           match current_tech with
           | Some curr ->
             I.vcat (List.mapi (fun i t -> tech_img i t (t = curr) false) techs)
@@ -397,9 +401,8 @@ let left_pane (w, h) gst =
         )
       );
       I.void 1 2;
-      snap (I.string text "SELECT TECH WITH ,");
-      I.void 1 1;
-      snap (I.string text "CONFIRM WITH .");
+      snap (I.string text "Select Tech with [,]");
+      snap (I.string text "Confirm with [.]");
       I.void 1 2;
       snap (I.string text "RESEARCHED TECHS:");
       snap (I.vcat (List.mapi (fun i t -> tech_img i t true false) (Player.techs player)))
@@ -512,7 +515,7 @@ let city_imgs (col, row) gst =
         I.uchar health 9829 1 1;
         I.string health (string_of_int (Entity.health (Entity.City city)))
       ])) in
-    let mid =
+    let middle =
       let pop = Entity.population city in
       let pop_frac = float_of_int (Entity.food_stock city)
         /. (float_of_int (Entity.growth_req pop)) in
@@ -538,10 +541,11 @@ let city_imgs (col, row) gst =
         ])
       )
     in
-    let bottom = text "░░░░░░░░░░░░░░░░" in
-    (top, mid, bottom)
+    let bottom = text " " in
+    let below = text "░░░░░░░░░░░░░░░░░░" in
+    (top, middle, bottom, below)
 
-  | None -> (I.empty, I.empty, I.empty)
+  | None -> (I.empty, I.empty, I.empty, I.empty)
 
 let move_unit_tile gst dir =
   let (max_cols, max_rows) = World.map_dimensions gst.map in
@@ -583,7 +587,7 @@ let tile_img is_selected (col, row) (left_col, top_row) gst (w, h) =
   let top = initial_tile_top + (tile_height*(row - top_row)) + odd_even_col_offset + top_underline_offset in
   let t = World.get_tile gst.map col row in
   let units = State.units (col, row) gst in
-  let (city_top, city_mid, city_bot) = city_imgs (col, row) gst in
+  let (city_top, city_mid, city_bot, city_bel) = city_imgs (col, row) gst in
   grid [
     if row = top_row then [I.void 5 1; I.string color_underline "            "]
     else if is_selected then
@@ -593,7 +597,7 @@ let tile_img is_selected (col, row) (left_col, top_row) gst (w, h) =
     [I.void 4 1; I.uchar color 0x2571 1 1; I.hsnap 12 city_top; I.uchar color 0x2572 1 1];
     [I.void 3 1; I.uchar color 0x2571 1 1; I.hsnap 14 city_mid; I.uchar color 0x2572 1 1];
     [I.void 2 1; I.uchar color 0x2571 1 1; I.hsnap 16 city_bot; I.uchar color 0x2572 1 1];
-    [I.void 1 1; I.uchar color 0x2571 1 1; I.hsnap 18 (I.string text_color " "); I.uchar color 0x2572 1 1];
+    [I.void 1 1; I.uchar color 0x2571 1 1; I.hsnap 18 city_bel; I.uchar color 0x2572 1 1];
     [I.uchar color 0x2571 1 1; I.hsnap 20 (I.string text_color (tile_unit_str units)); I.uchar color 0x2572 1 1];
     [I.uchar color 0x2572 1 1; I.hsnap 20 I.(I.string text_color (improvement_opt_str t)); I.uchar color 0x2571 1 1];
     [I.void 1 1; I.uchar color 0x2572 1 1; I.hsnap 18 (resource_opt_img t); I.uchar color 0x2571 1 1];
