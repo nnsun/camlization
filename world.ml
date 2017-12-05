@@ -279,3 +279,26 @@ let adjacent_tiles tile map =
 let set_improvement map tile improvement =
   let (col, row) = tile.coordinates in
   map.(row).(col) <- {tile with improvement = Some improvement}
+
+let improvement_for_resource r =
+  match r with
+  | Fish | Crab -> FishingBoats
+  | Gold | Silver | Gems | Salt | Iron -> Mine
+  | Marble | Stone -> Quarry
+  | Wheat | Corn | Rice -> Farm
+  | Furs | Ivory | Deer -> Camp
+  | Sheep | Cattle | Horses -> Pasture
+  | Cotton | Banana | Sugar -> Plantation
+
+let tile_possible_improvements tile =
+  let i_list = match resource tile with
+    | None -> []
+    | Some r -> [(improvement_for_resource r)] in
+  let i_list2 = 
+    if i_list <> [Farm] && tile.elevation = Flatland && 
+      (tile.terrain = Grassland || tile.terrain = Plains) then
+      Farm :: i_list
+    else i_list in
+  if i_list <> [Mine] && tile.elevation = Hill then
+    Mine :: i_list
+  else i_list2
