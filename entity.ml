@@ -165,7 +165,7 @@ let set_production city =
       if stock >= cost then
         let _ = finished_flag := true in
         { (snd city) with
-          production_stock = 0;
+          production_stock = stock - cost;
           unit_production = None
         }
       else { (snd city) with production_stock = stock } in
