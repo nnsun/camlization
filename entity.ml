@@ -88,7 +88,7 @@ type entity =
   | City of city_entity
   | Unit of unit_entity
 
-let get_unit_type u =
+let unit_type u =
   (snd u).name
 
 let shared_info e =
@@ -186,7 +186,7 @@ let new_city tile =
   City (
     { health = 100; tile = tile },
     {
-      population = 500;
+      population = 1;
       is_capital = true;
       food_stock = 0;
       unit_production = None;
@@ -203,7 +203,7 @@ let set_growth city =
   let req = growth_req pop in
   if stock >= req then
     (fst city,
-      { (snd city) with food_stock = stock - req; population = pop })
+      { (snd city) with food_stock = stock - req; population = pop + 1 })
   else
     (fst city, { (snd city) with food_stock = stock })
 
