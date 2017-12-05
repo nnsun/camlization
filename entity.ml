@@ -186,7 +186,7 @@ let new_city tile =
   City (
     { health = 100; tile = tile },
     {
-      population = 1;
+      population = 500;
       is_capital = true;
       food_stock = 0;
       unit_production = None;
@@ -244,17 +244,20 @@ let units_list =
 
 let tech_req utype = (List.assoc utype unit_attributes_map).tech_req
 
-let set_food_per_turn entity n =
+let set_food_per_turn n entity =
   let entity = get_city_entity entity in
   City ((fst entity), { (snd entity) with food = n })
 
-let set_production_per_turn entity n =
+let set_production_per_turn n entity =
   let entity = get_city_entity entity in
   City ((fst entity), { (snd entity) with production = n })
 
-let set_gold_per_turn entity n =
+let set_gold_per_turn n entity =
   let entity = get_city_entity entity in
   City ((fst entity), { (snd entity) with gold = n })
 
 let reset_movement (e_info, u_info) =
   (e_info, {u_info with moves_left = movement_points u_info.name})
+
+let change_production entity utype =
+  (snd (get_city_entity entity)).unit_production = utype

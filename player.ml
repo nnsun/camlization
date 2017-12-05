@@ -135,3 +135,6 @@ let set_growth p =
       let _ = a := Entity.City city_entity in
       cycle_cities b in
   cycle_cities city_refs
+
+let research_tech player tech =
+  player.current_tech = tech
