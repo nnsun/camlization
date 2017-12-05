@@ -186,12 +186,12 @@ let make_move state entity_ref tile =
           (state, false)
         else
           let (new_e1, new_e2) = combat (Entity.Unit unit_entity) (!o) in
-          let new_ue1 = (
+          let unit_entity = (
             match new_e1 with
             | Entity.Unit u -> u
             | _ -> failwith "Error: expected Unit but got City"
           ) in
-          let unit_entity = new_ue1 in
+          let _ = entity_ref := Entity.Unit unit_entity in
           let _ = o := new_e2 in
           if tile_contains_enemy state tile = None then
             let unit_entity = update_tile unit_entity tile in
