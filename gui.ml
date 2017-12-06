@@ -547,6 +547,7 @@ let city_imgs (col, row) gst =
       let health = A.(fg red) in
       I.(hsnap 12 (hcat [
         I.uchar health 9829 1 1;
+        I.void 1 1;
         I.string health (string_of_int (Entity.health (Entity.City city)))
       ])) in
     let middle =

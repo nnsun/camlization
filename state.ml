@@ -331,9 +331,16 @@ let next_turn state =
   let valid_entity e =
     let entity = !e in
     Entity.health entity > 0 in
-  let entities_of_player = List.filter valid_entity (Player.entities player) in
-  let units_of_player = List.filter (fun e -> Entity.is_unit !e) entities_of_player in
-  List.iter (fun e -> let u = Entity.get_unit_entity (!e) in e := Entity.Unit (Entity.reset_movement u)) units_of_player;
+  let update_movements_and_health p =
+    let entities_of_player = List.filter valid_entity (Player.entities p) in
+    let units_of_player = List.filter (fun e -> Entity.is_unit !e) entities_of_player in
+    List.iter (fun e -> 
+      let u = Entity.get_unit_entity (!e) in
+      if Entity.moves_left u = Entity.movement_points (Entity.unit_type u) then 
+        let health = Entity.health (!e) in e := Entity.set_health (!e) (health + 10) else ();
+        e := Entity.Unit (Entity.reset_movement u)) units_of_player in
+    let () = if state.current_player + 1 = Array.length state.players then
+      Array.iter update_movements_and_health state.players in
   state.players.(state.current_player) <- player;
   {
     state with
