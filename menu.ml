@@ -2,6 +2,7 @@ open Notty
 open Notty_unix
 open Notty_helper
 open State
+open Primitives
 
 let img s = I.string A.empty s
 
@@ -299,7 +300,7 @@ let rec multiplayer t (w, h) i options =
     })) else Menu(Multiplayer (i, options))
   | `Key (`Arrow(`Right), []) ->
     if i = 1 then Menu (Multiplayer (i, {
-      player_count = min 69 (options.player_count + 1)
+      player_count = min max_players (options.player_count + 1)
     })) else Menu(Multiplayer (i, options))
   | `Key (`Enter, []) -> (multiplayer_items (i, options)).(i).enter_state
   | `Resize (nw, nh) -> multiplayer t (nw, nh) i options

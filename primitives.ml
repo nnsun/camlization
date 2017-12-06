@@ -2,6 +2,8 @@ type gold = int
 type time = int
 type science = int
 
+let max_players = 8
+
 let (%!) i j =
   if j = 0 then 0
   else
