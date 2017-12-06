@@ -160,12 +160,13 @@ let improvement_opt_str tile =
     | Some i -> improvement_str i
     | None -> "")
 
-let unit_list_img ul selected_unit =
+let unit_list_img gst ul selected_unit =
   let rec unit_list_img_helper ul selected_unit current_unit =
     let health = A.(fg red ++ bg black) in
     match ul with
     | [] -> I.void 1 1
-    | u :: us ->
+    | (p, u) :: us ->
+      let unit = Entity.Unit u in
       let text =
         if selected_unit = current_unit
         then A.(fg white ++ bg black ++ st bold)
@@ -181,11 +182,13 @@ let unit_list_img ul selected_unit =
           I.void 1 1;
           I.uchar health 9829 1 1;
           I.void 1 1;
-          I.string health (string_of_int (Entity.health (Entity.Unit u)));
+          I.string health (string_of_int (Entity.health unit));
           I.void 1 1;
           I.uchar text 8599 1 1;
           I.void 1 1;
-          I.string text (string_of_int (Entity.moves_left u))
+          I.string text (string_of_int (Entity.moves_left u));
+          I.void 1 1;
+          I.string text ("P" ^ (string_of_int (State.player_number gst p)))
         ];
         unit_list_img_helper us selected_unit (current_unit+1)
       ] in
@@ -270,45 +273,49 @@ let left_pane (w, h) gst =
     let num_possible_improvements = List.length possible_improvements in
     let u, i = u %! num_units, i %! num_possible_improvements in
     let show_improvements = num_units > 0 && num_possible_improvements > 0 &&
-      Entity.unit_type (List.nth units u) = Entity.Worker in
+      Entity.unit_type (snd (List.nth units u)) = Entity.Worker in
     let tabs = [Tile; Unit (u, i); City 0; Tech 0] in
     I.vcat [
       snap (I.hcat (List.map (fun t -> tab_img t (t = ( Unit (u,i) ))) tabs));
       I.void 1 1;
-      snap (I.string text "MOVEMENT:");
-      snap (I.string text "___");
-      snap (I.string text "/   \\");
-      snap (I.string text ",--(     )--.");
-      snap (I.(hcat [
-        string text "/    \\"; string underlined "[W]"; string text "/    \\"
-      ]));
-      snap (I.string text "\\ [Q]/   \\[E] /");
-      snap (I.string text ")--(     )--(");
-      snap (I.string text "/ [A]\\___/[D] \\");
-      snap (I.string text "\\    /[S]\\    /");
-      snap (I.string text "`--(     )--'");
-      snap (I.string text "\\___/");
-      I.void 1 1;
-      if num_units > 0 then
-        I.vcat [
-          I.hsnap ~align: `Left pane_width (unit_list_img units u);
+      if num_units > 0 then I.vcat [
+          I.hsnap pane_width (
+            I.hsnap ~align: `Left (pane_width - 8) (unit_list_img gst units u)
+          );
           I.void 1 1;
-          snap (I.string text "Found city with [F]");
+          snap (I.string text "MOVEMENT:");
+          snap (I.string text "___");
+          snap (I.string text "/   \\");
+          snap (I.string text ",--(     )--.");
+          snap (I.(hcat [
+            string text "/    \\"; string underlined "[W]"; string text "/    \\"
+          ]));
+          snap (I.string text "\\ [Q]/   \\[E] /");
+          snap (I.string text ")--(     )--(");
+          snap (I.string text "/ [A]\\___/[D] \\");
+          snap (I.string text "\\    /[S]\\    /");
+          snap (I.string text "`--(     )--'");
+          snap (I.string text "\\___/");
           I.void 1 1;
-          snap (I.string text "Select unit with [,] and [.]");
-          I.void 1 2;
-          if show_improvements then I.vcat [
-            I.hsnap pane_width (I.string text "IMPROVEMENTS:");
+          I.vcat [
+            snap (I.string text "Found city with [F]");
             I.void 1 1;
-            I.hsnap ~align: `Left pane_width (possible_improvements_img possible_improvements i);
-            I.void 1 1;
-            I.hsnap pane_width (I.string text "Select improvement with [ and ]");
-            I.void 1 1;
-            I.hsnap pane_width (I.string text "Build improvement with [I]")]
-          else I.void 1 1;
-        ]
-      else
-        snap (I.string text "NO UNITS IN THIS TILE")
+            snap (I.string text "Select unit with [,] and [.]");
+            I.void 1 2;
+            if show_improvements then I.vcat [
+              snap (I.string text "IMPROVEMENTS:");
+              I.void 1 1;
+              snap (
+                I.hsnap ~align: `Left (pane_width - 8)
+                  (possible_improvements_img possible_improvements i);
+              );
+              I.void 1 1;
+              snap (I.string text "Select improvement with [ and ]");
+              I.void 1 1;
+              snap (I.string text "Build improvement with [I]")]
+            else I.void 1 1;
+          ]
+      ] else snap (I.string text "NO UNITS IN THIS TILE")
     ]
   | City c ->
     let tabs = [Tile; Unit (0, 0); City c; Tech 0] in
@@ -321,8 +328,8 @@ let left_pane (w, h) gst =
     in
     begin
       match State.city_ref (col, row) gst with
-      | Some entity_ref ->
-        if not (Player.player_owns_entity player entity_ref) then empty_city else
+      | Some (p, entity_ref) ->
+        if p != player then empty_city else
         let city = Entity.get_city_entity !entity_ref in
         let current_unit = Entity.unit_production city in
         let units = State.available_units gst in
@@ -518,7 +525,7 @@ let tile_unit_str units =
 
 let city_imgs (col, row) gst =
   match State.city (col, row) gst with
-  | Some city ->
+  | Some (p, city) ->
     let text s = I.string A.(fg (gray 3)) s in
     let white_text s = I.string A.(fg white ++ st bold) s in
     let pop_attr = A.(fg green ++ st bold) in
@@ -527,7 +534,9 @@ let city_imgs (col, row) gst =
       let health = A.(fg red) in
       I.(hsnap 12 (hcat [
         I.uchar health 9829 1 1;
-        I.string health (string_of_int (Entity.health (Entity.City city)))
+        I.string health (string_of_int (Entity.health (Entity.City city)));
+        I.void 2 1;
+        text ("P" ^ string_of_int (State.player_number gst p))
       ])) in
     let middle =
       let pop = Entity.population city in
@@ -663,7 +672,7 @@ let move_unit gst dir =
   match gst.pane_state with
   | Unit (u,_) ->
     let (col, row) = gst.selected_tile in
-    let units = State.unit_refs (col,row) gst in
+    let units = State.unit_refs (col,row) gst |> List.split |> snd in
     let num_units = List.length units in
     if num_units > 0 then
       let current_unit = List.nth units (u %! num_units) in
@@ -686,7 +695,7 @@ let found_city gst =
     let num_units = List.length units in
     if num_units > 0 then
       let current_unit_num = u %! num_units in
-      let current_unit = List.nth units current_unit_num in
+      let current_unit = snd (List.nth units current_unit_num) in
       if Entity.unit_type (Entity.get_unit_entity !current_unit) = Entity.Worker then
         State.found_city gst tile current_unit
       else gst
@@ -702,7 +711,7 @@ let build_improvement gst =
     let num_units = List.length units in
     if num_units > 0 then
       let current_unit_num = u mod num_units in
-      let current_unit = List.nth units current_unit_num in
+      let current_unit = snd (List.nth units current_unit_num) in
       if Entity.unit_type (Entity.get_unit_entity !current_unit) = Entity.Worker then
         let possible_improvements = World.tile_possible_improvements tile in
         let num_possible_improvements = List.length possible_improvements in
@@ -764,7 +773,8 @@ let rec main t gst =
         let city_ref = State.city_ref gst.selected_tile gst in
         begin
           match city_ref with
-          | Some entity ->
+          | Some e ->
+            let entity = snd e in
             if List.mem entity (Player.entities player) then
             Entity.(
               match !entity with
