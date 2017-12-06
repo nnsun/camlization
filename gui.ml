@@ -541,8 +541,8 @@ let city_imgs (col, row) gst =
         ])
       )
     in
-    let bottom = text " " in
-    let below = text "░░░░░░░░░░░░░░░░░░" in
+    let bottom = text "▐▗^▟▗^▙▗▎▙^▟▗▐▟▐^▙▗▐" in
+    let below = text "" in
     (top, middle, bottom, below)
 
   | None -> (I.empty, I.empty, I.empty, I.empty)
