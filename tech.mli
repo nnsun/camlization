@@ -24,3 +24,7 @@ val prereqs : tech -> tech list
 
 (* [tech_list] is a list of all techs *)
 val tech_list : tech list
+
+(* [improvements_for_tech tech] is a list of possible improvements
+ * which [tech] enables a player to build *)
+ val improvements_for_tech : tech -> World.improvement option

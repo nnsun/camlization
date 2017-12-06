@@ -69,3 +69,7 @@ val research_tech : player -> Tech.tech -> player
 
 (* [found_city player tile] creates a new city for [player] at [tile] *)
 val found_city : player -> World.tile -> player
+
+(* [available_improvements player] returns a list of improvements [player] can build,
+ * based on their researched techs *)
+val available_improvements : player -> World.improvement list

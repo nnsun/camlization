@@ -50,3 +50,14 @@ let tech_list =
     | [] -> acc
     | a::b -> prepend ((fst a)::acc) b in
   prepend [] tech_info_map
+
+let improvements_for_tech = World.(function
+| Mining -> Some Mine
+| Fishing -> Some FishingBoats
+| Masonry -> Some Quarry
+| Agriculture -> Some Farm
+| Trapping -> Some Camp
+| AnimalHusbandry -> Some Pasture
+| Calendar -> Some Plantation
+| IronWorking | Sailing | Optics | HorsebackRiding | Mathematics  | Archery 
+  | BronzeWorking | TheWheel -> None)
