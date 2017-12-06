@@ -114,74 +114,106 @@ type tile = {
   movement_cost : int
 }
 
-let sample_tile = {
-  coordinates = (0, 0);
-  resource = Some Wheat;
-  improvement = Some Farm;
-  terrain = Grassland;
-  feature = Some Forest;
-  elevation = Flatland;
-  movement_cost = 1
-}
-
-let sample_tile2 = {
-  coordinates = (1, 0);
-  resource = Some Cattle;
-  improvement = None;
-  terrain = Grassland;
-  feature = None;
-  elevation = Hill;
-  movement_cost = 1
-}
-
-let sample_tile3 = {
-  coordinates = (2, 0);
-  resource = Some Wheat;
-  improvement = None;
-  terrain = Grassland;
-  feature = Some Forest;
-  elevation = Flatland;
-  movement_cost = 1
-}
-
-let sample_tile4 = {
-  coordinates = (3, 0);
-  resource = None;
-  improvement = None;
-  terrain = Lake;
-  feature = None;
-  elevation = Peak;
-  movement_cost = 1
-}
-
-let sample_tile5 = {
-  coordinates = (4, 0);
-  resource = Some Corn;
-  improvement = Some Mine;
-  terrain = Plains;
-  feature = None;
-  elevation = Flatland;
-  movement_cost = 1
-}
-
 type map = tile array array
 
-let generate_map =
-  let generate_row () =
-    let arr = [|sample_tile; sample_tile2; sample_tile3; sample_tile4; sample_tile5|] in
-    let arr2 = [|sample_tile5; sample_tile4; sample_tile3; sample_tile2; sample_tile|] in
-    Array.concat [arr; arr2; arr; arr2; arr; arr2; arr; arr2; arr; arr2] in
-  let map = Array.make 50 (generate_row ()) in
-  map |> Array.iteri (fun i row -> map.(i) <- generate_row ());
-  map |> Array.iteri (fun i current_row -> (Array.iteri (fun j elt -> current_row.(j) <- {elt with coordinates = (j,i)}) current_row)); map
-
 let get_tile m col row =
-  m.(row).(col)
+  m.(col).(row)
 
 let map_dimensions m =
-  (Array.length (m.(0)), Array.length m)
+  (Array.length m, Array.length (m.(0)))
 
 let coordinates tile = tile.coordinates
+
+let random_arr =
+  let _ = Random.self_init () in
+  let rows = Array.make 255 0 in
+  Array.map (fun _ -> Random.int 255) rows
+
+let fade t = t *. t *. t *. (t *. (t *. 6. -. 15.) +. 10.)
+
+let inc n = (n + 1) mod 255
+
+let grad hash x y =
+  let hash = hash mod 4 in
+  if hash = 0 then x +. y
+  else if hash = 1 then x -. y
+  else if hash = 2 then -.x +. y
+  else -.x -. y
+
+let lerp a b x = a +. (b -. a) *. x
+
+let perlin x y =
+  let p = random_arr in
+  let xi = (int_of_float x) mod 255 in
+  let yi = (int_of_float y) mod 255 in
+  let xf = x -. (float_of_int (int_of_float x)) in
+  let yf = y -. (float_of_int (int_of_float y)) in
+  let u = fade(xf) in
+  let v = fade(yf) in
+  let aa = p.(p.(xi) + yi) in
+  let ab = p.(p.(xi) + inc yi) in
+  let ba = p.(p.(inc xi) + yi) in
+  let bb = p.(p.(inc xi) + inc yi) in
+  let x1 = lerp (grad aa xf yf) (grad ba (xf -. 1.) yf) u in
+  let x2 = lerp (grad ab xf (yf -. 1.)) (grad bb (xf -. 1.) (yf -. 1.)) u in
+  (lerp x1 x2 v +. 1.) /. 2.
+
+
+let generate_map =
+  let base_tile = {
+    coordinates = (0, 0);
+    resource = None;
+    improvement = None;
+    terrain = Grassland;
+    feature = None;
+    elevation = Flatland;
+    movement_cost = 1
+  } in
+  let matrix = Array.make_matrix 40 25 base_tile in
+  let land_water tile n = if n >= 60 then Ocean else Grassland in
+  let elevation tile n =
+    if n >= 70 then Peak else if n >= 40 then Hill else Flatland in
+  let trees tile n =
+    let (_, row) = map_dimensions matrix in
+    () in
+  let matrix =
+    Array.mapi
+      (fun i1 row -> Array.mapi
+        (fun i2 col ->
+          let v = int_of_float
+            (100. *. (perlin
+              ((float_of_int i1) /. 5.) ((float_of_int i2) /. 10.))) in
+          let lw = land_water matrix.(i1).(i2) v in
+          { matrix.(i1).(i2) with terrain = lw }
+        )
+      row) matrix in
+  let matrix =
+    Array.mapi
+      (fun i1 row -> Array.mapi
+        (fun i2 col ->
+          let v = int_of_float
+            (100. *. (perlin
+              ((float_of_int i1) /. 5.) ((float_of_int i2) /. 10.))) in
+          let elev = elevation matrix.(i1).(i2) v in
+          if matrix.(i1).(i2).terrain <> Ocean then
+            { matrix.(i1).(i2) with elevation = elev }
+          else matrix.(i1).(i2)
+        )
+      row) matrix in
+  let matrix =
+    Array.mapi
+      (fun i1 row -> Array.mapi
+        (fun i2 col ->
+          let v = int_of_float
+            (100. *. (perlin
+              ((float_of_int i1) /. 5.) ((float_of_int i2) /. 10.))) in
+          let elev = elevation matrix.(i1).(i2) v in
+          if matrix.(i1).(i2).terrain <> Ocean then
+            { matrix.(i1).(i2) with elevation = elev }
+          else matrix.(i1).(i2)
+        )
+      row) matrix in
+  matrix
 
 let terrain tile = tile.terrain
 
@@ -279,7 +311,7 @@ let adjacent_tiles tile map =
 let set_improvement map col row improvement =
   let tile = get_tile map col row in
   let feature = tile.feature in
-  let new_feature = if feature = Some Forest || feature = Some Jungle 
+  let new_feature = if feature = Some Forest || feature = Some Jungle
     then None else feature in
   map.(row).(col) <- {tile with improvement = Some improvement; feature = new_feature}
 
@@ -296,7 +328,7 @@ let improvement_for_resource r =
 let tile_possible_improvements tile =
   let i_list = match resource tile with
     | None -> []
-    | Some r -> 
+    | Some r ->
       let i = improvement_for_resource r in
       if tile.improvement <> Some i then [i] else [] in
   let i_list2 =

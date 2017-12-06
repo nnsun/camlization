@@ -97,10 +97,3 @@ val tile_possible_improvements : tile -> improvement list
 
 (* [defense_multiplier tile] returns the tile defense multiplier of [tile] *)
 val defense_multiplier : tile -> float
-
-(* Temporary *)
-val sample_tile : tile
-val sample_tile2 : tile
-val sample_tile3 : tile
-val sample_tile4 : tile
-val sample_tile5 : tile
