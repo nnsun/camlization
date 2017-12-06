@@ -14,7 +14,7 @@ let bottom_padding = 4
 let gui_bar_padding = 2
 let tile_width = 17
 let tile_height = 10
-let left_pane_frac = 0.2
+let left_pane_frac = 0.21
 
 let pane_width w =
   (float_of_int w) *. left_pane_frac |> int_of_float
@@ -179,9 +179,11 @@ let unit_list_img ul selected_unit =
           I.string text (unit_str u);
           I.void 1 1;
           I.uchar health 9829 1 1;
+          I.void 1 1;
           I.string health (string_of_int (Entity.health (Entity.Unit u)));
           I.void 1 1;
           I.uchar text 8599 1 1;
+          I.void 1 1;
           I.string text (string_of_int (Entity.moves_left u))
         ];
         unit_list_img_helper us selected_unit (current_unit+1)
@@ -264,6 +266,8 @@ let left_pane (w, h) gst =
     let num_units = List.length units in
     let possible_improvements = World.tile_possible_improvements tile in
     let num_possible_improvements = List.length possible_improvements in
+    let show_improvements = num_units > 0 && num_possible_improvements > 0 && 
+      Entity.unit_type (List.nth units (u mod num_units)) = Entity.Worker in
     let tabs = [Tile; Unit (u, i); City 0; Tech 0] in
     I.vcat [
       snap (I.hcat (List.map (fun t -> tab_img t (t = ( Unit (u,i) ))) tabs));
@@ -290,11 +294,15 @@ let left_pane (w, h) gst =
           I.void 1 1;
           snap (I.string text "Select unit with [,]");
           I.void 1 2;
-          I.hsnap pane_width (I.string A.(fg white ++ bg black) "IMPROVEMENTS:");
-          I.void 1 1;
-          I.hsnap ~align: `Left pane_width (possible_improvements_img possible_improvements (i mod num_possible_improvements));
-          I.void 1 1;
-          I.hsnap pane_width (I.string A.(fg white ++ bg black) "Select improvement with [/]");
+          if show_improvements then I.vcat [
+            I.hsnap pane_width (I.string text "IMPROVEMENTS:");
+            I.void 1 1;
+            I.hsnap ~align: `Left pane_width (possible_improvements_img possible_improvements (i mod num_possible_improvements));
+            I.void 1 1;
+            I.hsnap pane_width (I.string text "Select improvement with [/]");
+            I.void 1 1;
+            I.hsnap pane_width (I.string text "Build improvement with [I]")]
+          else I.void 1 1;
         ]
       else
         snap (I.string text "NO UNITS IN THIS TILE")
@@ -676,6 +684,26 @@ let found_city gst =
     else gst
   | _ -> gst
 
+let build_improvement gst =
+  match gst.pane_state with
+  | Unit (u, i) ->
+    let (col, row) = gst.selected_tile in
+    let tile = World.get_tile gst.map col row in
+    let units = State.unit_refs (col,row) gst in
+    let num_units = List.length units in
+    if num_units > 0 then
+      let current_unit_num = u mod num_units in
+      let current_unit = List.nth units current_unit_num in
+      if Entity.unit_type (Entity.get_unit_entity !current_unit) = Entity.Worker then
+        let possible_improvements = World.tile_possible_improvements tile in
+        let num_possible_improvements = List.length possible_improvements in
+        let num_current_improvement = i mod num_possible_improvements in
+        let new_improvement = List.nth possible_improvements num_current_improvement in
+        World.set_improvement gst.map col row new_improvement; gst
+      else gst
+    else gst
+  | _ -> gst
+
 let rec main t gst =
   let (w, h) = Term.size t in
   Term.image t (img t (w, h) gst);
@@ -750,6 +778,7 @@ let rec main t gst =
   | `Key (`Uchar 115, []) -> main t (move_unit gst `BottomMiddle)
   | `Key (`Uchar 100, []) -> main t (move_unit gst `BottomRight)
   | `Key (`Uchar 102, []) -> main t (found_city gst)
+  | `Key (`Uchar 105, []) -> main t (build_improvement gst)
   | _ -> main t gst
 
 let new_state t gst =

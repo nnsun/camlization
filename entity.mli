@@ -161,4 +161,4 @@ val change_production : entity ref -> unit_type -> unit
 
 (* [resource_req utype] is [None] if [utype] doesn't have a resource requirement
  * and [Some res] if utype requires [res] to be built  *)
- val resource_req : unit_type -> resource option
+val resource_req : unit_type -> resource option
