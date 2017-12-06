@@ -15,8 +15,7 @@ let new_player = {
   current_tech = None;
   science = 0;
   techs = [];
-  entities = [ref (Entity.new_unit Entity.Worker World.sample_tile);
-              ref (Entity.new_unit Entity.Archer World.sample_tile)];
+  entities = [];
   num_cities = 0;
   num_units = 2;
 }
@@ -26,7 +25,7 @@ let new_player2 = {
   current_tech = None;
   science = 0;
   techs = [];
-  entities = [ref (Entity.new_city World.sample_tile2 true)];
+  entities = [];
   num_cities = 1;
   num_units = 0;
 }
