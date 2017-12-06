@@ -94,6 +94,6 @@ val available_techs : game_state -> Tech.tech list
  * is able to build *)
 val available_units : game_state -> Entity.unit_type list
 
-(* [found_city state tile] founds a city at [tile] if there are no cities
+(* [found_city state tile entity] founds a city at [tile] if there are no cities
    within three tiles of [tile] *)
 val found_city : game_state -> World.tile -> Entity.entity ref -> game_state
