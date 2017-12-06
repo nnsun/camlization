@@ -147,7 +147,7 @@ let found_city player tile =
           entities = ref (Entity.new_city tile is_capital) :: player.entities }
 
 let available_improvements player =
-  let helper acc i = 
+  let helper acc i =
     match i with
     | None -> acc
     | Some i -> i :: acc in
