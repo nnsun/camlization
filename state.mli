@@ -58,27 +58,29 @@ val game_map : game_state -> World.map
  * ends their turn *)
 val next_turn : game_state -> game_state
 
-(* [entities_refs coord gst] is the list of entity refs at the coordinates
+(* [entities_refs coord gst] is the assoc list of player to entity refs at the
+ * coordinates [coord] for the given game state [gst] *)
+val entities_refs : int * int -> game_state -> (Player.player * Entity.entity ref) list
+
+(* [entities coord gst] is the assoc list of player to entities at the coordinates
  * [coord] for the given game state [gst] *)
-val entities_refs : int * int -> game_state -> Entity.entity ref list
+val entities : int * int -> game_state -> (Player.player * Entity.entity) list
 
-(* [entities coord gst] is the list of entities at the coordinates [coord] for
- * the given game state [gst] *)
-val entities : int * int -> game_state -> Entity.entity list
-
-(* [city coord gst] is the city at the coordinates [coord] if such exists, or
- * None otherwise *)
-val city : int * int -> game_state -> Entity.city_entity option
-
-(* [city_ref coord gst] is the entity ref at the coordinates [coord] if such
+(* [city coord gst] is the player * city at the coordinates [coord] if such
  * exists, or None otherwise *)
-val city_ref : int * int -> game_state -> Entity.entity ref option
+val city : int * int -> game_state -> (Player.player * Entity.city_entity) option
 
-(* [units coord gst] is the list of units at the coordinates [coord] *)
-val units : int * int -> game_state -> Entity.unit_entity list
+(* [city_ref coord gst] is the player * entity ref at the coordinates [coord]
+ * if such exists, or None otherwise *)
+val city_ref : int * int -> game_state -> (Player.player * Entity.entity ref) option
 
-(* [unit_refs coord gst] is the list of unit refs at the coordinates [coord] *)
-val unit_refs : int * int -> game_state -> Entity.entity ref list
+(* [units coord gst] is the list of player * units at the coordinates [coord]
+ * *)
+val units : int * int -> game_state -> (Player.player * Entity.unit_entity) list
+
+(* [unit_refs coord gst] is the assoc list of player to unit refs at the
+ * coordinates [coord] *)
+val unit_refs : int * int -> game_state -> (Player.player * Entity.entity ref) list
 
 (* [make_move game_state unit tile] returns the resultant game state from attempting to
  * move [unit] to [tile].
@@ -94,6 +96,10 @@ val available_techs : game_state -> Tech.tech list
  * is able to build *)
 val available_units : game_state -> Entity.unit_type list
 
-(* [found_city state tile] founds a city at [tile] if there are no cities
+(* [found_city state tile entity] founds a city at [tile] if there are no cities
    within three tiles of [tile] *)
 val found_city : game_state -> World.tile -> Entity.entity ref -> game_state
+
+(* [player_number gst p] is the player number of the player [p] in game_state
+ * [gst] *)
+val player_number : game_state -> Player.player -> int

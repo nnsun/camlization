@@ -290,7 +290,7 @@ let movement_cost tile = tile.movement_cost
 let is_adjacent tile1 tile2 =
   let (x1, y1) = tile1.coordinates in
   let (x2, y2) = tile2.coordinates in
-  if abs(x2 - x1) <= 1 && abs(y2 - y1) <= 1 then true else false
+  abs(x2 - x1) <= 1 && abs(y2 - y1) <= 1
 
 let adjacent_tiles tile map =
   let (x, y) = tile.coordinates in
@@ -308,9 +308,12 @@ let adjacent_tiles tile map =
     if x < 0 || x >= num_cols || y < 0 || y >= num_rows then false else true in
   List.map (fun (a, b) -> get_tile map a b) (List.filter (pred map) unfiltered)
 
-let set_improvement map tile improvement =
-  let (col, row) = tile.coordinates in
-  map.(row).(col) <- {tile with improvement = Some improvement}
+let set_improvement map col row improvement =
+  let tile = get_tile map col row in
+  let feature = tile.feature in
+  let new_feature = if feature = Some Forest || feature = Some Jungle
+    then None else feature in
+  map.(row).(col) <- {tile with improvement = Some improvement; feature = new_feature}
 
 let improvement_for_resource r =
   match r with
@@ -325,13 +328,15 @@ let improvement_for_resource r =
 let tile_possible_improvements tile =
   let i_list = match resource tile with
     | None -> []
-    | Some r -> [(improvement_for_resource r)] in
+    | Some r ->
+      let i = improvement_for_resource r in
+      if tile.improvement <> Some i then [i] else [] in
   let i_list2 =
     if i_list <> [Farm] && tile.elevation = Flatland &&
-      (tile.terrain = Grassland || tile.terrain = Plains) then
+      (tile.terrain = Grassland || tile.terrain = Plains) && tile.improvement <> Some Farm then
       Farm :: i_list
     else i_list in
-  if i_list <> [Mine] && tile.elevation = Hill then
+  if i_list <> [Mine] && tile.elevation = Hill && tile.improvement <> Some Mine then
     Mine :: i_list
   else i_list2
 

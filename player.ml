@@ -139,6 +139,14 @@ let research_tech player tech =
   { player with current_tech = Some tech }
 
 let found_city player tile =
-  let is_capital = if player.num_cities = 0 then true else false in
+  let is_capital = player.num_cities = 0 in
   { player with num_cities = player.num_cities + 1;
           entities = ref (Entity.new_city tile is_capital) :: player.entities }
+
+let available_improvements player =
+  let helper acc i =
+    match i with
+    | None -> acc
+    | Some i -> i :: acc in
+  let lst = List.map Tech.improvements_for_tech player.techs in
+  List.fold_left helper [] lst

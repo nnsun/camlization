@@ -229,7 +229,8 @@ let relative_str e1 e2 =
   (combat_multiplier e1 e2) *. unscaled_str
 
 let set_health entity new_health =
-  let new_health = if new_health < 0 then 0 else new_health in
+  let new_health = if new_health < 0 then 0 
+    else if new_health > 100 then 100 else new_health in
   let entity_info = { (shared_info entity) with health = new_health } in
   match entity with
   | City c ->

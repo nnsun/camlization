@@ -64,49 +64,41 @@ let entities_refs coordinates gst =
     Entity.health entity > 0
     && (World.coordinates (Entity.tile entity) = coordinates)
   in
-  let entities_of_player p = List.filter valid_entity (Player.entities p) in
+  let entities_of_player p =
+    List.map (fun e -> p, e) (List.filter valid_entity (Player.entities p)) in
   let players = Array.map entities_of_player gst.players in
   players |> Array.to_list |> List.flatten
 
 let entities coordinates gst =
-  entities_refs coordinates gst |> List.map (!)
+  entities_refs coordinates gst |> List.map (fun (p, e) -> p, !e)
 
 let units coordinates gst =
   let l = entities coordinates gst in
-  let unit_entity e =
-    Entity.(
-      match e with
-      | Unit u -> [u]
-      | City c -> []
-    )
+  let map (player, unit) =
+    match unit with
+    | Entity.Unit u -> [(player, u)]
+    | _ -> []
   in
-  List.map unit_entity l |> List.flatten
+  List.map map l |> List.flatten
 
 let unit_refs coordinates gst =
   let l = entities_refs coordinates gst in
-  List.filter (fun e -> Entity.is_unit !e) l
+  List.filter (fun (p, e) -> Entity.is_unit !e) l
 
 let city coordinates gst =
-  let l = List.filter Entity.is_city (entities coordinates gst) in
+  let is_city (p, e) = Entity.is_city e in
+  let l = List.filter is_city (entities coordinates gst) in
   try
-    let entity = List.hd l in
-    Entity.(
-      match entity with
-      | City c -> Some c
-      | Unit u -> None
-    )
+    match List.hd l with
+    | (p, Entity.City c) -> Some (p, c)
+    | _ -> None
   with _ -> None
 
 let city_ref coordinates gst =
-  let is_city e = Entity.is_city !e in
+  let is_city (p, e) = Entity.is_city !e in
   let l = List.filter is_city (entities_refs coordinates gst) in
   try
-    let entity = List.hd l in
-    Entity.(
-      match !entity with
-      | City _ -> Some entity
-      | Unit _ -> None
-    )
+    Some (List.hd l)
   with _ -> None
 
 let rec satisfies_pred pred lst =
@@ -212,8 +204,7 @@ let make_move state entity_ref tile =
     else if utype <> Entity.Trireme && utype <> Entity.WorkBoat &&
           (terrain = World.Ocean || terrain = World.Coast) then
       let techs = Player.techs player in
-      let is_optics tech =
-        if tech = Tech.Optics then true else false in
+      let is_optics tech = tech = Tech.Optics in
       if not (List.exists is_optics techs) then (state, false)
       else go_to_tile state unit_entity tile
     else if (utype = Entity.Trireme || utype = Entity.WorkBoat) &&
@@ -332,9 +323,16 @@ let next_turn state =
   let valid_entity e =
     let entity = !e in
     Entity.health entity > 0 in
-  let entities_of_player = List.filter valid_entity (Player.entities player) in
-  let units_of_player = List.filter (fun e -> Entity.is_unit !e) entities_of_player in
-  List.iter (fun e -> let u = Entity.get_unit_entity (!e) in e := Entity.Unit (Entity.reset_movement u)) units_of_player;
+  let update_movements_and_health p =
+    let entities_of_player = List.filter valid_entity (Player.entities p) in
+    let units_of_player = List.filter (fun e -> Entity.is_unit !e) entities_of_player in
+    List.iter (fun e -> 
+      let u = Entity.get_unit_entity (!e) in
+      if Entity.moves_left u = Entity.movement_points (Entity.unit_type u) then 
+        let health = Entity.health (!e) in e := Entity.set_health (!e) (health + 10) else ();
+        e := Entity.Unit (Entity.reset_movement u)) units_of_player in
+    let () = if state.current_player + 1 = Array.length state.players then
+      Array.iter update_movements_and_health state.players in
   state.players.(state.current_player) <- player;
   {
     state with
@@ -404,3 +402,10 @@ let found_city gst tile worker_unit =
     let _ = worker_unit := Entity.set_health !worker_unit 0 in
     gst.players.(gst.current_player) <- player; gst
   else gst
+
+let player_number gst p =
+  let rec find p i = function
+    | [] -> failwith "Player not found"
+    | h::t -> if p = h then i else find p (i+1) t
+  in
+  find p 1 (Array.to_list gst.players)
