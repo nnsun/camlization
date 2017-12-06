@@ -52,12 +52,24 @@ let tech_list =
   prepend [] tech_info_map
 
 let improvements_for_tech = World.(function
-| Mining -> Some Mine
-| Fishing -> Some FishingBoats
-| Masonry -> Some Quarry
-| Agriculture -> Some Farm
-| Trapping -> Some Camp
-| AnimalHusbandry -> Some Pasture
-| Calendar -> Some Plantation
-| IronWorking | Sailing | Optics | HorsebackRiding | Mathematics  | Archery 
-  | BronzeWorking | TheWheel -> None)
+  | Mining -> Some Mine
+  | Fishing -> Some FishingBoats
+  | Masonry -> Some Quarry
+  | Agriculture -> Some Farm
+  | Trapping -> Some Camp
+  | AnimalHusbandry -> Some Pasture
+  | Calendar -> Some Plantation
+  | IronWorking | Sailing | Optics | HorsebackRiding | Mathematics  | Archery 
+    | BronzeWorking | TheWheel -> None)
+
+let resources_for_tech = World.(function
+  | Mining -> [Gold; Silver; Gems; Salt]
+  | Fishing -> [Fish; Crab]
+  | Masonry -> [Marble; Stone]
+  | Agriculture -> [Wheat; Corn; Rice]
+  | Trapping -> [Furs; Ivory; Deer]
+  | AnimalHusbandry -> [Horses; Sheep; Cattle]
+  | Calendar -> [Cotton; Banana; Sugar]
+  | IronWorking -> [Iron]
+  | Sailing | Optics | HorsebackRiding | Mathematics  | Archery 
+    | BronzeWorking | TheWheel -> [])

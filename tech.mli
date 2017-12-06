@@ -27,4 +27,8 @@ val tech_list : tech list
 
 (* [improvements_for_tech tech] is a list of possible improvements
  * which [tech] enables a player to build *)
- val improvements_for_tech : tech -> World.improvement option
+val improvements_for_tech : tech -> World.improvement option
+
+(* [resources_for_tech tech] is a list of resources visible
+ * to a player based on the researched [tech] *)
+val resources_for_tech : tech -> World.resource list

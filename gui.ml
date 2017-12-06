@@ -15,7 +15,7 @@ let bottom_padding = 4
 let gui_bar_padding = 2
 let tile_width = 17
 let tile_height = 10
-let left_pane_frac = 0.21
+let left_pane_frac = 0.25
 
 let pane_width w =
   (float_of_int w) *. left_pane_frac |> int_of_float
@@ -234,6 +234,15 @@ let possible_improvements gst tile =
       World.feature tile = Some World.Jungle then
       List.mem Tech.IronWorking (Player.techs current_player)
     else List.mem i tile_possible_improvements)
+
+let visible_resource gst tile =
+  let current_player = gst.players.(gst.current_player) in
+  let all_visible_resources = 
+    List.map Tech.resources_for_tech (Player.techs current_player) 
+    |> List.flatten in
+  match World.resource tile with
+  | None -> None
+  | Some r -> if List.mem r all_visible_resources then Some r else None
 
 let possible_improvements_img pi selected_pi =
   let rec possible_improvements_img_helper pi selected_pi current_pi =
@@ -516,9 +525,9 @@ let resource_img r =
     | Sugar -> I.string A.empty "Sugar"
   )
 
-let resource_opt_img tile =
+let resource_opt_img gst tile =
   World.(
-    match resource tile with
+    match visible_resource gst tile with
     | Some r -> resource_img r
     | None -> I.empty)
 
@@ -626,7 +635,7 @@ let tile_img is_selected (col, row) (left_col, top_row) gst (w, h) =
     [I.void 1 1; I.uchar color 0x2571 1 1; I.hsnap 18 city_bel; I.uchar color 0x2572 1 1];
     [I.uchar color 0x2571 1 1; I.hsnap 20 (I.string text_color (tile_unit_str units)); I.uchar color 0x2572 1 1];
     [I.uchar color 0x2572 1 1; I.hsnap 20 I.(I.string text_color (improvement_opt_str t)); I.uchar color 0x2571 1 1];
-    [I.void 1 1; I.uchar color 0x2572 1 1; I.hsnap 18 (resource_opt_img t); I.uchar color 0x2571 1 1];
+    [I.void 1 1; I.uchar color 0x2572 1 1; I.hsnap 18 (resource_opt_img gst t); I.uchar color 0x2571 1 1];
     [I.void 2 1; I.uchar color 0x2572 1 1; I.hsnap 16 (feature_opt_img t); I.uchar color 0x2571 1 1];
     [I.void 3 1; I.uchar color 0x2572 1 1; I.hsnap 14 (terrain_img t); I.uchar color 0x2571 1 1];
     [I.void 4 1; I.uchar color 0x2572 1 1; I.hsnap 12 (elevation_img is_selected t); I.uchar color 0x2571 1 1];
