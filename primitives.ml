@@ -3,6 +3,8 @@ type time = int
 type science = int
 
 let (%!) i j =
-  let rem = i mod j in
-  if rem < 0 then rem + j
-  else rem
+  if j = 0 then 0
+  else
+    let rem = i mod j in
+    if rem < 0 then rem + j
+    else rem

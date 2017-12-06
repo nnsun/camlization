@@ -1,5 +1,11 @@
+buildplay:
+	make build && make play
+
+build:
+	ocamlbuild -pkg notty -pkg notty.unix -use-ocamlfind main.byte
+
 play:
-	ocamlbuild -pkg notty -pkg notty.unix -use-ocamlfind main.byte && ./main.byte
+	./main.byte
 
 clean:
 	ocamlbuild -clean

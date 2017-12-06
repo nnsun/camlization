@@ -291,13 +291,13 @@ let left_pane (w, h) gst =
           I.void 1 1;
           snap (I.string text "Found city with [F]");
           I.void 1 1;
-          snap (I.string text "Select unit with [,]");
+          snap (I.string text "Select unit with [,] and [.]");
           I.void 1 2;
           I.hsnap pane_width (I.string A.(fg white ++ bg black) "IMPROVEMENTS:");
           I.void 1 1;
           I.hsnap ~align: `Left pane_width (possible_improvements_img possible_improvements i);
           I.void 1 1;
-          I.hsnap pane_width (I.string A.(fg white ++ bg black) "Select improvement with [/]");
+          I.hsnap pane_width (I.string A.(fg white ++ bg black) "Select improvement with [ and ]");
         ]
       else
         snap (I.string text "NO UNITS IN THIS TILE")
@@ -356,9 +356,9 @@ let left_pane (w, h) gst =
             )
           );
           I.void 1 2;
-          snap (I.string text "Select Unit with [,]");
+          snap (I.string text "Select Unit with [,] and [.]");
           I.void 1 1;
-          snap (I.string text "Confirm with [.]");
+          snap (I.string text "Confirm with [SPACE]");
         ]
       | None -> empty_city
     end
@@ -404,8 +404,8 @@ let left_pane (w, h) gst =
         )
       );
       I.void 1 2;
-      snap (I.string text "Select Tech with [,]");
-      snap (I.string text "Confirm with [.]");
+      snap (I.string text "Select Tech with [,] and [.]");
+      snap (I.string text "Confirm with [SPACE]");
       I.void 1 2;
       snap (I.string text "RESEARCHED TECHS:");
       snap (I.vcat (List.mapi (fun i t -> tech_img i t true false) (Player.techs player)))
