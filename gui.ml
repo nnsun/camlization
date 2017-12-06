@@ -335,11 +335,13 @@ let left_pane (w, h) gst =
         let unit_img i u show show_selected =
           if i = c %! List.length units && show && show_selected then
           I.string A.(fg white ++ bg black ++ st bold) (
-            "▶ " ^ unit_type_str u ^ " (" ^ (string_of_int (turns_left u)) ^ " turns)"
+            "▶ " ^ unit_type_str u ^ " (" ^ (string_of_int (turns_left u))
+              ^ (if turns_left u = 1 then " turn)" else " turns)")
           )
           else
           I.string text (
-            "  " ^ unit_type_str u ^ " (" ^ (string_of_int (turns_left u)) ^ " turns)"
+            "  " ^ unit_type_str u ^ " (" ^ (string_of_int (turns_left u))
+              ^ (if turns_left u = 1 then " turn)" else " turns)")
           )
           in
         I.vcat [
@@ -511,6 +513,7 @@ let resource_opt_img tile =
 
 let tile_unit_str units =
   if List.length units = 0 then ""
+  else if List.length units = 1 then string_of_int (List.length units) ^ " unit"
   else string_of_int (List.length units) ^ " units"
 
 let city_imgs (col, row) gst =
