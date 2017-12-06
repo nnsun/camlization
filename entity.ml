@@ -123,7 +123,7 @@ let get_unit_entity entity =
   | Unit u -> u
   | _ -> failwith "Error: expected Unit but got City"
 
-let growth_req pop = 15 + 5 * pop
+let growth_req pop = 12 + 10 * pop
 
 let population city = (snd city).population
 
