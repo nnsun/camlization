@@ -15,7 +15,7 @@ let bottom_padding = 4
 let gui_bar_padding = 2
 let tile_width = 17
 let tile_height = 10
-let left_pane_frac = 0.21
+let left_pane_frac = 0.25
 
 let pane_width w =
   (float_of_int w) *. left_pane_frac |> int_of_float
@@ -188,7 +188,11 @@ let unit_list_img gst ul selected_unit =
           I.void 1 1;
           I.string text (string_of_int (Entity.moves_left u));
           I.void 1 1;
-          I.string text ("P" ^ (string_of_int (State.player_number gst p)))
+          (
+            if gst.players.(gst.current_player) = p
+            then I.string text ("YOU")
+            else I.string text ("P" ^ (string_of_int (State.player_number gst p)))
+          )
         ];
         unit_list_img_helper us selected_unit (current_unit+1)
       ] in
@@ -227,6 +231,25 @@ let tab_img pst selected =
       string A.(bg black) (String.make len ' ');
     ])
   ))
+
+let possible_improvements gst tile =
+  let tile_possible_improvements = World.tile_possible_improvements tile in
+  let current_player = gst.players.(gst.current_player) in
+  Player.available_improvements current_player
+    |> List.filter (fun i -> if i = World.Farm &&
+      World.feature tile = Some World.Forest ||
+      World.feature tile = Some World.Jungle then
+      List.mem Tech.IronWorking (Player.techs current_player)
+    else List.mem i tile_possible_improvements)
+
+let visible_resource gst tile =
+  let current_player = gst.players.(gst.current_player) in
+  let all_visible_resources =
+    List.map Tech.resources_for_tech (Player.techs current_player)
+    |> List.flatten in
+  match World.resource tile with
+  | None -> None
+  | Some r -> if List.mem r all_visible_resources then Some r else None
 
 let possible_improvements_img pi selected_pi =
   let rec possible_improvements_img_helper pi selected_pi current_pi =
@@ -269,7 +292,7 @@ let left_pane (w, h) gst =
   | Unit (u,i) ->
     let units = State.units (col, row) gst in
     let num_units = List.length units in
-    let possible_improvements = World.tile_possible_improvements tile in
+    let possible_improvements = possible_improvements gst tile in
     let num_possible_improvements = List.length possible_improvements in
     let u, i = u %! num_units, i %! num_possible_improvements in
     let show_improvements = num_units > 0 && num_possible_improvements > 0 &&
@@ -512,9 +535,9 @@ let resource_img r =
     | Sugar -> I.string A.empty "Sugar"
   )
 
-let resource_opt_img tile =
+let resource_opt_img gst tile =
   World.(
-    match resource tile with
+    match visible_resource gst tile with
     | Some r -> resource_img r
     | None -> I.empty)
 
@@ -536,7 +559,11 @@ let city_imgs (col, row) gst =
         I.uchar health 9829 1 1;
         I.string health (string_of_int (Entity.health (Entity.City city)));
         I.void 2 1;
-        text ("P" ^ string_of_int (State.player_number gst p))
+        (
+          if gst.players.(gst.current_player) = p
+          then text ("YOU")
+          else text ("P" ^ string_of_int (State.player_number gst p))
+        )
       ])) in
     let middle =
       let pop = Entity.population city in
@@ -624,7 +651,7 @@ let tile_img is_selected (col, row) (left_col, top_row) gst (w, h) =
     [I.void 1 1; I.uchar color 0x2571 1 1; I.hsnap 18 city_bel; I.uchar color 0x2572 1 1];
     [I.uchar color 0x2571 1 1; I.hsnap 20 (I.string text_color (tile_unit_str units)); I.uchar color 0x2572 1 1];
     [I.uchar color 0x2572 1 1; I.hsnap 20 I.(I.string text_color (improvement_opt_str t)); I.uchar color 0x2571 1 1];
-    [I.void 1 1; I.uchar color 0x2572 1 1; I.hsnap 18 (resource_opt_img t); I.uchar color 0x2571 1 1];
+    [I.void 1 1; I.uchar color 0x2572 1 1; I.hsnap 18 (resource_opt_img gst t); I.uchar color 0x2571 1 1];
     [I.void 2 1; I.uchar color 0x2572 1 1; I.hsnap 16 (feature_opt_img t); I.uchar color 0x2571 1 1];
     [I.void 3 1; I.uchar color 0x2572 1 1; I.hsnap 14 (terrain_img t); I.uchar color 0x2571 1 1];
     [I.void 4 1; I.uchar color 0x2572 1 1; I.hsnap 12 (elevation_img is_selected t); I.uchar color 0x2571 1 1];
@@ -712,12 +739,16 @@ let build_improvement gst =
     if num_units > 0 then
       let current_unit_num = u mod num_units in
       let current_unit = snd (List.nth units current_unit_num) in
-      if Entity.unit_type (Entity.get_unit_entity !current_unit) = Entity.Worker then
-        let possible_improvements = World.tile_possible_improvements tile in
+      let current_player = gst.players.(gst.current_player) in
+      if Entity.unit_type (Entity.get_unit_entity !current_unit) = Entity.Worker &&
+        Player.player_owns_entity current_player current_unit then
+        let possible_improvements = possible_improvements gst tile in
         let num_possible_improvements = List.length possible_improvements in
-        let num_current_improvement = i mod num_possible_improvements in
-        let new_improvement = List.nth possible_improvements num_current_improvement in
-        World.set_improvement gst.map col row new_improvement; gst
+        if num_possible_improvements > 0 then
+          let num_current_improvement = i mod num_possible_improvements in
+          let new_improvement = List.nth possible_improvements num_current_improvement in
+          World.set_improvement gst.map col row new_improvement; gst
+        else gst
       else gst
     else gst
   | _ -> gst

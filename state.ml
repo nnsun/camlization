@@ -204,8 +204,7 @@ let make_move state entity_ref tile =
     else if utype <> Entity.Trireme && utype <> Entity.WorkBoat &&
           (terrain = World.Ocean || terrain = World.Coast) then
       let techs = Player.techs player in
-      let is_optics tech =
-        if tech = Tech.Optics then true else false in
+      let is_optics tech = tech = Tech.Optics in
       if not (List.exists is_optics techs) then (state, false)
       else go_to_tile state unit_entity tile
     else if (utype = Entity.Trireme || utype = Entity.WorkBoat) &&
