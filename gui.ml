@@ -2,6 +2,7 @@ open Notty
 open Notty_unix
 open Notty_helper
 open State
+open Primitives
 
 (* Constants and Helpers *)
 
@@ -260,10 +261,12 @@ let left_pane (w, h) gst =
       I.void 1 1;
       snap (tile_yields_img tile)
     ]
-  | Unit (u,i) -> let units = State.units (col, row) gst in
+  | Unit (u,i) ->
+    let units = State.units (col, row) gst in
     let num_units = List.length units in
     let possible_improvements = World.tile_possible_improvements tile in
     let num_possible_improvements = List.length possible_improvements in
+    let u, i = u %! num_units, i %! num_possible_improvements in
     let tabs = [Tile; Unit (u, i); City 0; Tech 0] in
     I.vcat [
       snap (I.hcat (List.map (fun t -> tab_img t (t = ( Unit (u,i) ))) tabs));
@@ -284,7 +287,7 @@ let left_pane (w, h) gst =
       I.void 1 1;
       if num_units > 0 then
         I.vcat [
-          I.hsnap ~align: `Left pane_width (unit_list_img units (u mod num_units));
+          I.hsnap ~align: `Left pane_width (unit_list_img units u);
           I.void 1 1;
           snap (I.string text "Found city with [F]");
           I.void 1 1;
@@ -292,7 +295,7 @@ let left_pane (w, h) gst =
           I.void 1 2;
           I.hsnap pane_width (I.string A.(fg white ++ bg black) "IMPROVEMENTS:");
           I.void 1 1;
-          I.hsnap ~align: `Left pane_width (possible_improvements_img possible_improvements (i mod num_possible_improvements));
+          I.hsnap ~align: `Left pane_width (possible_improvements_img possible_improvements i);
           I.void 1 1;
           I.hsnap pane_width (I.string A.(fg white ++ bg black) "Select improvement with [/]");
         ]
@@ -322,7 +325,7 @@ let left_pane (w, h) gst =
             / (Entity.production_per_turn city))
           in
         let unit_img i u show show_selected =
-          if i = (c mod List.length units) && show && show_selected then
+          if i = c %! List.length units && show && show_selected then
           I.string A.(fg white ++ bg black ++ st bold) (
             "▶ " ^ unit_type_str u ^ " (" ^ (string_of_int (turns_left u)) ^ " turns)"
           )
@@ -370,7 +373,7 @@ let left_pane (w, h) gst =
         / (Player.science_rate player))) in
     let tech_img i t show show_selected =
       if List.length techs = 0 then I.empty else
-      if i = (t_index mod List.length techs) && show && show_selected then
+      if i = t_index %! List.length techs && show && show_selected then
       I.string A.(fg white ++ bg black ++ st bold) (
         "▶ " ^ tech_str t ^ " (" ^ (string_of_int (turns_left t)) ^ " turns)"
       )
@@ -541,7 +544,7 @@ let city_imgs (col, row) gst =
         ])
       )
     in
-    let bottom = text "▐▗^▟▗^▙▗▎▙^▟▗▐▟▐^▙▗▐" in
+    let bottom = text "▐▐▗^▙▗▎▙^▟▗▐▟▐^▙▗▐" in
     let below = text "" in
     (top, middle, bottom, below)
 
@@ -634,12 +637,16 @@ let select_tile direction gst =
   | `Left -> (max 0 (current_col - 1), current_row)
   | `Right -> (min (max_cols - 1) (current_col + 1), current_row)
 
-let next_pane_state pst tile_changing is_improvement_key =
+let change_pane_state up pst tile_changing is_improvement_key =
+  let diff = if up then 1 else -1 in
   match pst with
   | Tile -> Tile
-  | Unit (u, i) -> if tile_changing then Unit (0,0) else if is_improvement_key then Unit (u, i+1) else Unit (u+1, i)
-  | City c -> if tile_changing then City (0) else City (c+1)
-  | Tech t -> if tile_changing then Tech (0) else Tech (t+1)
+  | Unit (u, i) ->
+    if tile_changing then Unit (0,0)
+    else if is_improvement_key then Unit (u, i + diff)
+    else Unit (u + diff, i)
+  | City c -> if tile_changing then City (0) else City (c + diff)
+  | Tech t -> if tile_changing then Tech (0) else Tech (t + diff)
 
 let move_unit gst dir =
   match gst.pane_state with
@@ -648,8 +655,7 @@ let move_unit gst dir =
     let units = State.unit_refs (col,row) gst in
     let num_units = List.length units in
     if num_units > 0 then
-      let current_unit_num = u mod num_units in
-      let current_unit = List.nth units current_unit_num in
+      let current_unit = List.nth units (u %! num_units) in
       let (new_col, new_row) = move_unit_tile gst dir in
       if (col, row) <> (new_col, new_row) && Player.player_owns_entity (gst.players.(gst.current_player)) current_unit then
         let gst', success = State.make_move gst current_unit (World.get_tile gst.map new_col new_row) in
@@ -668,7 +674,7 @@ let found_city gst =
     let units = State.unit_refs (col,row) gst in
     let num_units = List.length units in
     if num_units > 0 then
-      let current_unit_num = u mod num_units in
+      let current_unit_num = u %! num_units in
       let current_unit = List.nth units current_unit_num in
       if Entity.unit_type (Entity.get_unit_entity !current_unit) = Entity.Worker then
         State.found_city gst tile current_unit
@@ -699,7 +705,7 @@ let rec main t gst =
     let new_gst = { gst with
       selected_tile = select_tile direction gst;
       map_display = new_map_display;
-      pane_state = next_pane_state gst.pane_state true false
+      pane_state = change_pane_state true gst.pane_state true false
     } in
     main t new_gst
   | `Resize (nw, nh) -> main t gst
@@ -708,16 +714,18 @@ let rec main t gst =
   | `Key (`Uchar 51, []) -> main t {gst with pane_state = City 0}
   | `Key (`Uchar 52, []) -> main t {gst with pane_state = Tech 0}
   | `Key (`Uchar 49, []) -> main t {gst with pane_state = Tile}
-  | `Key (`Uchar 44, []) -> main t {gst with pane_state = next_pane_state gst.pane_state false false}
-  | `Key (`Uchar 47, []) -> main t {gst with pane_state = next_pane_state gst.pane_state false true}
-  | `Key (`Uchar 46, []) ->
+  | `Key (`Uchar 44, []) -> main t {gst with pane_state = change_pane_state true gst.pane_state false false}
+  | `Key (`Uchar 46, []) -> main t {gst with pane_state = change_pane_state false gst.pane_state false false}
+  | `Key (`Uchar 91, []) -> main t {gst with pane_state = change_pane_state true gst.pane_state false true}
+  | `Key (`Uchar 93, []) -> main t {gst with pane_state = change_pane_state false gst.pane_state false true}
+  | `Key (`Uchar 32, []) ->
     let player = gst.players.(gst.current_player) in
     begin
       match gst.pane_state with
       | Tech i ->
         if Player.current_tech player = None then (
           let techs = State.available_techs gst in
-          let tech = List.nth techs (i mod List.length techs) in
+          let tech = List.nth techs (i %! List.length techs) in
           gst.players.(gst.current_player) <- Player.research_tech (gst.players.(gst.current_player)) tech
         );
         main t gst
@@ -732,7 +740,7 @@ let rec main t gst =
               | City city ->
                 if Entity.unit_production city = None then (
                   let prods = State.available_units gst in
-                  let prod = List.nth prods (i mod List.length prods) in
+                  let prod = List.nth prods (i %! List.length prods) in
                   Entity.change_production entity prod
                 );
                 main t gst
