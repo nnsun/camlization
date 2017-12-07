@@ -49,8 +49,6 @@ let maintenance p =
     else 0 in
   city_maintenance + unit_maintenance
 
-let points p = 100
-
 let science p = p.science
 
 let science_rate p =
