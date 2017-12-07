@@ -495,8 +495,8 @@ let terrain_img tile =
     | Grassland -> I.string A.(fg green) ",,,,,,,,,,,,,,"
     | Plains -> I.string A.(fg green) "_______________"
     | Desert -> I.string A.(fg lightyellow) "__↟_________↟_"
-    | Tundra -> I.string A.(fg (gray 1)) "______________"
-    | Ice -> I.string A.(fg lightblue) "______________"
+    | Tundra -> I.string A.(fg lightwhite) "-=--=-=--=-==-"
+    | Ice -> I.string A.(fg white) "______________"
     | Ocean -> I.string A.(fg blue) "〜〜〜〜〜〜〜〜〜〜〜〜〜〜"
     | Coast -> I.string A.(fg lightyellow) "〜〜-.___--_.-〜〜"
     | Lake -> I.string A.(fg blue) "--------------")
@@ -741,8 +741,10 @@ let found_city gst =
       let current_unit_num = u %! num_units in
       let _, current_unit = List.nth units current_unit_num in
       let current_player = gst.players.(gst.current_player) in
-      if Entity.unit_type (Entity.get_unit_entity !current_unit) = Entity.Worker
+      let unit_entity = Entity.get_unit_entity !current_unit in
+      if Entity.unit_type unit_entity = Entity.Worker
         && Player.player_owns_entity current_player current_unit
+        && Entity.moves_left unit_entity > 0
       then State.found_city gst tile current_unit
       else gst
     else gst
