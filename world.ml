@@ -125,6 +125,22 @@ let map_dimensions m =
 
 let coordinates tile = tile.coordinates
 
+let adjacent_tiles tile map =
+  let (x, y) = tile.coordinates in
+  let unfiltered = [
+    (x - 1, y);
+    (x + 1, y);
+    (x - 1, y + 1);
+    (x - 1, y - 1);
+    (x + 1, y + 1);
+    (x + 1, y - 1);
+  ] in
+  let pred map t =
+    let (num_cols, num_rows) = map_dimensions map in
+    let (x, y) = t in
+    if x < 0 || x >= num_cols || y < 0 || y >= num_rows then false else true in
+  List.map (fun (a, b) -> get_tile map a b) (List.filter (pred map) unfiltered)
+
 (* Helper functions for random map generation *)
 let random_arr =
   let _ = Random.self_init () in
@@ -236,6 +252,14 @@ let generate_map =
       (fun v t -> { t with terrain = deserts_plains t v; feature = None }) in
   let matrix = map_perlin_array matrix
       (fun v t -> { t with terrain = ice_tundra t v }) in
+  let matrix = Array.map (fun col -> Array.map
+      (fun tile ->
+          let adj = adjacent_tiles tile matrix in
+          let pred = fun t -> tile.terrain <> Ocean &&
+              tile.terrain <> Coast && tile.terrain <> Ice in
+          if List.exists pred adj then
+          { tile with terrain = Coast }
+          else tile) col) matrix in
   matrix
 
 let terrain tile = tile.terrain
@@ -314,22 +338,6 @@ let is_adjacent tile1 tile2 =
   let (x1, y1) = tile1.coordinates in
   let (x2, y2) = tile2.coordinates in
   abs(x2 - x1) <= 1 && abs(y2 - y1) <= 1
-
-let adjacent_tiles tile map =
-  let (x, y) = tile.coordinates in
-  let unfiltered = [
-    (x - 1, y);
-    (x + 1, y);
-    (x - 1, y + 1);
-    (x - 1, y - 1);
-    (x + 1, y + 1);
-    (x + 1, y - 1);
-  ] in
-  let pred map t =
-    let (num_cols, num_rows) = map_dimensions map in
-    let (x, y) = t in
-    if x < 0 || x >= num_cols || y < 0 || y >= num_rows then false else true in
-  List.map (fun (a, b) -> get_tile map a b) (List.filter (pred map) unfiltered)
 
 let set_improvement map col row improvement =
   let tile = get_tile map col row in
