@@ -506,8 +506,7 @@ let feature_img f =
     match f with
     | Forest -> I.string A.(fg green) " ↟  ↟ ↟↟ ↟  ↟ "
     | Jungle -> I.string A.(fg lightgreen) "↟↟↟↟↟↟↟↟↟↟↟↟"
-    | Oasis -> I.string A.(fg blue) "_↟___↟___↟__"
-    | FloodPlains -> I.string A.(fg blue) "-=-〜=-〜--=〜-")
+    | Oasis -> I.string A.(fg blue) "_↟___↟___↟__")
 
 let feature_opt_img tile =
   World.(
