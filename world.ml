@@ -190,16 +190,15 @@ let generate_map =
       if n >= 70 then Peak else if n >= 40 then Hill else Flatland in
   let trees tile n =
     if tile.terrain = Ocean || tile.elevation = Peak then None else
-    if n < 35 || n > 65 then None else
+    if n < 40 || n > 60 then None else
       let (_, row_num) = tile.coordinates in
       let (_, rows) = map_dimensions matrix in
       let dist =
         min (abs (row_num - rows / 2)) (abs (row_num - (rows / 2 - 1))) in
-      let multi = 1. -. (float_of_int dist) /. (float_of_int rows) in
+      let multi = (1. -. (float_of_int dist) /. (float_of_int rows)) ** 3. in
       let v = multi *. (float_of_int (abs (n - 50))) in
-      if v < 5. then
-        None
-      else if v < 7.5 then Some Forest
+      if v < 1. then None
+      else if v < 6. then Some Forest
       else Some Jungle in
   let matrix = map_perlin_array matrix
       (fun v t -> { t with terrain = land_water v }) in
