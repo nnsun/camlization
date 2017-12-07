@@ -16,7 +16,6 @@ type menu_state =
 (* [pane_state] represents the state of the left pane,
  * including the current selection indices in each pane *)
 type pane_state =
-  | Tile
   | City of int
   | Unit of int * int
   | Tech of int
@@ -66,7 +65,7 @@ val entities : int * int -> game_state -> (Player.player * Entity.entity) list
 (* [units coord gst] is the list of player * units at the coordinates [coord]
  * *)
 val units : int * int -> game_state -> (Player.player * Entity.unit_entity) list
- 
+
  (* [unit_refs coord gst] is the assoc list of player to unit refs at the
   * coordinates [coord] *)
 val unit_refs : int * int -> game_state -> (Player.player * Entity.entity ref) list

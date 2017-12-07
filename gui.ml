@@ -99,17 +99,17 @@ let tile_yields_img tile =
   World.(
     let y = tile_yields tile in
     I.(hcat [
-      uchar A.(fg green ++ bg black) 127822 1 1;
+      uchar A.(fg green) 127823 1 1;
       void 1 1;
-      string A.(fg green ++ bg black) (string_of_int y.food);
+      string A.(fg green) (string_of_int y.food);
       void 1 1;
-      uchar A.(fg yellow ++ bg black) 11044 1 1;
+      uchar A.(fg yellow) 11044 1 1;
       void 1 1;
-      string A.(fg yellow ++ bg black) (string_of_int y.gold);
+      string A.(fg yellow) (string_of_int y.gold);
       void 1 1;
-      uchar A.(fg blue ++ bg black) 128296 1 1;
+      uchar A.(fg blue) 128296 1 1;
       void 1 1;
-      string A.(fg blue ++ bg black) (string_of_int y.production);
+      string A.(fg blue) (string_of_int y.production);
     ]))
 
 (* [progress_str f] is the string that indicates the progress on a city tile *)
@@ -228,33 +228,21 @@ let unit_list_img gst ul selected_unit =
 let tab_img pst selected =
   let title_string =
     match pst with
-    | Tile -> " TILE "
-    | Unit _ -> " UNITS "
-    | City _ -> " CITY "
-    | Tech _ -> " TECH "
-  in
-  let shortcut_string =
-    match pst with
-    | Tile -> "[1]"
-    | Unit _ -> "[2]"
-    | City _ -> "[3]"
-    | Tech _ -> "[4]"
+    | Unit _ -> " UNITS [1] "
+    | City _ -> " CITY [2] "
+    | Tech _ -> " TECH [3] "
   in
   let len = String.length title_string in
   I.(void 1 1 <-> (
     if selected
-    then I.pad ~t:2 (I.hsnap len (string A.(bg white) shortcut_string))
-      </> I.(vcat [
+    then I.(vcat [
       string A.(bg white) (String.make len ' ');
       string A.(fg black ++ bg white) title_string;
       string A.(bg white) (String.make len ' ');
-      string A.(bg white) (String.make len ' ');
     ])
-    else I.pad ~t:2 (I.hsnap len (string A.(bg black) shortcut_string))
-      </> I.(vcat [
+    else I.(vcat [
       string A.(bg black) (String.make len ' ');
       string A.(bg black) title_string;
-      string A.(bg black) (String.make len ' ');
       string A.(bg black) (String.make len ' ');
     ])
   ))
@@ -316,13 +304,6 @@ let left_pane (w, h) gst =
   let (col, row) = gst.selected_tile in
   let tile = World.get_tile gst.map col row in
   let pane_content = match gst.pane_state with
-  | Tile ->
-    let tabs = [Tile; Unit (0, 0); City 0; Tech 0] in
-    I.vcat [
-      snap (I.hcat (List.map (fun t -> tab_img t (t = Tile)) tabs));
-      I.void 1 1;
-      snap (tile_yields_img tile)
-    ]
   | Unit (u,i) ->
     let units = State.units (col, row) gst in
     let num_units = List.length units in
@@ -331,7 +312,7 @@ let left_pane (w, h) gst =
     let u, i = u %! num_units, i %! num_possible_improvements in
     let show_improvements = num_units > 0 && num_possible_improvements > 0 &&
       Entity.unit_type (snd (List.nth units u)) = Entity.Worker in
-    let tabs = [Tile; Unit (u, i); City 0; Tech 0] in
+    let tabs = [Unit (u, i); City 0; Tech 0] in
     I.vcat [
       snap (I.hcat (List.map (fun t -> tab_img t (t = ( Unit (u,i) ))) tabs));
       I.void 1 1;
@@ -375,7 +356,7 @@ let left_pane (w, h) gst =
       ] else snap (I.string text "NO UNITS IN THIS TILE")
     ]
   | City c ->
-    let tabs = [Tile; Unit (0, 0); City c; Tech 0] in
+    let tabs = [Unit (0, 0); City c; Tech 0] in
     let empty_city =
       I.vcat [
         snap (I.hcat (List.map (fun t -> tab_img t (t = (City c))) tabs));
@@ -440,7 +421,7 @@ let left_pane (w, h) gst =
       | None -> empty_city
     end
   | Tech t_index ->
-    let tabs = [Tile; Unit (0, 0); City 0; Tech t_index] in
+    let tabs = [Unit (0, 0); City 0; Tech t_index] in
     let current_tech = Player.current_tech player in
     let techs = State.available_techs gst in
     let turns_left t =
@@ -533,7 +514,11 @@ let terrain_img tile =
     | Tundra -> I.string A.(fg (gray 13)) "-=--=-=--=-==-"
     | Ice -> I.string A.(fg white) "〜〜〜〜〜〜〜〜〜〜〜〜〜〜"
     | Ocean -> I.string A.(fg blue) "〜〜〜〜〜〜〜〜〜〜〜〜〜〜"
-    | Coast -> I.string A.(fg lightyellow) "〜〜-.______.-〜〜"
+    | Coast -> I.(hcat [
+      string A.(fg lightyellow) "〜〜-.";
+      string A.(fg blue) "______";
+      string A.(fg lightyellow) ".-〜〜";
+    ])
     | Lake -> I.string A.(fg blue) "--------------")
 
 (* [feature_img f] returns the image for the given feature *)
@@ -735,7 +720,11 @@ let game_map (w, h) gst =
   let (selected_col, selected_row) = gst.selected_tile in
   let (left_col, top_row) = gst.map_display in
   let (map_cols, map_rows) = World.map_dimensions gst.map in
-  game_map_helper I.(tile_img true (selected_col, selected_row) (left_col, top_row) gst (w, h)) (w, h) gst tiles_w tiles_h (left_col, top_row) (left_col, top_row) (map_cols, map_rows)
+  I.(
+    pad ~t:(h-1) (hsnap ~align:`Right (w-4) (tile_yields_img (World.get_tile gst.map selected_col selected_row)))
+    </>
+    game_map_helper (tile_img true (selected_col, selected_row) (left_col, top_row) gst (w, h)) (w, h) gst tiles_w tiles_h (left_col, top_row) (left_col, top_row) (map_cols, map_rows)
+  )
 
 (* [img t (w, h) gst] returns the image of the menu bars and game map *)
 let img t (w, h) gst =
@@ -757,7 +746,6 @@ let select_tile direction gst =
 let change_pane_state up pst tile_changing is_improvement_key =
   let diff = if up then 1 else -1 in
   match pst with
-  | Tile -> Tile
   | Unit (u, i) ->
     if tile_changing then Unit (0,0)
     else if is_improvement_key then Unit (u, i + diff)
@@ -863,10 +851,9 @@ let rec main t gst =
     main t new_gst
   | `Resize (nw, nh) -> main t gst
   | `Key (`Enter, []) -> main t (State.next_turn gst)
-  | `Key (`Uchar 50, []) -> main t {gst with pane_state = Unit (0,0)}
-  | `Key (`Uchar 51, []) -> main t {gst with pane_state = City 0}
-  | `Key (`Uchar 52, []) -> main t {gst with pane_state = Tech 0}
-  | `Key (`Uchar 49, []) -> main t {gst with pane_state = Tile}
+  | `Key (`Uchar 49, []) -> main t {gst with pane_state = Unit (0,0)}
+  | `Key (`Uchar 50, []) -> main t {gst with pane_state = City 0}
+  | `Key (`Uchar 51, []) -> main t {gst with pane_state = Tech 0}
   | `Key (`Uchar 44, []) -> main t {gst with pane_state = change_pane_state true gst.pane_state false false}
   | `Key (`Uchar 46, []) -> main t {gst with pane_state = change_pane_state false gst.pane_state false false}
   | `Key (`Uchar 91, []) -> main t {gst with pane_state = change_pane_state true gst.pane_state false true}
