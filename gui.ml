@@ -99,7 +99,7 @@ let tile_yields_img tile =
   World.(
     let y = tile_yields tile in
     I.(hcat [
-      uchar A.(fg green ++ bg black) 127860 1 1;
+      uchar A.(fg green ++ bg black) 127822 1 1;
       void 1 1;
       string A.(fg green ++ bg black) (string_of_int y.food);
       void 1 1;
