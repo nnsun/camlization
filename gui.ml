@@ -14,13 +14,15 @@ let tile_width = 17
 let tile_height = 10
 let left_pane_frac = 0.25
 
-(* [player_color] p is the player color for the current_player *)
-let player_color gst p =
+(* [player_color gst p fg] is the attr player color for the current_player
+ * for gamestate [gst] for the player [p], with foreground or background theme
+ * depending on boolean [fg] *)
+let player_color gst p fg =
   let rec index i = function
-  | [] -> failwith "Player not found"
-  | h::t -> if h = p then i else index (i+1) t
+    | [] -> failwith "Player not found"
+    | h::t -> if h = p then i else index (i+1) t
   in
-  player_colors.(index 0 (Array.to_list gst.players))
+  (player_colors fg).(index 0 (Array.to_list gst.players))
 
 (* Calculations for the positioning/size of the left pane and tiles *)
 let pane_width w =
@@ -72,7 +74,7 @@ let player_bar (w, h) gst =
     let len = String.length player_string in
     if gst.current_player = i
     then
-      let color = player_colors.(gst.current_player) in
+      let color = (player_colors false).(gst.current_player) in
       I.(vcat [
         hsnap len (uchar A.(fg white) 9660 1 1);
         string color (String.make len ' ');
@@ -80,10 +82,11 @@ let player_bar (w, h) gst =
         string color (String.make len ' ');
       ])
     else
+      let color = (player_color gst p true) in
       I.(vcat [
         void 1 1;
         string A.empty (String.make len ' ');
-        string A.empty player_string;
+        string color player_string;
         string A.empty (String.make len ' ');
       ])
   in
@@ -214,7 +217,7 @@ let unit_list_img gst ul selected_unit =
               then ("YOU")
               else ("P" ^ (string_of_int (State.player_number gst p)))
             in
-            I.string (player_color gst p) str
+            I.string (player_color gst p false) str
           )
         ];
         unit_list_img_helper us selected_unit (current_unit+1)
@@ -598,12 +601,13 @@ let tile_unit_str gst units =
     let p = fst (List.hd units) in
     let num = player_number gst p in
     let len = List.length units in
-    let color = player_color gst p in
+    let color = player_color gst p false in
     let suffix = if len = 1 then "unit" else "units" in
     I.string color (String.concat " " [
       string_of_int len;
       suffix;
-      "(" ^ "P" ^ string_of_int num ^ ")"
+      if p = gst.players.(gst.current_player) then "(YOU)"
+      else "(" ^ "P" ^ string_of_int num ^ ")"
     ])
 
 (* [city_imgs (col, row) gst] returns the image for the city on the map *)
@@ -658,12 +662,12 @@ let city_imgs t (col, row) is_selected gst =
     in
     let bottom =
       let str = if gst.players.(gst.current_player) = p
-      then ("          YOU            ")
+      then ("YOU")
       else (
-        "            P"
+        "P"
         ^ string_of_int (State.player_number gst p)
-        ^ "            "
-      ) in I.string (player_color gst p) str
+        ^ ""
+      ) in I.string (player_color gst p true) str
      in
     let below = text "▐▐▗^▙▗▎▙^▟▗▐▟▐^▙▗▐" in
     (top, middle, bottom, below)
