@@ -1,3 +1,5 @@
+open Primitives
+
 type map = tile array array
 
 and tile = {
@@ -186,6 +188,43 @@ let map_perlin_array (matrix: tile array array) (f: int -> tile -> tile) =
             ((float_of_int i1) /. 10.) ((float_of_int i2) /. 10.))) in
         f v matrix.(i1).(i2)) col) matrix
 
+let plop_resources m =
+  Array.map (
+    (fun col -> Array.map (
+      (fun tile ->
+        if tile.terrain = Coast && Random.int 10 = 0 then
+          if Random.bool () then
+            { tile with resource = Some Fish }
+          else { tile with resource = Some Crab }
+        else if tile.terrain = Tundra && Random.int 8 = 0 then
+          if Random.bool () then
+            { tile with resource = Some Furs }
+          else { tile with resource = Some Deer }
+        else if tile.elevation = Hill && Random.int 8 = 0 then
+          let r = Random.int 4 in
+          let res =
+            if r = 0 then Gold else if r = 1 then Silver
+                else if r = 2 then Gems else Iron in
+          { tile with resource = Some res }
+        else if (tile.terrain = Plains || tile.terrain = Grassland) &&
+            tile.feature = None && Random.int 5 = 0 then
+          let r = Random.int 8 in
+          let res =
+            if r = 0 then Marble else if r = 1 then Stone
+                else if r = 2 then Wheat else if r = 3 then Corn
+                else if r = 4 then Rice else if r = 5 then Ivory
+                else if r = 5 then Sheep else if r = 6 then Cattle
+                else Horses in
+          { tile with resource = Some res }
+        else if tile.feature = Some Jungle && Random.int 6 = 0 then
+          let r = Random.int 3 in
+          let res = if r = 0 then Cotton else if r = 1 then Banana else Sugar in
+          { tile with resource = Some res }
+        else tile
+      )
+    ) col)
+  ) m
+
 let generate_map =
   let base_tile = {
     coordinates = (0, 0);
@@ -196,7 +235,7 @@ let generate_map =
     elevation = Flatland;
     movement_cost = 1
   } in
-  let matrix = Array.make_matrix 40 25 base_tile in
+  let matrix = Array.make_matrix map_height map_width base_tile in
   let matrix = Array.mapi
     (fun i1 col -> Array.mapi
       (fun i2 row ->
@@ -257,7 +296,7 @@ let generate_map =
           if tile.terrain <> Coast && tile.terrain <> Ocean &&
               tile.terrain <> Ice then
             if tile.terrain = Desert &&
-                tile.feature <> None && Random.int 6 = 5 then
+                tile.feature <> None && Random.int 4 = 0 then
               { tile with feature = Some Oasis } else tile
           else
           let adj = adjacent_tiles tile matrix in
@@ -266,7 +305,7 @@ let generate_map =
           if List.exists pred adj then
           { tile with terrain = Coast }
           else tile) col) matrix in
-  matrix
+  plop_resources matrix
 
 let terrain tile = tile.terrain
 
