@@ -228,17 +228,15 @@ let unit_list_img gst ul selected_unit =
 let tab_img pst selected =
   let title_string =
     match pst with
-    | Tile -> " TILE "
     | Unit _ -> " UNITS "
     | City _ -> " CITY "
     | Tech _ -> " TECH "
   in
   let shortcut_string =
     match pst with
-    | Tile -> "[1]"
-    | Unit _ -> "[2]"
-    | City _ -> "[3]"
-    | Tech _ -> "[4]"
+    | Unit _ -> "[1]"
+    | City _ -> "[2]"
+    | Tech _ -> "[3]"
   in
   let len = String.length title_string in
   I.(void 1 1 <-> (
@@ -316,11 +314,6 @@ let left_pane (w, h) gst =
   let (col, row) = gst.selected_tile in
   let tile = World.get_tile gst.map col row in
   let pane_content = match gst.pane_state with
-  | Tile ->
-    let tabs = [Tile; Unit (0, 0); City 0; Tech 0] in
-    I.vcat [
-      snap (I.hcat (List.map (fun t -> tab_img t (t = Tile)) tabs));
-    ]
   | Unit (u,i) ->
     let units = State.units (col, row) gst in
     let num_units = List.length units in
@@ -329,7 +322,7 @@ let left_pane (w, h) gst =
     let u, i = u %! num_units, i %! num_possible_improvements in
     let show_improvements = num_units > 0 && num_possible_improvements > 0 &&
       Entity.unit_type (snd (List.nth units u)) = Entity.Worker in
-    let tabs = [Tile; Unit (u, i); City 0; Tech 0] in
+    let tabs = [Unit (u, i); City 0; Tech 0] in
     I.vcat [
       snap (I.hcat (List.map (fun t -> tab_img t (t = ( Unit (u,i) ))) tabs));
       I.void 1 1;
@@ -373,7 +366,7 @@ let left_pane (w, h) gst =
       ] else snap (I.string text "NO UNITS IN THIS TILE")
     ]
   | City c ->
-    let tabs = [Tile; Unit (0, 0); City c; Tech 0] in
+    let tabs = [Unit (0, 0); City c; Tech 0] in
     let empty_city =
       I.vcat [
         snap (I.hcat (List.map (fun t -> tab_img t (t = (City c))) tabs));
@@ -438,7 +431,7 @@ let left_pane (w, h) gst =
       | None -> empty_city
     end
   | Tech t_index ->
-    let tabs = [Tile; Unit (0, 0); City 0; Tech t_index] in
+    let tabs = [Unit (0, 0); City 0; Tech t_index] in
     let current_tech = Player.current_tech player in
     let techs = State.available_techs gst in
     let turns_left t =
@@ -763,7 +756,6 @@ let select_tile direction gst =
 let change_pane_state up pst tile_changing is_improvement_key =
   let diff = if up then 1 else -1 in
   match pst with
-  | Tile -> Tile
   | Unit (u, i) ->
     if tile_changing then Unit (0,0)
     else if is_improvement_key then Unit (u, i + diff)
@@ -869,10 +861,9 @@ let rec main t gst =
     main t new_gst
   | `Resize (nw, nh) -> main t gst
   | `Key (`Enter, []) -> main t (State.next_turn gst)
-  | `Key (`Uchar 50, []) -> main t {gst with pane_state = Unit (0,0)}
-  | `Key (`Uchar 51, []) -> main t {gst with pane_state = City 0}
-  | `Key (`Uchar 52, []) -> main t {gst with pane_state = Tech 0}
-  | `Key (`Uchar 49, []) -> main t {gst with pane_state = Tile}
+  | `Key (`Uchar 49, []) -> main t {gst with pane_state = Unit (0,0)}
+  | `Key (`Uchar 50, []) -> main t {gst with pane_state = City 0}
+  | `Key (`Uchar 51, []) -> main t {gst with pane_state = Tech 0}
   | `Key (`Uchar 44, []) -> main t {gst with pane_state = change_pane_state true gst.pane_state false false}
   | `Key (`Uchar 46, []) -> main t {gst with pane_state = change_pane_state false gst.pane_state false false}
   | `Key (`Uchar 91, []) -> main t {gst with pane_state = change_pane_state true gst.pane_state false true}

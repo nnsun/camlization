@@ -13,7 +13,6 @@ type menu_state =
   | About
 
 type pane_state =
-  | Tile
   | City of int
   | Unit of int * int
   | Tech of int
@@ -331,8 +330,8 @@ let next_turn state =
       let u = Entity.get_unit_entity (!e) in
       let should_heal = Entity.moves_left u = Entity.movement_points (Entity.unit_type u) in
       e := Entity.Unit (Entity.reset_movement u);
-      if should_heal then 
-        let health = Entity.health (!e) in 
+      if should_heal then
+        let health = Entity.health (!e) in
         e := Entity.set_health (!e) (health + 10)) units_of_player in
     let () = if state.current_player + 1 = Array.length state.players then
       Array.iter update_movements_and_health state.players in
