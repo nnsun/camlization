@@ -99,17 +99,17 @@ let tile_yields_img tile =
   World.(
     let y = tile_yields tile in
     I.(hcat [
-      uchar A.(fg green ++ bg black) 127822 1 1;
+      uchar A.(fg green) 127823 1 1;
       void 1 1;
-      string A.(fg green ++ bg black) (string_of_int y.food);
+      string A.(fg green) (string_of_int y.food);
       void 1 1;
-      uchar A.(fg yellow ++ bg black) 11044 1 1;
+      uchar A.(fg yellow) 11044 1 1;
       void 1 1;
-      string A.(fg yellow ++ bg black) (string_of_int y.gold);
+      string A.(fg yellow) (string_of_int y.gold);
       void 1 1;
-      uchar A.(fg blue ++ bg black) 128296 1 1;
+      uchar A.(fg blue) 128296 1 1;
       void 1 1;
-      string A.(fg blue ++ bg black) (string_of_int y.production);
+      string A.(fg blue) (string_of_int y.production);
     ]))
 
 (* [progress_str f] is the string that indicates the progress on a city tile *)
@@ -320,8 +320,6 @@ let left_pane (w, h) gst =
     let tabs = [Tile; Unit (0, 0); City 0; Tech 0] in
     I.vcat [
       snap (I.hcat (List.map (fun t -> tab_img t (t = Tile)) tabs));
-      I.void 1 1;
-      snap (tile_yields_img tile)
     ]
   | Unit (u,i) ->
     let units = State.units (col, row) gst in
@@ -533,7 +531,11 @@ let terrain_img tile =
     | Tundra -> I.string A.(fg (gray 13)) "-=--=-=--=-==-"
     | Ice -> I.string A.(fg white) "〜〜〜〜〜〜〜〜〜〜〜〜〜〜"
     | Ocean -> I.string A.(fg blue) "〜〜〜〜〜〜〜〜〜〜〜〜〜〜"
-    | Coast -> I.string A.(fg lightyellow) "〜〜-.______.-〜〜"
+    | Coast -> I.(hcat [
+      string A.(fg lightyellow) "〜〜-.";
+      string A.(fg blue) "______";
+      string A.(fg lightyellow) ".-〜〜";
+    ])
     | Lake -> I.string A.(fg blue) "--------------")
 
 (* [feature_img f] returns the image for the given feature *)
@@ -735,7 +737,11 @@ let game_map (w, h) gst =
   let (selected_col, selected_row) = gst.selected_tile in
   let (left_col, top_row) = gst.map_display in
   let (map_cols, map_rows) = World.map_dimensions gst.map in
-  game_map_helper I.(tile_img true (selected_col, selected_row) (left_col, top_row) gst (w, h)) (w, h) gst tiles_w tiles_h (left_col, top_row) (left_col, top_row) (map_cols, map_rows)
+  I.(
+    pad ~t:(h-1) (hsnap ~align:`Right (w-4) (tile_yields_img (World.get_tile gst.map selected_col selected_row)))
+    </>
+    game_map_helper (tile_img true (selected_col, selected_row) (left_col, top_row) gst (w, h)) (w, h) gst tiles_w tiles_h (left_col, top_row) (left_col, top_row) (map_cols, map_rows)
+  )
 
 (* [img t (w, h) gst] returns the image of the menu bars and game map *)
 let img t (w, h) gst =
