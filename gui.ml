@@ -310,10 +310,14 @@ let left_pane (w, h) gst =
     let current_player = gst.players.(gst.current_player) in
     let cities = Player.filter_city_refs current_player in
     let adjacent_cities = List.filter
-      (fun c -> List.mem tile (World.adjacent_tiles (Entity.tile !c) gst.map)) cities in
+      (fun c -> let t = Entity.tile !c in List.mem tile (World.adjacent_tiles t gst.map) ||
+        World.coordinates t = World.coordinates tile) cities in
+    let adjacent_tiles_with_improvements = 
+      List.filter (fun t -> World.improvement t <> None) (World.adjacent_tiles tile gst.map) in
     let show_improvements = num_units > 0 && num_possible_improvements > 0 &&
       Entity.unit_type (snd (List.nth units u)) = Entity.Worker && 
-      List.length adjacent_cities <> 0 in
+      (List.length adjacent_cities <> 0 || 
+      List.length adjacent_tiles_with_improvements <> 0) in
     let tabs = [Unit (u, i); City 0; Tech 0] in
     I.vcat [
       snap (I.hcat (List.map (fun t -> tab_img t (t = ( Unit (u,i) ))) tabs));
@@ -854,8 +858,12 @@ let build_improvement gst =
         let num_possible_improvements = List.length possible_improvements in
         let cities = Player.filter_city_refs current_player in
         let adjacent_cities = List.filter
-          (fun c -> List.mem tile (World.adjacent_tiles (Entity.tile !c) gst.map)) cities in
-        if num_possible_improvements > 0 && List.length adjacent_cities <> 0 then
+          (fun c -> let t = Entity.tile !c in List.mem tile (World.adjacent_tiles t gst.map) || 
+            World.coordinates t = World.coordinates tile) cities in
+        let adjacent_tiles_with_improvements = 
+          List.filter (fun t -> World.improvement t <> None) (World.adjacent_tiles tile gst.map) in
+        if num_possible_improvements > 0 && (List.length adjacent_cities <> 0 || 
+          List.length adjacent_tiles_with_improvements <> 0) then
           let num_current_improvement = i mod num_possible_improvements in
           let new_improvement = List.nth possible_improvements num_current_improvement in
           let health = Entity.health !current_unit in
