@@ -257,8 +257,8 @@ let generate_map =
           if tile.terrain <> Coast && tile.terrain <> Ocean &&
               tile.terrain <> Ice then tile else
           let adj = adjacent_tiles tile matrix in
-          let pred = fun t -> tile.terrain <> Ocean &&
-              tile.terrain <> Coast && tile.terrain <> Ice in
+          let pred = fun t -> t.terrain <> Ocean &&
+              t.terrain <> Coast && t.terrain <> Ice in
           if List.exists pred adj then
           { tile with terrain = Coast }
           else tile) col) matrix in
