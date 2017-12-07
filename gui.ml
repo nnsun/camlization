@@ -164,7 +164,7 @@ let improvement_str i =
     | Pasture -> "Pasture"
     | Plantation -> "Plantation")
 
-(* [improvement_opt_str tile] returns the string representation of [tile]'s 
+(* [improvement_opt_str tile] returns the string representation of [tile]'s
  * improvement, if present. "" otherwise. *)
 let improvement_opt_str tile =
   World.(
@@ -259,7 +259,7 @@ let possible_improvements gst tile =
       List.mem Tech.IronWorking (Player.techs current_player)
     else List.mem i tile_possible_improvements)
 
-(* [visible_resource gst tile] returns the resource visible to the current player, 
+(* [visible_resource gst tile] returns the resource visible to the current player,
  * if possible. None otherwise. *)
 let visible_resource gst tile =
   let current_player = gst.players.(gst.current_player) in
@@ -491,7 +491,7 @@ let left_pane (w, h) gst =
     I.(char A.(fg white ++ bg black) ' ' pane_width (h - top_padding))
   ] |> I.pad ~t:top_padding
 
-(* [ui_img (w, h) gst] is the image with the status bar, player bar, and left pane *)  
+(* [ui_img (w, h) gst] is the image with the status bar, player bar, and left pane *)
 let ui_img (w, h) gst =
   I.zcat [
     status_bar (w, h) gst;
@@ -499,7 +499,7 @@ let ui_img (w, h) gst =
     left_pane (w, h) gst
   ]
 
-(* [calculate_tiles_w_h (w, h)] returns the number of tiles that can be displayed 
+(* [calculate_tiles_w_h (w, h)] returns the number of tiles that can be displayed
  * given the dimensions [(w, h)], in the form (tiles_across, tiles_down) *)
 let calculate_tiles_w_h (w, h) =
   let tiles_w = (float_of_int w -. float_of_int (pane_width w) -.
@@ -518,7 +518,7 @@ let terrain_img tile =
     | Grassland -> I.string A.(fg green) ",,,,,,,,,,,,,,"
     | Plains -> I.string A.(fg green) "_______________"
     | Desert -> I.string A.(fg lightyellow) "__↟_________↟_"
-    | Tundra -> I.string A.(fg lightwhite) "-=--=-=--=-==-"
+    | Tundra -> I.string A.(fg (gray 13)) "-=--=-=--=-==-"
     | Ice -> I.string A.(fg white) "______________"
     | Ocean -> I.string A.(fg blue) "〜〜〜〜〜〜〜〜〜〜〜〜〜〜"
     | Coast -> I.string A.(fg lightyellow) "〜〜-.___--_.-〜〜"
@@ -678,7 +678,7 @@ let move_unit_tile gst dir =
       else (col + 1, row)
     else (col, row)
 
-(* [tile_img is_selected (col, row) (left_col, top_row) gst (w, h)] is the image 
+(* [tile_img is_selected (col, row) (left_col, top_row) gst (w, h)] is the image
  * for the tile in position [(col, row)] *)
 let tile_img is_selected (col, row) (left_col, top_row) gst (w, h) =
   let color = if is_selected then A.(fg blue) else A.(fg (gray 3)) in
@@ -770,7 +770,7 @@ let move_unit gst dir =
     else gst
   | _ -> gst
 
-(* [found_city gst] returns a new game state with a new city founded at the current 
+(* [found_city gst] returns a new game state with a new city founded at the current
  * selected tile, if possible according to game rules *)
 let found_city gst =
   match gst.pane_state with
@@ -792,8 +792,8 @@ let found_city gst =
     else gst
   | _ -> gst
 
-(* [build_improvement gst] returns a new game state with an improvement built 
- * on the selected tile, if possible *)  
+(* [build_improvement gst] returns a new game state with an improvement built
+ * on the selected tile, if possible *)
 let build_improvement gst =
   match gst.pane_state with
   | Unit (u, i) ->
