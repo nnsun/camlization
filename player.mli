@@ -23,9 +23,6 @@ val gold_rate : player -> gold
  * [player]'s units and cities *)
 val maintenance : player -> gold
 
-(* [points player] is the amount of points player has accumulated thus far *)
-val points : player -> int
-
 (* [science player] is the amount of science player has accumulated thus far *)
 val science : player -> science
 
