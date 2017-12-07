@@ -115,7 +115,7 @@ let copyright_items = [|
     index = -1;
     img = I.vcat [
       I.void 1 1;
-      img "© 2017 Alexander Strandberg, Daniel Li, Cynthia Tu, and Ning Ning Sun.";
+      img "© 2017 Alex Strandberg, Daniel Li, Ning Ning Sun, and Cynthia Tu.";
       img "Developed for CS 3110 Final Project in the fall of 2017. The ratings";
       img "icon is a trademark of the Entertainment Software Association. All";
       img "other marks and trademarks are the property of their respective owners.";
