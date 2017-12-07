@@ -722,7 +722,18 @@ let game_map (w, h) gst =
   let (left_col, top_row) = gst.map_display in
   let (map_cols, map_rows) = World.map_dimensions gst.map in
   I.(
-    pad ~t:(h-1) (hsnap ~align:`Right (w-4) (tile_yields_img (World.get_tile gst.map selected_col selected_row)))
+    pad ~t:(h-1) (hsnap ~align:`Right (w-4) (
+      hcat [
+        tile_yields_img (World.get_tile gst.map selected_col selected_row);
+        string A.empty (
+          "  ("
+          ^ string_of_int selected_col
+          ^ ","
+          ^ string_of_int selected_row
+          ^ ")"
+        );
+      ]
+    ))
     </>
     game_map_helper (tile_img true (selected_col, selected_row) (left_col, top_row) gst (w, h)) (w, h) gst tiles_w tiles_h (left_col, top_row) (left_col, top_row) (map_cols, map_rows)
   )
@@ -813,7 +824,7 @@ let build_improvement gst =
         let possible_improvements = possible_improvements gst tile in
         let num_possible_improvements = List.length possible_improvements in
         let cities = Player.filter_city_refs current_player in
-        let adjacent_cities = List.filter 
+        let adjacent_cities = List.filter
           (fun c -> List.mem tile (World.adjacent_tiles (Entity.tile !c) gst.map)) cities in
         if num_possible_improvements > 0 && List.length adjacent_cities <> 0 then
           let num_current_improvement = i mod num_possible_improvements in
@@ -847,12 +858,11 @@ let rec main t gst =
       else if new_selected_row < current_top_row then
         (current_left_col, current_top_row - 1)
       else (current_left_col, current_top_row) in
-    let new_gst = { gst with
+    main t { gst with
       selected_tile = select_tile direction gst;
       map_display = new_map_display;
       pane_state = change_pane_state true gst.pane_state true false
-    } in
-    main t new_gst
+    }
   | `Resize (nw, nh) -> main t gst
   | `Key (`Enter, []) -> main t (State.next_turn gst)
   | `Key (`Uchar 49, []) -> main t {gst with pane_state = Unit (0,0)}
