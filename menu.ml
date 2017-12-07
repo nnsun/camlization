@@ -97,7 +97,7 @@ let title_img =
 
 let loading_height = 3
 let loading_img =
-  let img s = I.string A.(st blink) s in
+  let img s = I.string A.empty s in
   I.vcat [
     img "╦  ╔═╗╔═╗╔╦╗╦╔╗╔╔═╗";
     img "║  ║ ║╠═╣ ║║║║║║║ ╦";
