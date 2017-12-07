@@ -88,9 +88,11 @@ type entity =
   | City of city_entity
   | Unit of unit_entity
 
+(* [unit_type u] returns the unit type for unit [u] *)
 let unit_type u =
   (snd u).name
 
+(* [shared_info e] returns the entity info for entity [e] *)
 let shared_info e =
   match e with
   | City c -> fst c
@@ -197,6 +199,7 @@ let new_city tile is_capital =
     }
   )
 
+(* [combat_multiplier unit1 unit2] is the combat multiplier for [unit1] attacking [unit2] *)
 let combat_multiplier unit1 unit2 =
   if is_unit unit1 then
     let unit1_type = unit_type(get_unit_entity (unit1)) in
@@ -218,6 +221,7 @@ let set_growth city =
   else
     (fst city, { (snd city) with food_stock = stock })
 
+(* [relative_str e1 e2] is the scaled strength for [e1] attacking [e2] *)
 let relative_str e1 e2 =
   let (health, str) =
     match e1 with

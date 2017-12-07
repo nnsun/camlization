@@ -4,8 +4,10 @@ open Notty_helper
 open State
 open Primitives
 
+(* [img s] returns the image for [s] with no attributes *)
 let img s = I.string A.empty s
 
+(* Various constants and image resources for the menus *)
 let title_width = 67
 let title_height = 8
 let title_img =
@@ -216,12 +218,12 @@ let multiplayer_items (i, options) = [|
   }
 |]
 
+(* [menu_img items index] returns the image for the current menu *)
 let menu_img (items: menu_item array) index =
   let imgs = Array.map (fun i -> i.img) items in
   let width = 6 + Array.fold_left (fun m i -> max m (I.width i)) 0 imgs in
   let height =
     Array.fold_left (fun a i -> a + I.height i) (Array.length items) imgs - 1 in
-
   let vbar = I.hcat [
     I.uchar A.empty 0x2551 1 height;
     I.void 1 height;
@@ -249,6 +251,7 @@ let menu_img (items: menu_item array) index =
     I.(img "╚══" <|> hbar <|> img "══╝");
   ]
 
+(* [img t (w, h) mst] returns the image based on the current menu state [mst] *)
 let img t (w, h) mst =
   match mst with
   | Loading -> I.vcat [
@@ -274,6 +277,7 @@ let img t (w, h) mst =
   | Options -> center (I.string A.(fg lightwhite) "Options") w h
   | About -> center (I.string A.(fg lightwhite) "About") w h
 
+(* [copyright t (w, h)] handles the menu in the copyright state *)
 let rec copyright t (w, h) mst =
   Term.image t (img t (w, h) mst);
   match Term.event t with
@@ -281,6 +285,7 @@ let rec copyright t (w, h) mst =
   | `Resize (nw, nh) -> copyright t (nw, nh) mst
   | _ -> copyright t (w, h) mst
 
+(* [multiplayer t (w, h) i options] handles the menu in the multiplayer menu state *)
 let rec multiplayer t (w, h) i options =
   Term.image t (img t (w, h) (Multiplayer (i, options)));
   match Term.event t with
@@ -307,6 +312,7 @@ let rec multiplayer t (w, h) i options =
   | `Resize (nw, nh) -> multiplayer t (nw, nh) i options
   | _ -> multiplayer t (w, h) i options
 
+(* [main t i] handles the main menu state *)
 let rec main t i =
   let (w, h) = Term.size t in
   Term.image t (img t (w, h) (Main (i)));

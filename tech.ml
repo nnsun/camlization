@@ -17,11 +17,13 @@ type tech =
       | TheWheel
         | Mathematics
 
+(* Stores the cost and prereq info for techs *)
 type tech_info = {
   cost : int;
   prereqs : tech list
 }
 
+(* Map of techs to underlying info *)
 let tech_info_map = [
   Agriculture, { cost = 20; prereqs = [] };
   Fishing, { cost = 35; prereqs = [Agriculture] };
@@ -59,7 +61,7 @@ let improvements_for_tech = World.(function
   | Trapping -> Some Camp
   | AnimalHusbandry -> Some Pasture
   | Calendar -> Some Plantation
-  | IronWorking | Sailing | Optics | HorsebackRiding | Mathematics  | Archery 
+  | IronWorking | Sailing | Optics | HorsebackRiding | Mathematics | Archery 
     | BronzeWorking | TheWheel -> None)
 
 let resources_for_tech = World.(function
@@ -71,5 +73,5 @@ let resources_for_tech = World.(function
   | AnimalHusbandry -> [Horses; Sheep; Cattle]
   | Calendar -> [Cotton; Banana; Sugar]
   | IronWorking -> [Iron]
-  | Sailing | Optics | HorsebackRiding | Mathematics  | Archery 
+  | Sailing | Optics | HorsebackRiding | Mathematics | Archery 
     | BronzeWorking | TheWheel -> [])

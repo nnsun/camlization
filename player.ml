@@ -7,7 +7,7 @@ type player = {
   techs: Tech.tech list;
   entities : Entity.entity ref list;
   num_cities : int;
-  num_units : int;
+  num_units : int
 }
 
 let new_player = {
