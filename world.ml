@@ -129,14 +129,23 @@ let coordinates tile = tile.coordinates
 
 let adjacent_tiles tile map =
   let (x, y) = tile.coordinates in
-  let unfiltered = [
-    (x - 1, y);
-    (x + 1, y);
-    (x - 1, y + 1);
-    (x - 1, y - 1);
-    (x + 1, y + 1);
-    (x + 1, y - 1);
-  ] in
+  let unfiltered =
+    if x mod 2 = 0 then[
+      (x - 1, y - 1);
+      (x , y - 1);
+      (x + 1, y - 1);
+      (x + 1, y);
+      (x, y + 1);
+      (x - 1, y);
+    ]
+    else [
+      (x - 1, y);
+      (x, y - 1);
+      (x + 1, y);
+      (x + 1, y + 1);
+      (x, y + 1);
+      (x - 1, y + 1);
+    ] in
   let pred map t =
     let (num_cols, num_rows) = map_dimensions map in
     let (x, y) = t in
@@ -382,7 +391,12 @@ let movement_cost tile = tile.movement_cost
 let is_adjacent tile1 tile2 =
   let (x1, y1) = tile1.coordinates in
   let (x2, y2) = tile2.coordinates in
-  abs(x2 - x1) <= 1 && abs(y2 - y1) <= 1
+  if abs(x2 - x1) <= 1 && abs(y2 - y1) <= 1 then
+    if x1 mod 2 = 0 then
+      x2 = x1 || y2 <= y1
+    else
+      x2 = x1 || y2 >= y1
+  else false
 
 let set_improvement map col row improvement =
   let tile = get_tile map col row in
