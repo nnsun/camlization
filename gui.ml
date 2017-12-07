@@ -431,7 +431,7 @@ let left_pane (w, h) gst =
         / (Player.science_rate player))) in
     let tech_img i t show show_selected blink =
       let selected_text = A.(fg white ++ bg black ++ st bold) in
-      if not show || List.length techs = 0 then I.empty else
+      if not show then I.empty else
       if i = t_index %! List.length techs && show_selected then
       I.hcat [
         I.string (if blink then A.(selected_text ++ st blink) else selected_text) "▶ ";
@@ -457,7 +457,8 @@ let left_pane (w, h) gst =
       I.void 1 2;
       snap (I.string text "AVAILABLE TECHS:");
       I.void 1 1;
-      snap (
+      if List.length techs = 0 then I.empty
+      else snap (
         snap (
           match current_tech with
           | Some curr ->
