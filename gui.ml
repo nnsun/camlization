@@ -167,31 +167,33 @@ let unit_list_img gst ul selected_unit =
     | [] -> I.void 1 1
     | (p, u) :: us ->
       let unit = Entity.Unit u in
-      let text =
+      let text blink =
         if selected_unit = current_unit
-        then A.(fg white ++ bg black ++ st bold)
+        then
+          if blink then A.(fg white ++ bg black ++ st bold ++ st blink)
+          else A.(fg white ++ bg black ++ st bold)
         else A.(fg white ++ bg black) in
       let arrow =
         if selected_unit = current_unit
-        then I.(I.uchar text 9654 1 1 <|> I.void 1 1)
+        then I.(I.uchar (text true) 9654 1 1 <|> I.void 1 1)
         else I.void 2 1 in
       I.vcat [
         I.hcat [
           arrow;
-          I.string text (unit_str u);
+          I.string (text false) (unit_str u);
           I.void 1 1;
           I.uchar health 9829 1 1;
           I.void 1 1;
           I.string health (string_of_int (Entity.health unit));
           I.void 1 1;
-          I.uchar text 8599 1 1;
+          I.uchar (text false) 8599 1 1;
           I.void 1 1;
-          I.string text (string_of_int (Entity.moves_left u));
+          I.string (text false) (string_of_int (Entity.moves_left u));
           I.void 1 1;
           (
             if gst.players.(gst.current_player) = p
-            then I.string text ("YOU")
-            else I.string text ("P" ^ (string_of_int (State.player_number gst p)))
+            then I.string (text false) ("YOU")
+            else I.string (text false) ("P" ^ (string_of_int (State.player_number gst p)))
           )
         ];
         unit_list_img_helper us selected_unit (current_unit+1)
@@ -256,18 +258,20 @@ let possible_improvements_img pi selected_pi =
     match pi with
     | [] -> I.void 1 1
     | i :: is ->
-      let text =
+      let text blink =
         if selected_pi = current_pi
-        then A.(fg white ++ bg black ++ st bold)
+        then
+          if blink then A.(fg white ++ bg black ++ st bold)
+          else A.(fg white ++ bg black)
         else A.(fg white ++ bg black) in
       let arrow =
         if selected_pi = current_pi
-        then I.(I.uchar text 9654 1 1 <|> I.void 1 1)
+        then I.(I.uchar (text true) 9654 1 1 <|> I.void 1 1)
         else I.void 2 1 in
       I.vcat [
         I.hcat [
           arrow;
-          I.string text (improvement_str i)
+          I.string (text false) (improvement_str i)
         ];
         possible_improvements_img_helper is selected_pi (current_pi+1)
       ] in
@@ -364,10 +368,13 @@ let left_pane (w, h) gst =
           in
         let unit_img i u show show_selected =
           if i = c %! List.length units && show && show_selected then
-          I.string A.(fg white ++ bg black ++ st bold) (
-            "▶ " ^ unit_type_str u ^ " (" ^ (string_of_int (turns_left u))
+          I.hcat [
+            I.string A.(fg white ++ bg black ++ st bold ++ st blink) "▶ ";
+            I.string A.(fg white ++ bg black ++ st bold) (
+              unit_type_str u ^ " (" ^ (string_of_int (turns_left u))
               ^ (if turns_left u = 1 then " turn)" else " turns)")
-          )
+            )
+          ]
           else
           I.string text (
             "  " ^ unit_type_str u ^ " (" ^ (string_of_int (turns_left u))
@@ -414,9 +421,12 @@ let left_pane (w, h) gst =
     let tech_img i t show show_selected =
       if List.length techs = 0 then I.empty else
       if i = t_index %! List.length techs && show && show_selected then
-      I.string A.(fg white ++ bg black ++ st bold) (
-        "▶ " ^ tech_str t ^ " (" ^ (string_of_int (turns_left t)) ^ " turns)"
-      )
+      I.hcat [
+        I.string A.(fg white ++ bg black ++ st bold ++ st blink) "▶ ";
+        I.string A.(fg white ++ bg black ++ st bold) (
+          tech_str t ^ " (" ^ (string_of_int (turns_left t)) ^ " turns)"
+        )
+      ]
       else
       I.string text (
         "  " ^ tech_str t ^ " (" ^ (string_of_int (turns_left t)) ^ " turns)"
@@ -556,6 +566,7 @@ let city_imgs (col, row) gst =
     let top =
       let health = A.(fg red) in
       I.(hsnap 12 (hcat [
+        I.void 1 1;
         I.uchar health 9829 1 1;
         I.string health (string_of_int (Entity.health (Entity.City city)));
         I.void 2 1;
@@ -587,7 +598,8 @@ let city_imgs (col, row) gst =
           text " ❰";
           white_text "CITY";
           text "❱ ";
-          prod_text
+          prod_text;
+          I.void 1 1;
         ])
       )
     in

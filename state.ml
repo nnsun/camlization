@@ -33,9 +33,6 @@ type state =
   | Game of game_state
   | Quit
 
-let initial_year = -3000
-let years_per_turn = 100
-
 let start_state = Menu (Loading)
 
 let initial_game_state options =

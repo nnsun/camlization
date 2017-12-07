@@ -95,6 +95,7 @@ let title_img =
 
 let loading_height = 3
 let loading_img =
+  let img s = I.string A.(st blink) s in
   I.vcat [
     img "╦  ╔═╗╔═╗╔╦╗╦╔╗╔╔═╗";
     img "║  ║ ║╠═╣ ║║║║║║║ ╦";
@@ -322,7 +323,7 @@ let rec main t i =
 let new_state t mst =
   let (w, h) = Term.size t in
   match mst with
-  | Loading -> Term.image t (img t (w, h) mst); Unix.sleep 0; Menu(Copyright)
+  | Loading -> Term.image t (img t (w, h) mst); Unix.sleep 2; Menu(Copyright)
   | Copyright -> Menu(copyright t (w, h) mst)
   | Main i -> main t i
   | Multiplayer (i, options) -> multiplayer t (w, h) i options
