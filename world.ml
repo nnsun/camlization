@@ -256,7 +256,8 @@ let generate_map =
       (fun tile ->
           if tile.terrain <> Coast && tile.terrain <> Ocean &&
               tile.terrain <> Ice then
-            if tile.terrain = Desert && tile.feature <> None then
+            if tile.terrain = Desert &&
+                tile.feature <> None && Random.int 6 = 5 then
               { tile with feature = Some Oasis } else tile
           else
           let adj = adjacent_tiles tile matrix in
