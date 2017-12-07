@@ -249,13 +249,16 @@ let generate_map =
   let matrix = map_perlin_array matrix
       (fun v t -> { t with feature = (trees t v) }) in
   let matrix = map_perlin_array matrix
-      (fun v t -> { t with terrain = deserts_plains t v; feature = None }) in
+      (fun v t -> { t with terrain = deserts_plains t v }) in
   let matrix = map_perlin_array matrix
       (fun v t -> { t with terrain = ice_tundra t v }) in
   let matrix = Array.map (fun col -> Array.map
       (fun tile ->
           if tile.terrain <> Coast && tile.terrain <> Ocean &&
-              tile.terrain <> Ice then tile else
+              tile.terrain <> Ice then
+            if tile.terrain = Desert && tile.feature <> None then
+              { tile with feature = Some Oasis } else tile
+          else
           let adj = adjacent_tiles tile matrix in
           let pred = fun t -> t.terrain <> Ocean &&
               t.terrain <> Coast && t.terrain <> Ice in
