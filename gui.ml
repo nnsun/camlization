@@ -604,6 +604,7 @@ let city_imgs (col, row) gst =
       I.(hsnap 12 (hcat [
         I.void 1 1;
         I.uchar health 9829 1 1;
+        I.void 1 1;
         I.string health (string_of_int (Entity.health (Entity.City city)));
         I.void 2 1;
         (

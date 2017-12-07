@@ -321,7 +321,7 @@ let set_improvement map col row improvement =
   let feature = tile.feature in
   let new_feature = if feature = Some Forest || feature = Some Jungle
     then None else feature in
-  map.(row).(col) <- {tile with improvement = Some improvement; feature = new_feature}
+  map.(col).(row) <- {tile with improvement = Some improvement; feature = new_feature}
 
 let tile_possible_improvements tile =
   let improvement_for_resource r =
