@@ -33,6 +33,11 @@ type state =
 
 let start_state = Menu (Loading)
 
+(* [snap_coordinates state] returns a new game state with the graphics
+ * for the current player's turn set up, including selecting their
+ * capital city's tile (if present, tile of an entity otherwise),
+ * setting the map to display this tile and nearby ones, and
+ * setting the left pane to display the relevant pane (city or units) *)
 let snap_coordinates state =
   let player = state.current_player in
   let city_list = Player.filter_city_refs (state.players.(player)) in
