@@ -201,15 +201,14 @@ let generate_map =
       else Some Jungle in
   let deserts tile n =
     if tile.terrain = Ocean || tile.elevation = Peak ||
-        tile.feature = Some Forest || tile.feature = Some Jungle
-        || n < 40 || n > 60 then tile.terrain else
+        n < 40 || n > 60 then tile.terrain else
     let (_, row_num) = tile.coordinates in
     let (_, rows) = map_dimensions matrix in
     let dist =
       min (abs (row_num - rows / 2)) (abs (row_num - (rows / 2 - 1))) in
-    let multi = (1. -. (float_of_int dist) /. (float_of_int rows)) ** 3. in
+    let multi = (1. -. ((float_of_int dist) /. (float_of_int rows))) ** 4. in
     let v = multi *. (float_of_int (abs (n - 50))) in
-    if v < 1. then Desert else tile.terrain in
+    if v > 5. then Desert else tile.terrain in
   let matrix = map_perlin_array matrix
       (fun v t -> { t with terrain = land_water v }) in
   let matrix = map_perlin_array matrix
