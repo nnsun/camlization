@@ -10,24 +10,14 @@ type player = {
   num_units : int;
 }
 
-let new_player = {
+let new_player tile = {
   gold = 0;
   current_tech = None;
   science = 0;
   techs = [];
-  entities = [];
+  entities = [ref (Entity.new_unit Entity.Worker tile)];
   num_cities = 0;
-  num_units = 2;
-}
-
-let new_player2 = {
-  gold = 100;
-  current_tech = None;
-  science = 0;
-  techs = [];
-  entities = [];
-  num_cities = 1;
-  num_units = 0;
+  num_units = 1;
 }
 
 let gold p = p.gold

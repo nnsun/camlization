@@ -3,10 +3,8 @@ open Primitives
 (* [player] represents a user player in the game *)
 type player
 
-(* [new_player] is a newly created player *)
-val new_player : player
-
-val new_player2 : player
+(* [new_player] is a newly created player at a given tile *)
+val new_player : World.tile -> player
 
 (* [gold player] is the amount of gold player p has stored *)
 val gold : player -> gold
