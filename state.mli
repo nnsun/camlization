@@ -10,8 +10,7 @@ type menu_state =
   | Copyright
   | Main of int (* index *)
   | Multiplayer of int * multiplayer_options
-  | Options
-  | About
+  | Acknowledgements
 
 (* [pane_state] represents the state of the left pane,
  * including the current selection indices in each pane *)

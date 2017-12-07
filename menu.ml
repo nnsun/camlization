@@ -133,6 +133,34 @@ let copyright_items = [|
   };
 |]
 
+let acknowledgements_items = [|
+{
+  index = -2;
+  img = I.vcat [
+    I.void 1 1;
+    img "╔═╗╔═╗╦╔═╔╗╔╔═╗╦ ╦╦  ╔═╗╔╦╗╔═╗╔╦╗╔═╗╔╗╔╔╦╗╔═╗";
+    img "╠═╣║  ╠╩╗║║║║ ║║║║║  ║╣  ║║║ ╦║║║║╣ ║║║ ║ ╚═╗";
+    img "╩ ╩╚═╝╩ ╩╝╚╝╚═╝╚╩╝╩═╝╚═╝═╩╝╚═╝╩ ╩╚═╝╝╚╝ ╩ ╚═╝";
+  ];
+  enter_state = Menu (Acknowledgements)
+};
+{
+  index = -1;
+  img = I.vcat [
+    I.void 1 1;
+    img "Special thanks to David Kaloper for his OCaml terminal GUI library, Notty";
+    img "(https://github.com/pqwy/notty), which helped make this project possible.";
+    I.void 1 1
+  ];
+  enter_state = Menu (Acknowledgements)
+};
+{
+  index = 1;
+  img = I.(I.void 1 1 <-> img "Press Enter to Return to the Main Menu" <-> I.void 1 1);
+  enter_state = Menu (Main 0)
+};
+|]
+
 let main_menu_items = [|
   {
     index = 0;
@@ -149,26 +177,15 @@ let main_menu_items = [|
     index = 1;
     img = I.vcat [
       I.void 1 2;
-      img "╔═╗╔═╗╔╦╗╦╔═╗╔╗╔╔═╗";
-      img "║ ║╠═╝ ║ ║║ ║║║║╚═╗";
-      img "╚═╝╩   ╩ ╩╚═╝╝╚╝╚═╝";
-      I.void 1 2;
-    ];
-    enter_state = Menu (Main 0)
-  };
-  {
-    index = 2;
-    img = I.vcat [
-      I.void 1 2;
       img "╔═╗╔═╗╦╔═╔╗╔╔═╗╦ ╦╦  ╔═╗╔╦╗╔═╗╔╦╗╔═╗╔╗╔╔╦╗╔═╗";
       img "╠═╣║  ╠╩╗║║║║ ║║║║║  ║╣  ║║║ ╦║║║║╣ ║║║ ║ ╚═╗";
       img "╩ ╩╚═╝╩ ╩╝╚╝╚═╝╚╩╝╩═╝╚═╝═╩╝╚═╝╩ ╩╚═╝╝╚╝ ╩ ╚═╝";
       I.void 1 2;
     ];
-    enter_state = Menu (Main 0)
+    enter_state = Menu (Acknowledgements)
   };
   {
-    index = 3;
+    index = 2;
     img = I.vcat [
       I.void 1 2;
       img "╔═╗ ╦ ╦╦╔╦╗";
@@ -274,8 +291,11 @@ let img t (w, h) mst =
       center (menu_img (multiplayer_items (i, options)) i) w h;
       I.pad ~t:1 ~l:(w - title_width - 2) title_img
     ]
-  | Options -> center (I.string A.(fg lightwhite) "Options") w h
-  | About -> center (I.string A.(fg lightwhite) "About") w h
+  | Acknowledgements ->
+    I.zcat [
+      center (menu_img acknowledgements_items 0) w h;
+      I.pad ~t:1 ~l:(w - title_width - 2) title_img
+    ]
 
 (* [copyright t (w, h)] handles the menu in the copyright state *)
 let rec copyright t (w, h) mst =
@@ -312,6 +332,14 @@ let rec multiplayer t (w, h) i options =
   | `Resize (nw, nh) -> multiplayer t (nw, nh) i options
   | _ -> multiplayer t (w, h) i options
 
+(* [acknowledgements t (w, h)] handles the menu in the acknowledgements state *)
+let rec acknowledgements t (w, h) mst =
+  Term.image t (img t (w, h) mst);
+  match Term.event t with
+  | `Key (`Enter, []) -> Main 0
+  | `Resize (nw, nh) -> acknowledgements t (nw, nh) mst
+  | _ -> acknowledgements t (w, h) mst
+
 (* [main t i] handles the main menu state *)
 let rec main t i =
   let (w, h) = Term.size t in
@@ -329,9 +357,8 @@ let rec main t i =
 let new_state t mst =
   let (w, h) = Term.size t in
   match mst with
-  | Loading -> Term.image t (img t (w, h) mst); Unix.sleep 0; Menu(Copyright)
+  | Loading -> Term.image t (img t (w, h) mst); Unix.sleep 1; Menu(Copyright)
   | Copyright -> Menu(copyright t (w, h) mst)
   | Main i -> main t i
   | Multiplayer (i, options) -> multiplayer t (w, h) i options
-  | Options -> Menu(Options)
-  | About -> Menu(About)
+  | Acknowledgements -> Menu(acknowledgements t (w, h) mst)

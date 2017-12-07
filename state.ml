@@ -9,8 +9,7 @@ type menu_state =
   | Copyright
   | Main of int
   | Multiplayer of int * multiplayer_options
-  | Options
-  | About
+  | Acknowledgements
 
 type pane_state =
   | City of int
