@@ -34,6 +34,24 @@ type state =
 
 let start_state = Menu (Loading)
 
+let snap_coordinates state =
+  let player = state.current_player in
+  let city_list = Player.filter_city_refs (state.players.(player)) in
+  let capital = List.find_opt (fun c -> Entity.is_capital (Entity.get_city_entity (!c))) city_list in
+  let (col, row) = match capital with
+    | Some c -> let tile = Entity.tile !c in
+      World.coordinates tile
+    | None ->
+      match Player.entities state.players.(player) with
+      | [] -> state.map_display
+      | h::_ -> !h |> Entity.tile |> World.coordinates
+    in
+  {
+    state with
+    map_display = (max 0 (col - 2), max 0 (row - 2));
+    selected_tile = (col, row)
+  }
+
 let initial_game_state options =
   let map = World.generate_map in
   let indexes = Array.mapi (fun i _ -> i) (Array.make options.player_count 0) in
@@ -59,7 +77,7 @@ let initial_game_state options =
     in
     Player.new_player (find_start_tile ()) in
   let players = Array.map player indexes in
-  {
+  snap_coordinates {
     player_turns = 0;
     map = map;
     map_display = (0, 0);
@@ -356,19 +374,9 @@ let next_turn state =
     let () = if state.current_player + 1 = Array.length state.players then
       Array.iter update_movements_and_health state.players in
   state.players.(state.current_player) <- player;
-  let next_player = (state.current_player + 1) mod (Array.length state.players) in
-  let next_city_list = Player.filter_city_refs (state.players.(next_player)) in
-  let capital = List.filter (fun c -> Entity.is_capital (Entity.get_city_entity (!c))) next_city_list in
-  let new_map_display = match capital with
-    | c :: [] -> let tile = Entity.tile !c in
-      let (col, row) = World.coordinates tile in
-      (max 0 (col - 2), max 0 (row - 2))
-    | _ -> state.map_display in
-  {
-    state with
-    current_player = next_player;
+  snap_coordinates { state with
     player_turns = state.player_turns + 1;
-    map_display = new_map_display
+    current_player = (state.current_player + 1) mod Array.length (state.players)
   }
 
 let found_city gst tile worker_unit =
