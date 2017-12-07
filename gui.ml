@@ -810,6 +810,8 @@ let build_improvement gst =
         if num_possible_improvements > 0 then
           let num_current_improvement = i mod num_possible_improvements in
           let new_improvement = List.nth possible_improvements num_current_improvement in
+          let health = Entity.health !current_unit in
+          current_unit := Entity.set_health !current_unit (health - 50);
           World.set_improvement gst.map col row new_improvement; gst
         else gst
       else gst
