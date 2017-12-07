@@ -15,7 +15,7 @@ let player_colors = Array.map (fun attr -> A.(attr ++ fg white)) A.[|
   bg lightmagenta; bg cyan; bg blue; bg A.yellow
 |]
 
-(* [i %! j] is the remaineder of i / j, with special rules:
+(* [i %! j] is the remainder of i / j, with special rules:
  * - If [j = 0], then returns 0.
  * - If [(i mod j) < 0], then returns [(i mod j) + j]
  * - Returns [i mod j] otherwise *)

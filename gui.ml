@@ -812,7 +812,10 @@ let build_improvement gst =
         Player.player_owns_entity current_player current_unit then
         let possible_improvements = possible_improvements gst tile in
         let num_possible_improvements = List.length possible_improvements in
-        if num_possible_improvements > 0 then
+        let cities = Player.filter_city_refs current_player in
+        let adjacent_cities = List.filter 
+          (fun c -> List.mem tile (World.adjacent_tiles (Entity.tile !c) gst.map)) cities in
+        if num_possible_improvements > 0 && List.length adjacent_cities <> 0 then
           let num_current_improvement = i mod num_possible_improvements in
           let new_improvement = List.nth possible_improvements num_current_improvement in
           let health = Entity.health !current_unit in
