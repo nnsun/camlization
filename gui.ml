@@ -338,7 +338,7 @@ let left_pane (w, h) gst =
           I.vcat [
             snap (I.string text "Found city with [F]");
             I.void 1 1;
-            snap (I.string text "Select unit with [,] and [.]");
+            snap (I.string text "Select unit with [J] and [K]");
             I.void 1 2;
             if show_improvements then I.vcat [
               snap (I.string text "IMPROVEMENTS:");
@@ -414,7 +414,7 @@ let left_pane (w, h) gst =
             )
           );
           I.void 1 2;
-          snap (I.string text "Select Unit with [,] and [.]");
+          snap (I.string text "Select Unit with [J] and [K]");
           I.void 1 1;
           snap (I.string text "Confirm with [SPACE]");
         ]
@@ -466,7 +466,7 @@ let left_pane (w, h) gst =
         )
       );
       I.void 1 2;
-      snap (I.string text "Select Tech with [,] and [.]");
+      snap (I.string text "Select Tech with [J] and [K]");
       snap (I.string text "Confirm with [SPACE]");
       I.void 1 2;
       snap (I.string text "RESEARCHED TECHS:");
@@ -854,8 +854,8 @@ let rec main t gst =
   | `Key (`Uchar 49, []) -> main t {gst with pane_state = Unit (0,0)}
   | `Key (`Uchar 50, []) -> main t {gst with pane_state = City 0}
   | `Key (`Uchar 51, []) -> main t {gst with pane_state = Tech 0}
-  | `Key (`Uchar 44, []) -> main t {gst with pane_state = change_pane_state true gst.pane_state false false}
-  | `Key (`Uchar 46, []) -> main t {gst with pane_state = change_pane_state false gst.pane_state false false}
+  | `Key (`Uchar 106, []) -> main t {gst with pane_state = change_pane_state true gst.pane_state false false}
+  | `Key (`Uchar 107, []) -> main t {gst with pane_state = change_pane_state false gst.pane_state false false}
   | `Key (`Uchar 91, []) -> main t {gst with pane_state = change_pane_state true gst.pane_state false true}
   | `Key (`Uchar 93, []) -> main t {gst with pane_state = change_pane_state false gst.pane_state false true}
   | `Key (`Uchar 32, []) ->
@@ -865,8 +865,9 @@ let rec main t gst =
       | Tech i ->
         if Player.current_tech player = None then (
           let techs = State.available_techs gst in
-          let tech = List.nth techs (i %! List.length techs) in
-          gst.players.(gst.current_player) <- Player.research_tech (gst.players.(gst.current_player)) tech
+          if List.length techs > 0 then
+          (let tech = List.nth techs (i %! List.length techs) in
+          gst.players.(gst.current_player) <- Player.research_tech (gst.players.(gst.current_player)) tech)
         );
         main t gst
       | City i ->
