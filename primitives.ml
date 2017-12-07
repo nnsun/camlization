@@ -1,3 +1,5 @@
+open Notty
+
 (* Type aliases for gold, time, and science *)
 type gold = int
 type time = int
@@ -6,7 +8,10 @@ type science = int
 (* Game constants *)
 let initial_year = -3000
 let years_per_turn = 100
-let max_players = 8
+let max_players = 4
+let player_colors = Array.map (fun attr -> A.(attr ++ fg white)) A.[|
+  bg lightmagenta; bg cyan; bg blue; bg A.yellow
+|]
 
 (* [i %! j] is the remaineder of i / j, with special rules:
  * - If [j = 0], then returns 0.

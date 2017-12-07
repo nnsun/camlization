@@ -17,6 +17,14 @@ let tile_width = 17
 let tile_height = 10
 let left_pane_frac = 0.25
 
+(* [player_color] p is the player color for the current_player *)
+let player_color gst p =
+  let rec index i = function
+  | [] -> failwith "Player not found"
+  | h::t -> if h = p then i else index (i+1) t
+  in
+  player_colors.(index 0 (Array.to_list gst.players))
+
 (* Calculations for the positioning/size of the left pane and tiles *)
 let pane_width w =
   (float_of_int w) *. left_pane_frac |> int_of_float
@@ -67,11 +75,12 @@ let player_bar (w, h) gst =
     let len = String.length player_string in
     if gst.current_player = i
     then
+      let color = player_colors.(gst.current_player) in
       I.(vcat [
         hsnap len (uchar A.(fg white) 9660 1 1);
-        string A.(fg white ++ bg blue) (String.make len ' ');
-        string A.(fg white ++ bg blue) player_string;
-        string A.(fg white ++ bg blue) (String.make len ' ');
+        string color (String.make len ' ');
+        string color player_string;
+        string color (String.make len ' ');
       ])
     else
       I.(vcat [
@@ -204,9 +213,11 @@ let unit_list_img gst ul selected_unit =
           I.string (text false) (string_of_int (Entity.moves_left u));
           I.void 1 1;
           (
-            if gst.players.(gst.current_player) = p
-            then I.string (text false) ("YOU")
-            else I.string (text false) ("P" ^ (string_of_int (State.player_number gst p)))
+            let str = if gst.players.(gst.current_player) = p
+              then ("YOU")
+              else ("P" ^ (string_of_int (State.player_number gst p)))
+            in
+            I.string (player_color gst p) str
           )
         ];
         unit_list_img_helper us selected_unit (current_unit+1)
@@ -514,12 +525,13 @@ let calculate_tiles_w_h (w, h) =
 (* [terrain_img tile] returns the image for [tile]'s terrain *)
 let terrain_img tile =
   World.(
+    if elevation tile = Peak then I.empty else
     match terrain tile with
     | Grassland -> I.string A.(fg green) ",,,,,,,,,,,,,,"
-    | Plains -> I.string A.(fg green) "_______________"
+    | Plains -> I.string A.(fg yellow) "_______________"
     | Desert -> I.string A.(fg lightyellow) "__↟_________↟_"
     | Tundra -> I.string A.(fg (gray 13)) "-=--=-=--=-==-"
-    | Ice -> I.string A.(fg white) "______________"
+    | Ice -> I.string A.(fg white) "〜〜〜〜〜〜〜〜〜〜〜〜〜〜"
     | Ocean -> I.string A.(fg blue) "〜〜〜〜〜〜〜〜〜〜〜〜〜〜"
     | Coast -> I.string A.(fg lightyellow) "〜〜-.___--_.-〜〜"
     | Lake -> I.string A.(fg blue) "--------------")
@@ -607,9 +619,10 @@ let city_imgs (col, row) gst =
         I.string health (string_of_int (Entity.health (Entity.City city)));
         I.void 2 1;
         (
-          if gst.players.(gst.current_player) = p
-          then text ("YOU")
-          else text ("P" ^ string_of_int (State.player_number gst p))
+          let str = if gst.players.(gst.current_player) = p
+            then ("YOU")
+            else ("P" ^ string_of_int (State.player_number gst p)) in
+            I.string (player_color gst p) str
         )
       ])) in
     let middle =
