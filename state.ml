@@ -38,6 +38,7 @@ let snap_coordinates state =
   let player = state.current_player in
   let city_list = Player.filter_city_refs (state.players.(player)) in
   let capital = List.find_opt (fun c -> Entity.is_capital (Entity.get_city_entity (!c))) city_list in
+  let next_pane_state = if capital = None then Unit (0, 0) else City 0 in
   let (col, row) = match capital with
     | Some c -> let tile = Entity.tile !c in
       World.coordinates tile
@@ -49,7 +50,8 @@ let snap_coordinates state =
   {
     state with
     map_display = (max 0 (col - 2), max 0 (row - 2));
-    selected_tile = (col, row)
+    selected_tile = (col, row);
+    pane_state = next_pane_state
   }
 
 let initial_game_state options =
@@ -380,7 +382,7 @@ let next_turn state =
     pane_state = Unit (0, 0)
   }
 
-let found_city gst tile worker_unit =
+let try_founding_city gst tile worker_unit =
   let (col, row) = World.coordinates tile in
   let entity_refs = List.map (fun p -> Player.entities p) (gst.players |> Array.to_list) |> List.flatten in
   let entities = List.map (!) entity_refs in
@@ -438,9 +440,10 @@ let found_city gst tile worker_unit =
       (col, row) = (c_col + 1, c_row - 2)
     in
   if List.filter filter_close_cities cities |> List.length = 0 then
-    let player = Player.found_city (gst.players.(gst.current_player)) tile in
+    let player = Player.set_new_city (gst.players.(gst.current_player)) tile in
     let _ = worker_unit := Entity.set_health !worker_unit 0 in
-    gst.players.(gst.current_player) <- player; gst
+    gst.players.(gst.current_player) <- player;
+    {gst with pane_state = City 0}
   else gst
 
 let player_number gst p =

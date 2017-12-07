@@ -96,9 +96,9 @@ val available_units : game_state -> Entity.unit_type list
  * ends their turn *)
 val next_turn : game_state -> game_state
 
-(* [found_city state tile entity] founds a city at [tile] if there are no cities
+(* [try_founding_city state tile entity] founds a city at [tile] if there are no cities
    within three tiles of [tile] *)
-val found_city : game_state -> World.tile -> Entity.entity ref -> game_state
+val try_founding_city : game_state -> World.tile -> Entity.entity ref -> game_state
 
 (* [player_number gst p] is the player number of the player [p] in game_state
  * [gst] *)

@@ -5,9 +5,6 @@ open State
 open Primitives
 
 (* Constants and Helpers *)
-
-let is_mac_os = true
-
 let left_padding = 1
 let top_padding = 1
 let right_padding = 0
@@ -310,8 +307,13 @@ let left_pane (w, h) gst =
     let possible_improvements = possible_improvements gst tile in
     let num_possible_improvements = List.length possible_improvements in
     let u, i = u %! num_units, i %! num_possible_improvements in
+    let current_player = gst.players.(gst.current_player) in
+    let cities = Player.filter_city_refs current_player in
+    let adjacent_cities = List.filter
+      (fun c -> List.mem tile (World.adjacent_tiles (Entity.tile !c) gst.map)) cities in
     let show_improvements = num_units > 0 && num_possible_improvements > 0 &&
-      Entity.unit_type (snd (List.nth units u)) = Entity.Worker in
+      Entity.unit_type (snd (List.nth units u)) = Entity.Worker && 
+      List.length adjacent_cities <> 0 in
     let tabs = [Unit (u, i); City 0; Tech 0] in
     I.vcat [
       snap (I.hcat (List.map (fun t -> tab_img t (t = ( Unit (u,i) ))) tabs));
@@ -664,8 +666,8 @@ let city_imgs t (col, row) is_selected gst =
     I.empty
   )
 
-(* [move_unit_tile gst dir] returns a new game state for movement in a direction,
- * if the move is a legal move *)
+(* [move_unit_tile gst dir] returns the new coordinates for movement in a direction,
+ * if the currently selected unit can move in that direction *)
 let move_unit_tile gst dir =
   let (max_cols, max_rows) = World.map_dimensions gst.map in
   let (col, row) = gst.selected_tile in
@@ -786,8 +788,9 @@ let change_pane_state up pst tile_changing is_improvement_key =
   | City c -> if tile_changing then City (0) else City (c + diff)
   | Tech t -> if tile_changing then Tech (0) else Tech (t + diff)
 
-(* [move_unit gst dir] returns a new game state with the current selected unit being moved *)
-let move_unit gst dir =
+(* [move_unit gst dir (w, h)] returns a new game state with the current selected unit being moved,
+ * if the move is a legal move *)
+let move_unit gst dir (w, h) =
   match gst.pane_state with
   | Unit (u,_) ->
     let (col, row) = gst.selected_tile in
@@ -796,10 +799,15 @@ let move_unit gst dir =
     if num_units > 0 then
       let current_unit = List.nth units (u %! num_units) in
       let (new_col, new_row) = move_unit_tile gst dir in
+      let (left, top) = gst.map_display in
+      let (tiles_w, tiles_h) = calculate_tiles_w_h (w, h) in
+      let new_map_left = if new_col >= (left + tiles_w) then left + 1 else if new_col < left then left - 1 else left in
+      let new_map_top = if new_row >= (top + tiles_h) then top + 1 else if new_row < top then top - 1 else top in
       if (col, row) <> (new_col, new_row) && Player.player_owns_entity (gst.players.(gst.current_player)) current_unit then
         let gst', success = State.make_move gst current_unit (World.get_tile gst.map new_col new_row) in
         if not success then gst' else { gst' with
-          selected_tile = (new_col, new_row)
+          selected_tile = (new_col, new_row);
+          map_display = (new_map_left, new_map_top)
         }
       else gst
     else gst
@@ -816,13 +824,13 @@ let found_city gst =
     let num_units = List.length units in
     if num_units > 0 then
       let current_unit_num = u %! num_units in
-      let _, current_unit = List.nth units current_unit_num in
+      let (_, current_unit) = List.nth units current_unit_num in
       let current_player = gst.players.(gst.current_player) in
       let unit_entity = Entity.get_unit_entity !current_unit in
       if Entity.unit_type unit_entity = Entity.Worker
         && Player.player_owns_entity current_player current_unit
         && Entity.moves_left unit_entity > 0
-      then State.found_city gst tile current_unit
+      then State.try_founding_city gst tile current_unit
       else gst
     else gst
   | _ -> gst
@@ -928,12 +936,12 @@ let rec main t gst =
         end
       | _ -> main t gst
     end
-  | `Key (`Uchar 113, []) -> main t (move_unit gst `TopLeft)
-  | `Key (`Uchar 119, []) -> main t (move_unit gst `TopMiddle)
-  | `Key (`Uchar 101, []) -> main t (move_unit gst `TopRight)
-  | `Key (`Uchar 97, []) -> main t (move_unit gst `BottomLeft)
-  | `Key (`Uchar 115, []) -> main t (move_unit gst `BottomMiddle)
-  | `Key (`Uchar 100, []) -> main t (move_unit gst `BottomRight)
+  | `Key (`Uchar 113, []) -> main t (move_unit gst `TopLeft (w, h))
+  | `Key (`Uchar 119, []) -> main t (move_unit gst `TopMiddle (w, h))
+  | `Key (`Uchar 101, []) -> main t (move_unit gst `TopRight (w, h))
+  | `Key (`Uchar 97, []) -> main t (move_unit gst `BottomLeft (w, h))
+  | `Key (`Uchar 115, []) -> main t (move_unit gst `BottomMiddle (w, h))
+  | `Key (`Uchar 100, []) -> main t (move_unit gst `BottomRight (w, h))
   | `Key (`Uchar 102, []) -> main t (found_city gst)
   | `Key (`Uchar 105, []) -> main t (build_improvement gst)
   | _ -> main t gst
