@@ -323,7 +323,7 @@ let rec main t i =
 let new_state t mst =
   let (w, h) = Term.size t in
   match mst with
-  | Loading -> Term.image t (img t (w, h) mst); Unix.sleep 2; Menu(Copyright)
+  | Loading -> Term.image t (img t (w, h) mst); Unix.sleep 0; Menu(Copyright)
   | Copyright -> Menu(copyright t (w, h) mst)
   | Main i -> main t i
   | Multiplayer (i, options) -> multiplayer t (w, h) i options

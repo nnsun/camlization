@@ -418,12 +418,13 @@ let left_pane (w, h) gst =
       else
         max 1 (1 + ((Tech.tech_cost t - Player.science player)
         / (Player.science_rate player))) in
-    let tech_img i t show show_selected =
-      if List.length techs = 0 then I.empty else
-      if i = t_index %! List.length techs && show && show_selected then
+    let tech_img i t show show_selected blink =
+      let selected_text = A.(fg white ++ bg black ++ st bold) in
+      if not show || List.length techs = 0 then I.empty else
+      if i = t_index %! List.length techs && show_selected then
       I.hcat [
-        I.string A.(fg white ++ bg black ++ st bold ++ st blink) "▶ ";
-        I.string A.(fg white ++ bg black ++ st bold) (
+        I.string (if blink then A.(selected_text ++ st blink) else selected_text) "▶ ";
+        I.string selected_text (
           tech_str t ^ " (" ^ (string_of_int (turns_left t)) ^ " turns)"
         )
       ]
@@ -437,9 +438,9 @@ let left_pane (w, h) gst =
       I.void 1 1;
       snap (I.(string text "CURRENT RESEARCH:"));
       I.void 1 1;
-      (
+      snap (
         match current_tech with
-        | Some t -> tech_img (-1) t true false
+        | Some t -> tech_img (0) t true true false
         | None -> snap I.(string text "Choose research")
       );
       I.void 1 2;
@@ -449,8 +450,8 @@ let left_pane (w, h) gst =
         snap (
           match current_tech with
           | Some curr ->
-            I.vcat (List.mapi (fun i t -> tech_img i t (t = curr) false) techs)
-          | None -> I.vcat (List.mapi (fun i t -> tech_img i t true true) techs)
+            I.vcat (List.mapi (fun i t -> tech_img i t (t != curr) false true) techs)
+          | None -> I.vcat (List.mapi (fun i t -> tech_img i t true true true) techs)
         )
       );
       I.void 1 2;
@@ -458,7 +459,12 @@ let left_pane (w, h) gst =
       snap (I.string text "Confirm with [SPACE]");
       I.void 1 2;
       snap (I.string text "RESEARCHED TECHS:");
-      snap (I.vcat (List.mapi (fun i t -> tech_img i t true false) (Player.techs player)))
+      snap (
+        I.vcat (
+          let map i t = tech_img i t true false false in
+          List.mapi map (Player.techs player)
+        )
+      )
     ]
   in
   I.zcat [
@@ -486,22 +492,22 @@ let calculate_tiles_w_h (w, h) =
 let terrain_img tile =
   World.(
     match terrain tile with
-    | Grassland -> I.string A.(fg green) ",,,,,,,,,,,,,,,"
-    | Plains -> I.string A.(fg green) "______________"
-    | Desert -> I.string A.(fg lightyellow) "____↟______↟__"
+    | Grassland -> I.string A.(fg green) ",,,,,,,,,,,,,,"
+    | Plains -> I.string A.(fg green) "_______________"
+    | Desert -> I.string A.(fg lightyellow) "__↟_________↟_"
     | Tundra -> I.string A.(fg (gray 1)) "______________"
     | Ice -> I.string A.(fg lightblue) "______________"
-    | Ocean -> I.string A.(fg blue) "=============="
-    | Coast -> I.string A.(fg lightyellow) "=-._____↟↟_____.-="
+    | Ocean -> I.string A.(fg blue) "〜〜〜〜〜〜〜〜〜〜〜〜〜〜"
+    | Coast -> I.string A.(fg lightyellow) "〜〜-.___--_.-〜〜"
     | Lake -> I.string A.(fg blue) "--------------")
 
 let feature_img f =
   World.(
     match f with
-    | Forest -> I.string A.(fg green) "↟ ↟  ↟↟ ↟ ↟↟"
-    | Jungle -> I.string A.(fg green) "↟↟↟↟↟↟↟↟↟↟↟↟"
-    | Oasis -> I.string A.(fg blue) "↟__↟"
-    | FloodPlains -> I.string A.(fg blue) "====")
+    | Forest -> I.string A.(fg green) " ↟  ↟ ↟↟ ↟  ↟ "
+    | Jungle -> I.string A.(fg lightgreen) "↟↟↟↟↟↟↟↟↟↟↟↟"
+    | Oasis -> I.string A.(fg blue) "_↟___↟___↟__"
+    | FloodPlains -> I.string A.(fg blue) "-=-〜=-〜--=〜-")
 
 let feature_opt_img tile =
   World.(
@@ -514,7 +520,7 @@ let elevation_img u tile =
     World.(
       match elevation tile with
       | Flatland -> "            "
-      | Hill -> "◠◠◠◠◠◠◠◠◠◠◠◠"
+      | Hill -> "︵  ︵︵ ︵ ︵ ︵︵"
       | Peak -> "△^△^△^^△^△^△^△"
     ) in
   I.string A.(fg (if u then blue else (gray 7)) ++ st underline) str
