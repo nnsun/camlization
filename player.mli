@@ -9,6 +9,12 @@ val new_player : World.tile -> player
 (* [gold player] is the amount of gold player p has stored *)
 val gold : player -> gold
 
+(* [filter_city_refs player] is the list of refs of cities that [player] owns *)
+val filter_city_refs : player -> Entity.entity ref list
+
+(* [filter_unit_refs player] is the list of refs of units that [player] owns *)
+val filter_unit_refs : player -> Entity.entity ref list
+
 (* [gold_rate player] is the amount of gold player is gaining per turn. Can be
  * negative *)
 val gold_rate : player -> gold
@@ -55,12 +61,6 @@ val set_production : player -> player
 (* [set_growth player] calculates growth for each city, and adjusts food
  * stockpile levels and population *)
  val set_growth : player -> player
-
-(* [filter_city_refs player] is the list of refs of cities that [player] owns *)
-val filter_city_refs : player -> Entity.entity ref list
-
-(* [filter_unit_refs player] is the list of refs of units that [player] owns *)
-val filter_unit_refs : player -> Entity.entity ref list
 
 (* [research_tech player tech] updates the current research of [player] to [tech] *)
 val research_tech : player -> Tech.tech -> player

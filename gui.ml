@@ -17,6 +17,7 @@ let tile_width = 17
 let tile_height = 10
 let left_pane_frac = 0.25
 
+(* Calculations for the positioning/size of the left pane and tiles *)
 let pane_width w =
   (float_of_int w) *. left_pane_frac |> int_of_float
 
@@ -24,8 +25,10 @@ let initial_tile_left w =
   left_padding + (pane_width w)
 let initial_tile_top = top_padding
 
+(* [grid xxs] concatenates images in [xxs] horizontally and vertically to form a new image *)
 let grid xxs = xxs |> List.map I.hcat |> I.vcat
 
+(* [status_bar (W, h) gst] is the status bar image *)
 let status_bar (w, h) gst =
   let player = gst.players.(gst.current_player) in
   let science_text = "+" ^ string_of_int (Player.science_rate player) in
@@ -57,6 +60,7 @@ let status_bar (w, h) gst =
   let background = I.tile w 1 (I.string A.(bg black) " ") in
   I.(metrics </> status </> background)
 
+(* [player_bar (W, h) gst] is the player bar image *)
 let player_bar (w, h) gst =
   let pimg i p =
     let player_string = " PLAYER " ^ string_of_int (i+1) ^ " " in
@@ -80,6 +84,8 @@ let player_bar (w, h) gst =
   let bar = Array.mapi pimg gst.players |> Array.to_list |> I.hcat in
   I.(pad ~l:(pane_width w) ~t:(h - 4) (hsnap (w - pane_width w) bar))
 
+(* [tile_yields_img tile] is the image displayed on the left pane's tile screen,
+ * displaying food, gold, and production yields for the [tile]. *)
 let tile_yields_img tile =
   World.(
     let y = tile_yields tile in
@@ -97,6 +103,7 @@ let tile_yields_img tile =
       string A.(fg blue ++ bg black) (string_of_int y.production);
     ]))
 
+(* [progress_str f] is the string that indicates the progress on a city tile *)
 let progress_str f =
   if f < 0.15 then "▁"
   else if f < 0.30 then "▂"
@@ -106,6 +113,7 @@ let progress_str f =
   else if f < 0.90 then "▇"
   else "█"
 
+(* [tech_str t] returns the constructor's name for tech [t] *)
 let tech_str t =
   Tech.(
     match t with
@@ -125,7 +133,7 @@ let tech_str t =
     | TheWheel -> "The Wheel"
     | Mathematics -> "Mathematics"
   )
-
+(* [unit_type_str utype] returns the constructor's name for unit type [utype] *)
 let unit_type_str utype =
   Entity.(
     match utype with
@@ -141,8 +149,10 @@ let unit_type_str utype =
     | Swordsman -> "Swordsman"
     | Catapult -> "Catapult")
 
+(* [unit_str u] returns the string representation of the unit [u] *)
 let unit_str u = unit_type_str (Entity.unit_type u)
 
+(* [improvement_str i] returns the constructor's name for improvement [i] *)
 let improvement_str i =
   World.(
     match i with
@@ -154,12 +164,15 @@ let improvement_str i =
     | Pasture -> "Pasture"
     | Plantation -> "Plantation")
 
+(* [improvement_opt_str tile] returns the string representation of [tile]'s 
+ * improvement, if present. "" otherwise. *)
 let improvement_opt_str tile =
   World.(
     match improvement tile with
     | Some i -> improvement_str i
     | None -> "")
 
+(* [unit_list_img gst ul selected_unit] returns the image with a list of units for the selected tile *)
 let unit_list_img gst ul selected_unit =
   let rec unit_list_img_helper ul selected_unit current_unit =
     let health = A.(fg red ++ bg black) in
@@ -200,6 +213,7 @@ let unit_list_img gst ul selected_unit =
       ] in
   unit_list_img_helper ul selected_unit 0
 
+(* [tab_img pst selected] returns the image with the left pane navigation tabs *)
 let tab_img pst selected =
   let title_string =
     match pst with
@@ -234,6 +248,7 @@ let tab_img pst selected =
     ])
   ))
 
+(* [possible_improvements gst tile] returns a list of possible improvements for [tile] *)
 let possible_improvements gst tile =
   let tile_possible_improvements = World.tile_possible_improvements tile in
   let current_player = gst.players.(gst.current_player) in
@@ -244,6 +259,8 @@ let possible_improvements gst tile =
       List.mem Tech.IronWorking (Player.techs current_player)
     else List.mem i tile_possible_improvements)
 
+(* [visible_resource gst tile] returns the resource visible to the current player, 
+ * if possible. None otherwise. *)
 let visible_resource gst tile =
   let current_player = gst.players.(gst.current_player) in
   let all_visible_resources =
@@ -253,6 +270,7 @@ let visible_resource gst tile =
   | None -> None
   | Some r -> if List.mem r all_visible_resources then Some r else None
 
+(* [possible_improvements_img pi selected_pi] returns the image with a list of possible improvements for [tile] *)
 let possible_improvements_img pi selected_pi =
   let rec possible_improvements_img_helper pi selected_pi current_pi =
     match pi with
@@ -277,6 +295,7 @@ let possible_improvements_img pi selected_pi =
       ] in
   possible_improvements_img_helper pi selected_pi 0
 
+(* [left_pane (w, h) gst] is the image for the left pane, based on the current [gst] *)
 let left_pane (w, h) gst =
   let player = gst.players.(gst.current_player) in
   let pane_width = pane_width w in
@@ -472,6 +491,7 @@ let left_pane (w, h) gst =
     I.(char A.(fg white ++ bg black) ' ' pane_width (h - top_padding))
   ] |> I.pad ~t:top_padding
 
+(* [ui_img (w, h) gst] is the image with the status bar, player bar, and left pane *)  
 let ui_img (w, h) gst =
   I.zcat [
     status_bar (w, h) gst;
@@ -479,6 +499,8 @@ let ui_img (w, h) gst =
     left_pane (w, h) gst
   ]
 
+(* [calculate_tiles_w_h (w, h)] returns the number of tiles that can be displayed 
+ * given the dimensions [(w, h)], in the form (tiles_across, tiles_down) *)
 let calculate_tiles_w_h (w, h) =
   let tiles_w = (float_of_int w -. float_of_int (pane_width w) -.
                 float_of_int left_padding -.
@@ -489,6 +511,7 @@ let calculate_tiles_w_h (w, h) =
                 float_of_int tile_height |> floor |> int_of_float in
   (tiles_w, tiles_h)
 
+(* [terrain_img tile] returns the image for [tile]'s terrain *)
 let terrain_img tile =
   World.(
     match terrain tile with
@@ -501,6 +524,7 @@ let terrain_img tile =
     | Coast -> I.string A.(fg lightyellow) "〜〜-.___--_.-〜〜"
     | Lake -> I.string A.(fg blue) "--------------")
 
+(* [feature_img f] returns the image for the given feature *)
 let feature_img f =
   World.(
     match f with
@@ -508,12 +532,15 @@ let feature_img f =
     | Jungle -> I.string A.(fg lightgreen) "↟↟↟↟↟↟↟↟↟↟↟↟"
     | Oasis -> I.string A.(fg blue) "_↟___↟___↟__")
 
+(* [feature_img tile] returns the image for [tile]'s feature, if present *)
 let feature_opt_img tile =
   World.(
     match feature tile with
     | Some f -> feature_img f
     | None -> I.empty)
 
+(* [elevation_img u tile] returns the image for [tile]'s elevation,
+ * where [u] indicates whether the text should be the highlighted color *)
 let elevation_img u tile =
   let str =
     World.(
@@ -524,6 +551,7 @@ let elevation_img u tile =
     ) in
   I.string A.(fg (if u then blue else (gray 7)) ++ st underline) str
 
+(* [resource_img r] returns the image for resource [r] *)
 let resource_img r =
   World.(
     match r with
@@ -550,17 +578,20 @@ let resource_img r =
     | Sugar -> I.string A.empty "Sugar"
   )
 
+(* [resource_opt_img r] returns the image for [tile]'s resource, if present *)
 let resource_opt_img gst tile =
   World.(
     match visible_resource gst tile with
     | Some r -> resource_img r
     | None -> I.empty)
 
+(* [tile_unit_str units] is the string indicating the number of units on a tile *)
 let tile_unit_str units =
   if List.length units = 0 then ""
   else if List.length units = 1 then string_of_int (List.length units) ^ " unit"
   else string_of_int (List.length units) ^ " units"
 
+(* [city_imgs (col, row) gst] returns the image for the city on the map *)
 let city_imgs (col, row) gst =
   match State.city (col, row) gst with
   | Some (p, city) ->
@@ -614,6 +645,8 @@ let city_imgs (col, row) gst =
 
   | None -> (I.empty, I.empty, I.empty, I.empty)
 
+(* [move_unit_tile gst dir] returns a new game state for movement in a direction,
+ * if the move is a legal move *)
 let move_unit_tile gst dir =
   let (max_cols, max_rows) = World.map_dimensions gst.map in
   let (col, row) = gst.selected_tile in
@@ -645,6 +678,8 @@ let move_unit_tile gst dir =
       else (col + 1, row)
     else (col, row)
 
+(* [tile_img is_selected (col, row) (left_col, top_row) gst (w, h)] is the image 
+ * for the tile in position [(col, row)] *)
 let tile_img is_selected (col, row) (left_col, top_row) gst (w, h) =
   let color = if is_selected then A.(fg blue) else A.(fg (gray 3)) in
   let text_color = A.(fg white) in
@@ -674,23 +709,25 @@ let tile_img is_selected (col, row) (left_col, top_row) gst (w, h) =
     [I.void 4 1; I.uchar color 0x2572 1 1; I.hsnap 12 (elevation_img is_selected t); I.uchar color 0x2571 1 1];
   ] |> I.pad ~l:left ~t:top
 
-let rec game_map_helper img (w, h) gst tiles_w tiles_h (col, row) (left_col, top_row) (map_cols, map_rows) =
-  let (next_col, next_row) = if col < min (map_cols - 1) (tiles_w + left_col) then (col + 1, row) else (left_col, row+1) in
-  let acc = I.(img </> tile_img false (col, row) (left_col, top_row) gst (w, h)) in
-  if next_row <= min (map_rows - 1) (tiles_h + top_row - 1) then
-    game_map_helper acc (w, h) gst tiles_w tiles_h (next_col, next_row) (left_col, top_row) (map_cols, map_rows)
-  else acc
-
+(* [game_map (w, h) gst] returns the image with the game map of tiles drawn *)
 let game_map (w, h) gst =
+  let rec game_map_helper img (w, h) gst tiles_w tiles_h (col, row) (left_col, top_row) (map_cols, map_rows) =
+    let (next_col, next_row) = if col < min (map_cols - 1) (tiles_w + left_col) then (col + 1, row) else (left_col, row+1) in
+    let acc = I.(img </> tile_img false (col, row) (left_col, top_row) gst (w, h)) in
+    if next_row <= min (map_rows - 1) (tiles_h + top_row - 1) then
+      game_map_helper acc (w, h) gst tiles_w tiles_h (next_col, next_row) (left_col, top_row) (map_cols, map_rows)
+    else acc in
   let (tiles_w, tiles_h) = calculate_tiles_w_h (w, h) in
   let (selected_col, selected_row) = gst.selected_tile in
   let (left_col, top_row) = gst.map_display in
   let (map_cols, map_rows) = World.map_dimensions gst.map in
   game_map_helper I.(tile_img true (selected_col, selected_row) (left_col, top_row) gst (w, h)) (w, h) gst tiles_w tiles_h (left_col, top_row) (left_col, top_row) (map_cols, map_rows)
 
+(* [img t (w, h) gst] returns the image of the menu bars and game map *)
 let img t (w, h) gst =
   I.(ui_img (w, h) gst </> game_map (w, h) gst)
 
+(* [select_tile direction gst] returns the new coordinates after selecting a new tile *)
 let select_tile direction gst =
   let map = State.game_map gst in
   let (max_cols, max_rows) = World.map_dimensions map in
@@ -701,6 +738,8 @@ let select_tile direction gst =
   | `Left -> (max 0 (current_col - 1), current_row)
   | `Right -> (min (max_cols - 1) (current_col + 1), current_row)
 
+(* [change_pane_state up pst tile_changing is_improvement_key] handles changing the left pane,
+ * either to a new screen or a unit, tech, etc. selection *)
 let change_pane_state up pst tile_changing is_improvement_key =
   let diff = if up then 1 else -1 in
   match pst with
@@ -712,6 +751,7 @@ let change_pane_state up pst tile_changing is_improvement_key =
   | City c -> if tile_changing then City (0) else City (c + diff)
   | Tech t -> if tile_changing then Tech (0) else Tech (t + diff)
 
+(* [move_unit gst dir] returns a new game state with the current selected unit being moved *)
 let move_unit gst dir =
   match gst.pane_state with
   | Unit (u,_) ->
@@ -730,6 +770,8 @@ let move_unit gst dir =
     else gst
   | _ -> gst
 
+(* [found_city gst] returns a new game state with a new city founded at the current 
+ * selected tile, if possible according to game rules *)
 let found_city gst =
   match gst.pane_state with
   | Unit (u,_) ->
@@ -739,13 +781,17 @@ let found_city gst =
     let num_units = List.length units in
     if num_units > 0 then
       let current_unit_num = u %! num_units in
-      let current_unit = snd (List.nth units current_unit_num) in
-      if Entity.unit_type (Entity.get_unit_entity !current_unit) = Entity.Worker then
-        State.found_city gst tile current_unit
+      let _, current_unit = List.nth units current_unit_num in
+      let current_player = gst.players.(gst.current_player) in
+      if Entity.unit_type (Entity.get_unit_entity !current_unit) = Entity.Worker
+        && Player.player_owns_entity current_player current_unit
+      then State.found_city gst tile current_unit
       else gst
     else gst
   | _ -> gst
 
+(* [build_improvement gst] returns a new game state with an improvement built 
+ * on the selected tile, if possible *)  
 let build_improvement gst =
   match gst.pane_state with
   | Unit (u, i) ->
@@ -764,12 +810,15 @@ let build_improvement gst =
         if num_possible_improvements > 0 then
           let num_current_improvement = i mod num_possible_improvements in
           let new_improvement = List.nth possible_improvements num_current_improvement in
+          let health = Entity.health !current_unit in
+          current_unit := Entity.set_health !current_unit (health - 50);
           World.set_improvement gst.map col row new_improvement; gst
         else gst
       else gst
     else gst
   | _ -> gst
 
+(* [main t gst] handles changes in the game state based on player input *)
 let rec main t gst =
   let (w, h) = Term.size t in
   Term.image t (img t (w, h) gst);
