@@ -10,17 +10,27 @@ let init_sci p = Player.science p <> 0
 let init_unit p = List.length (Player.entities p) <> 1
 let init_worker p = Entity.unit_type
     (Entity.get_unit_entity (!(List.hd (Player.entities p)))) <> Entity.Worker
+let init_curr_tech p = Player.current_tech p <> None
 
+let next = next_turn init
 
+let player2 = next.players.(1)
+let new_player2 = Player.research_tech player2 Tech.Agriculture
 
 let tests = [
   "init_turns" >:: (fun _ -> assert_equal init.player_turns 0);
   "num_players" >:: (fun _ -> assert_equal (Array.length init.players) num_players);
   "init_gold" >:: (fun _ -> assert_equal (Array.exists init_gold init.players) false);
   "init_techs" >:: (fun _ -> assert_equal (Array.exists init_techs init.players) false);
+  "init_curr_tech" >:: (fun _ -> assert_equal (Array.exists init_curr_tech init.players) false);
   "init_sci" >:: (fun _ -> assert_equal (Array.exists init_techs init.players) false);
   "init_unit" >:: (fun _ -> assert_equal (Array.exists init_unit init.players) false);
-  "init_worker" >:: (fun _ -> assert_equal (Array.exists init_unit init.players) false);
+  "init_worker" >:: (fun _ -> assert_equal (Array.exists init_worker init.players) false);
+  "init_curr_player" >:: (fun _ -> assert_equal init.current_player 0);
+  "next_curr_player" >:: (fun _ -> assert_equal next.current_player 1);
+  "diff_selected" >:: (fun _ -> assert_equal (init.selected_tile <> next.selected_tile) true);
+  "available_techs" >:: (fun _ -> assert_equal (available_techs init) [Tech.Agriculture]);
+  "research_ag" >:: (fun _ -> assert_equal (Player.current_tech new_player2) (Some Tech.Agriculture))
 ]
 
 let suite = "test_suite" >::: tests
