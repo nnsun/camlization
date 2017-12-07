@@ -740,9 +740,11 @@ let found_city gst =
     let num_units = List.length units in
     if num_units > 0 then
       let current_unit_num = u %! num_units in
-      let current_unit = snd (List.nth units current_unit_num) in
-      if Entity.unit_type (Entity.get_unit_entity !current_unit) = Entity.Worker then
-        State.found_city gst tile current_unit
+      let _, current_unit = List.nth units current_unit_num in
+      let current_player = gst.players.(gst.current_player) in
+      if Entity.unit_type (Entity.get_unit_entity !current_unit) = Entity.Worker
+        && Player.player_owns_entity current_player current_unit
+      then State.found_city gst tile current_unit
       else gst
     else gst
   | _ -> gst

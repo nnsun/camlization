@@ -37,6 +37,9 @@ let start_state = Menu (Loading)
 
 let initial_game_state options =
   let map = World.generate_map in
+  let indexes = Array.mapi (fun i _ -> i) (Array.make options.player_count 0) in
+  let player i = Player.new_player (World.get_tile map 1 i) in
+  let players = Array.map player indexes in
   {
     player_turns = 0;
     map = map;
@@ -44,7 +47,7 @@ let initial_game_state options =
     selected_tile = (0, 0);
     pane_state = Tile;
     current_player = 0;
-    players = Array.make options.player_count (Player.new_player (World.get_tile map 1 1))
+    players = players
   }
 
 let turns gst = gst.player_turns / Array.length gst.players
