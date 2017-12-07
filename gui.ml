@@ -93,25 +93,6 @@ let player_bar (w, h) gst =
   let bar = Array.mapi pimg gst.players |> Array.to_list |> I.hcat in
   I.(pad ~l:(pane_width w) ~t:(h - 4) (hsnap (w - pane_width w) bar))
 
-(* [tile_yields_img tile] is the image displayed on the left pane's tile screen,
- * displaying food, gold, and production yields for the [tile]. *)
-let tile_yields_img tile =
-  World.(
-    let y = tile_yields tile in
-    I.(hcat [
-      uchar A.(fg green) 127823 1 1;
-      void 1 1;
-      string A.(fg green) (string_of_int y.food);
-      void 1 1;
-      uchar A.(fg yellow) 11044 1 1;
-      void 1 1;
-      string A.(fg yellow) (string_of_int y.gold);
-      void 1 1;
-      uchar A.(fg blue) 128296 1 1;
-      void 1 1;
-      string A.(fg blue) (string_of_int y.production);
-    ]))
-
 (* [progress_str f] is the string that indicates the progress on a city tile *)
 let progress_str f =
   if f < 0.15 then "▁"
@@ -743,6 +724,62 @@ let tile_img is_selected (col, row) (left_col, top_row) gst (w, h) =
     [I.void 4 1; I.uchar color 0x2572 1 1; I.hsnap 12 (elevation_img is_selected true t); I.uchar color 0x2571 1 1];
   ] |> I.pad ~l:left ~t:top
 
+let tile_details_img (w, h) (col, row) tile =
+  World.(
+    let yields =
+      let y = tile_yields tile in
+        I.(hcat [
+          uchar A.(fg green) 127823 1 1;
+          void 1 1;
+          string A.(fg green) (string_of_int y.food);
+          void 1 1;
+          uchar A.(fg yellow) 11044 1 1;
+          void 1 1;
+          string A.(fg yellow) (string_of_int y.gold);
+          void 1 1;
+          uchar A.(fg blue) 128296 1 1;
+          void 1 1;
+          string A.(fg blue) (string_of_int y.production);
+        ])
+    in
+    let terrain = match terrain tile with
+    | Grassland -> "grassland"
+    | Plains -> "plains"
+    | Desert -> "desert"
+    | Tundra -> "tundra"
+    | Ice -> "ice"
+    | Ocean -> "ocean"
+    | Lake -> "lake"
+    | Coast -> "coast"
+    in
+    let elevation = match elevation tile with
+    | Flatland -> ", flatland"
+    | Hill -> ", hills"
+    | Peak -> ", mountains"
+    in
+    let feature = match feature tile with
+    | Some Forest -> ", forest"
+    | Some Jungle -> ", jungle"
+    | Some Oasis -> ", oasis"
+    | None -> ""
+    in
+    I.(
+      hsnap ~align:`Right (w-5) (string A.empty (terrain ^ elevation ^ feature))
+      <->
+      hsnap ~align:`Right (w-5) (
+        string A.empty (
+          "  ("
+          ^ string_of_int col
+          ^ ","
+          ^ string_of_int row
+          ^ ")  "
+        )
+        <|>
+        yields
+      )
+    )
+  )
+
 (* [game_map (w, h) gst] returns the image with the game map of tiles drawn *)
 let game_map (w, h) gst =
   let rec game_map_helper img (w, h) gst tiles_w tiles_h (col, row) (left_col, top_row) (map_cols, map_rows) =
@@ -755,19 +792,11 @@ let game_map (w, h) gst =
   let (selected_col, selected_row) = gst.selected_tile in
   let (left_col, top_row) = gst.map_display in
   let (map_cols, map_rows) = World.map_dimensions gst.map in
+  let t = World.get_tile gst.map selected_col selected_row in
   I.(
-    pad ~t:(h-1) (hsnap ~align:`Right (w-4) (
-      hcat [
-        tile_yields_img (World.get_tile gst.map selected_col selected_row);
-        string A.empty (
-          "  ("
-          ^ string_of_int selected_col
-          ^ ","
-          ^ string_of_int selected_row
-          ^ ")"
-        );
-      ]
-    ))
+    pad ~t:(h-3) (
+      tile_details_img (w, h) (selected_col, selected_row) t
+    )
     </>
     game_map_helper
       (tile_img true (selected_col, selected_row) (left_col, top_row) gst (w, h))
