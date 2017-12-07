@@ -7,7 +7,7 @@ CS 3110 Fall 2017 Final Project
 
 ## Installation
 
-Note: we assume that you are running on the CS 3110 VM or have installed OCaml and OPAM.  Please follow these [instructions](http://www.cs.cornell.edu/Courses/cs3110/2016fa/install.html) if you need to install them.
+Note: we assume that you are running on the CS 3110 VM.  Please follow these [instructions](http://www.cs.cornell.edu/Courses/cs3110/2016fa/install.html) if you need to install them.
 
 Camlization requires the [Notty](https://github.com/pqwy/notty) terminal graphics library.  
 
