@@ -102,13 +102,12 @@ let city_ref coordinates gst =
     Some (List.hd l)
   with _ -> None
 
-let rec satisfies_pred pred lst =
-  match lst with
-  | [] -> None
-  | a::b ->
-    if pred a then Some a else satisfies_pred pred b
-
 let tile_contains_enemy state tile =
+  let rec satisfies_pred pred lst =
+    match lst with
+    | [] -> None
+    | a::b ->
+      if pred a then Some a else satisfies_pred pred b in
   let player = state.players.(state.current_player) in
   let rec cycle_players players =
     match players with
@@ -155,7 +154,6 @@ let combat e1 e2 =
           if Entity.health new_e1 <= 0 then (new_e1, new_e2)
           else combat_round new_e1 new_e2 in
   combat_round e1 e2
-
 
 let make_move state entity_ref tile =
   let player = state.players.(state.current_player) in
@@ -212,6 +210,7 @@ let make_move state entity_ref tile =
             (terrain <> World.Ocean && terrain <> World.Coast) then (state, false)
     else go_to_tile state unit_entity tile
 
+(* [strategics state] returns a list of the strategic resources in the game [state] *)
 let strategics state =
   let p = state.players.(state.current_player) in
   let city_refs = Player.filter_city_refs p in
@@ -270,7 +269,7 @@ let available_units state =
     | Some res -> List.mem res (strategics state) in
   List.filter pred units
 
-
+(* [worked_tiles city map] returns a list of the worked tiles for [city] *)
 let worked_tiles city map =
   let workable_tiles = World.adjacent_tiles (Entity.tile city) map in
   let sorted_tiles = List.rev
@@ -288,6 +287,7 @@ let worked_tiles city map =
         take (n - 1) (a::acc) b in
   take pop [] sorted_tiles
 
+(* [set_city_yields state] sets the yields for cities owned by the current player *)
 let set_city_yields state =
   let p = state.players.(state.current_player) in
   let city_entities = Player.filter_city_refs p in

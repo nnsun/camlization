@@ -1,11 +1,23 @@
-type terrain = Grassland | Plains | Desert | Tundra | Ice
+type map = tile array array
+
+and tile = {
+  coordinates : int * int;
+  resource : resource option;
+  improvement : improvement option;
+  terrain : terrain;
+  feature : feature option;
+  elevation : elevation;
+  movement_cost : int
+}
+
+and terrain = Grassland | Plains | Desert | Tundra | Ice
   | Ocean | Coast | Lake
 
-type feature = Forest | Jungle | Oasis
+and feature = Forest | Jungle | Oasis
 
-type elevation = Flatland | Hill | Peak
+and elevation = Flatland | Hill | Peak
 
-type resource =
+and resource =
   | Fish | Crab
   | Gold | Silver | Gems | Salt | Iron
   | Marble | Stone
@@ -14,7 +26,7 @@ type resource =
   | Sheep | Cattle | Horses
   | Cotton | Banana | Sugar
 
-type improvement = FishingBoats | Mine | Quarry | Farm | Camp | Pasture | Plantation
+and improvement = FishingBoats | Mine | Quarry | Farm | Camp | Pasture | Plantation
 
 type tile_yields = {
   gold : int;
@@ -22,6 +34,7 @@ type tile_yields = {
   production : int
 }
 
+(* Constants for food, production, and gold calculations *)
 let terrain_yields_map = [
   Grassland, { food = 2; production = 0; gold = 0 };
   Plains, { food = 1; production = 1; gold = 0 };
@@ -91,6 +104,7 @@ let improvement_yields_map res = [
   );
 ]
 
+(* Constants for movement calculations *)
 let feature_movement_cost feat =
   match feat with
   | Some Forest -> 1
@@ -103,18 +117,6 @@ let elevation_movement_cost elev =
   | Hill -> 1
   | Peak -> 1000
 
-type tile = {
-  coordinates : int * int;
-  resource : resource option;
-  improvement : improvement option;
-  terrain : terrain;
-  feature : feature option;
-  elevation : elevation;
-  movement_cost : int
-}
-
-type map = tile array array
-
 let get_tile m col row =
   m.(col).(row)
 
@@ -123,6 +125,7 @@ let map_dimensions m =
 
 let coordinates tile = tile.coordinates
 
+(* Helper functions for random map generation *)
 let random_arr =
   let _ = Random.self_init () in
   let rows = Array.make 512 0 in
@@ -201,15 +204,26 @@ let generate_map =
       else Some Jungle in
   let deserts tile n =
     if tile.terrain = Ocean || tile.elevation = Peak ||
-        tile.feature = Some Forest || tile.feature = Some Jungle
-        || n < 40 || n > 60 then tile.terrain else
+        n < 40 || n > 60 then tile.terrain else
     let (_, row_num) = tile.coordinates in
     let (_, rows) = map_dimensions matrix in
     let dist =
       min (abs (row_num - rows / 2)) (abs (row_num - (rows / 2 - 1))) in
-    let multi = (1. -. (float_of_int dist) /. (float_of_int rows)) ** 3. in
+    let multi = (1. -. ((float_of_int dist) /. (float_of_int rows))) ** 3. in
     let v = multi *. (float_of_int (abs (n - 50))) in
-    if v < 1. then Desert else tile.terrain in
+    if v > 5. then Desert else tile.terrain in
+  let ice_tundra tile n =
+    let (_, row_num) = tile.coordinates in
+    let (_, rows) = map_dimensions matrix in
+    let dist =
+      min (abs (row_num - rows / 2)) (abs (row_num - (rows / 2 - 1))) in
+    let multi =
+      (((float_of_int dist) +. (float_of_int rows /. 2.))
+          /. (float_of_int rows)) ** 10. in
+    let v = multi *. (float_of_int (abs (n - 50))) in
+    if v > 10. then
+      if tile.terrain = Ocean then Ice else Tundra
+    else tile.terrain in
   let matrix = map_perlin_array matrix
       (fun v t -> { t with terrain = land_water v }) in
   let matrix = map_perlin_array matrix
@@ -217,7 +231,9 @@ let generate_map =
   let matrix = map_perlin_array matrix
       (fun v t -> { t with feature = (trees t v) }) in
   let matrix = map_perlin_array matrix
-      (fun v t -> { t with terrain = deserts t v }) in
+      (fun v t -> { t with terrain = deserts t v; feature = None }) in
+  let matrix = map_perlin_array matrix
+      (fun v t -> { t with terrain = ice_tundra t v }) in
   matrix
 
 let terrain tile = tile.terrain
@@ -320,17 +336,16 @@ let set_improvement map col row improvement =
     then None else feature in
   map.(row).(col) <- {tile with improvement = Some improvement; feature = new_feature}
 
-let improvement_for_resource r =
-  match r with
-  | Fish | Crab -> FishingBoats
-  | Gold | Silver | Gems | Salt | Iron -> Mine
-  | Marble | Stone -> Quarry
-  | Wheat | Corn | Rice -> Farm
-  | Furs | Ivory | Deer -> Camp
-  | Sheep | Cattle | Horses -> Pasture
-  | Cotton | Banana | Sugar -> Plantation
-
 let tile_possible_improvements tile =
+  let improvement_for_resource r =
+    match r with
+    | Fish | Crab -> FishingBoats
+    | Gold | Silver | Gems | Salt | Iron -> Mine
+    | Marble | Stone -> Quarry
+    | Wheat | Corn | Rice -> Farm
+    | Furs | Ivory | Deer -> Camp
+    | Sheep | Cattle | Horses -> Pasture
+    | Cotton | Banana | Sugar -> Plantation in
   let i_list = match resource tile with
     | None -> []
     | Some r ->

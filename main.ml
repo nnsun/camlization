@@ -2,6 +2,7 @@ open Notty
 open Notty_unix
 open State
 
+(* Functions that keep track of the REPL, switching between menu and game states *)
 let rec menu t mst =
   main t (Menu.new_state t mst)
 and game t gst =
@@ -12,6 +13,7 @@ and main t (st: state) =
   | Game gst -> game t gst
   | Quit -> ()
 
+(* [start] begins the REPL. *)
 let start () =
   let t = Term.create () in
   main t start_state
