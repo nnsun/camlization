@@ -313,7 +313,7 @@ let left_pane (w, h) gst =
       (fun c -> let t = Entity.tile !c in List.mem tile (World.adjacent_tiles t gst.map) ||
         World.coordinates t = World.coordinates tile) cities in
     let show_improvements = num_units > 0 && num_possible_improvements > 0 &&
-      Entity.unit_type (snd (List.nth units u)) = Entity.Worker && 
+      Entity.unit_type (snd (List.nth units u)) = Entity.Worker &&
       List.length adjacent_cities <> 0 in
     let tabs = [Unit (u, i); City 0; Tech 0] in
     I.vcat [
@@ -615,49 +615,57 @@ let city_imgs t (col, row) is_selected gst =
     let pop_attr = A.(fg green ++ st bold) in
     let prod_attr = A.(fg yellow ++ st bold) in
     let top =
-      let health = A.(fg red) in
-      I.(hsnap 12 (hcat [
-        I.void 1 1;
-        I.uchar health 9829 1 1;
-        I.void 1 1;
-        I.string health (string_of_int (Entity.health (Entity.City city)));
-        I.void 2 1;
-        (
-          let str = if gst.players.(gst.current_player) = p
-            then ("YOU")
-            else ("P" ^ string_of_int (State.player_number gst p)) in
-            I.string (player_color gst p) str
-        )
-      ])) in
-    let middle =
       let pop = Entity.population city in
       let pop_frac = float_of_int (Entity.food_stock city)
         /. (float_of_int (Entity.growth_req pop)) in
       let pop_text =
         I.string pop_attr (progress_str pop_frac) in
-      let prod_frac =
+      let prod_frac, prod_turns_left =
         match Entity.unit_production city with
         | Some u ->
-          float_of_int (Entity.production_stock city)
-          /. float_of_int (Entity.unit_cost u)
-        | None -> 0.0
+          (float_of_int (Entity.production_stock city)
+            /. float_of_int (Entity.unit_cost u),
+            if Entity.production_per_turn city = 0 then "99"
+            else string_of_int (
+              max 1 ((Entity.unit_cost u - Entity.production_stock city)
+              / (Entity.production_per_turn city))
+            )
+          )
+        | None -> (0.0, "--")
       in
       let prod_text =
         I.string prod_attr (progress_str prod_frac) in
+      let health = A.(fg red) in
+      I.(hsnap 12 (hcat [
+        I.void 1 1;
+        string pop_attr (string_of_int pop);
+        pop_text;
+        I.void 1 1;
+        I.uchar health 9829 1 1;
+        I.string health (string_of_int (Entity.health (Entity.City city)));
+        I.void 1 1;
+        prod_text <|> (string prod_attr (prod_turns_left));
+      ])) in
+    let middle =
+
       I.(
         hsnap 14 (hcat [
-          string pop_attr (string_of_int pop);
-          pop_text;
           text " ❰";
           white_text "CITY";
           text "❱ ";
-          prod_text;
-          I.void 1 1;
         ])
       )
     in
-    let bottom = text "▐▐▗^▙▗▎▙^▟▗▐▟▐^▙▗▐" in
-    let below = text "" in
+    let bottom =
+      let str = if gst.players.(gst.current_player) = p
+      then ("          YOU            ")
+      else (
+        "            P"
+        ^ string_of_int (State.player_number gst p)
+        ^ "            "
+      ) in I.string (player_color gst p) str
+     in
+    let below = text "▐▐▗^▙▗▎▙^▟▗▐▟▐^▙▗▐" in
     (top, middle, bottom, below)
 
   | None -> (
@@ -855,7 +863,7 @@ let build_improvement gst =
         let num_possible_improvements = List.length possible_improvements in
         let cities = Player.filter_city_refs current_player in
         let adjacent_cities = List.filter
-          (fun c -> let t = Entity.tile !c in List.mem tile (World.adjacent_tiles t gst.map) || 
+          (fun c -> let t = Entity.tile !c in List.mem tile (World.adjacent_tiles t gst.map) ||
             World.coordinates t = World.coordinates tile) cities in
         if num_possible_improvements > 0 && List.length adjacent_cities <> 0 then
           let num_current_improvement = i mod num_possible_improvements in
