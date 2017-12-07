@@ -38,7 +38,7 @@ let gold_rate p =
 
 let maintenance p =
   let free_cities = 4 in
-  let free_units = 10 in
+  let free_units = 4 in
   let city_maintenance =
     if p.num_cities > free_cities then
       10 * (p.num_cities - free_cities)
