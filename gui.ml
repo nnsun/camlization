@@ -688,7 +688,11 @@ let tile_img is_selected (col, row) (left_col, top_row) gst (w, h) =
   let top_underline_offset = if row = top_row || is_selected then 0 else 1 in
   let left = initial_tile_left w + (tile_width*(col - left_col)) in
   let top = initial_tile_top + (tile_height*(row - top_row)) + odd_even_col_offset + top_underline_offset in
-  let t = World.get_tile gst.map col row in
+  let t =
+    try
+      World.get_tile gst.map col row
+    with _ -> failwith (string_of_int col)
+  in
   let units = State.units (col, row) gst in
   let (city_top, city_mid, city_bot, city_bel) = city_imgs (col, row) gst in
   grid [
@@ -854,7 +858,7 @@ let rec main t gst =
       else if new_selected_row > (current_top_row + tiles_h - 1) then
         (current_left_col, current_top_row + 1)
       else if new_selected_col < current_left_col then
-        (current_left_col - 2, current_top_row)
+        (max 0 (current_left_col - 2), current_top_row)
       else if new_selected_row < current_top_row then
         (current_left_col, current_top_row - 1)
       else (current_left_col, current_top_row) in
