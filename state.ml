@@ -336,10 +336,19 @@ let next_turn state =
     let () = if state.current_player + 1 = Array.length state.players then
       Array.iter update_movements_and_health state.players in
   state.players.(state.current_player) <- player;
+  let next_player = (state.current_player + 1) mod (Array.length state.players) in
+  let next_city_list = Player.filter_city_refs (state.players.(next_player)) in
+  let capital = List.filter (fun c -> Entity.is_capital (Entity.get_city_entity (!c))) next_city_list in
+  let new_map_display = match capital with
+    | c :: [] -> let tile = Entity.tile !c in
+      let (col, row) = World.coordinates tile in
+      (max 0 (col - 2), max 0 (row - 2))
+    | _ -> state.map_display in
   {
     state with
-    current_player = (state.current_player + 1) mod (Array.length state.players);
-    player_turns = state.player_turns + 1
+    current_player = next_player;
+    player_turns = state.player_turns + 1;
+    map_display = new_map_display
   }
 
 let found_city gst tile worker_unit =
