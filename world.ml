@@ -187,7 +187,7 @@ let generate_map =
   let land_water n = if n >= 60 then Ocean else Grassland in
   let elevation tile n =
     if tile.terrain = Ocean then Flatland else
-      if n >= 70 then Peak else if n >= 40 then Hill else Flatland in
+      if n >= 58 then Peak else if n >= 40 then Hill else Flatland in
   let trees tile n =
     if tile.terrain = Ocean || tile.elevation = Peak then None else
     if n < 40 || n > 60 then None else
@@ -200,12 +200,19 @@ let generate_map =
       if v < 1. then None
       else if v < 6. then Some Forest
       else Some Jungle in
+  let deserts tile n =
+    if tile.terrain = Ocean || tile.elevation = Peak ||
+        tile.feature = Some Forest ||
+        tile.feature = Some Jungle then tile.terrain
+    else if n >= 58 then Desert else tile.terrain in
   let matrix = map_perlin_array matrix
       (fun v t -> { t with terrain = land_water v }) in
   let matrix = map_perlin_array matrix
       (fun v t -> { t with elevation = (elevation t v) }) in
   let matrix = map_perlin_array matrix
       (fun v t -> { t with feature = (trees t v) }) in
+  let matrix = map_perlin_array matrix
+      (fun v t -> { t with terrain = deserts t v }) in
   matrix
 
 let terrain tile = tile.terrain
