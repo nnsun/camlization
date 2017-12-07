@@ -6,8 +6,6 @@ type player = {
   science: science;
   techs: Tech.tech list;
   entities : Entity.entity ref list;
-  num_cities : int;
-  num_units : int
 }
 
 let new_player tile = {
@@ -16,9 +14,9 @@ let new_player tile = {
   science = 0;
   techs = [];
   entities = [ref (Entity.new_unit Entity.Worker tile)];
-  num_cities = 0;
-  num_units = 1;
 }
+
+let is_alive entity_ref = Entity.health (!entity_ref) > 0
 
 let gold p = p.gold
 
@@ -40,12 +38,14 @@ let maintenance p =
   let free_cities = 4 in
   let free_units = 4 in
   let city_maintenance =
-    if p.num_cities > free_cities then
-      10 * (p.num_cities - free_cities)
+    let num_cities = List.length (List.filter is_alive (filter_city_refs p)) in
+    if num_cities > free_cities then
+      10 * (num_cities - free_cities)
     else 0 in
   let unit_maintenance =
-    if p.num_units > free_units then
-      3 * (p.num_units - free_units)
+    let num_units = List.length (List.filter is_alive (filter_unit_refs p)) in
+    if num_units > free_units then
+      3 * (num_units - free_units)
     else 0 in
   city_maintenance + unit_maintenance
 
@@ -104,7 +104,6 @@ let set_production p =
         let player =
           { player with
             entities = new_entity::player.entities;
-            num_units = player.num_units + 1
           } in
         cycle_cities b player in
   cycle_cities city_refs p
@@ -129,8 +128,9 @@ let research_tech player tech =
   { player with current_tech = Some tech }
 
 let set_new_city player tile =
-  let is_capital = player.num_cities = 0 in
-  { player with num_cities = player.num_cities + 1;
+  let num_cities = List.length (List.filter is_alive (filter_city_refs player)) in
+  let is_capital = num_cities = 0 in
+  { player with
           entities = ref (Entity.new_city tile is_capital) :: player.entities }
 
 let available_improvements player =
