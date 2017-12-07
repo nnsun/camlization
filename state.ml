@@ -36,14 +36,18 @@ type state =
 let start_state = Menu (Loading)
 
 let initial_game_state options =
+  let map = World.generate_map in
+  let indexes = Array.mapi (fun i _ -> i) (Array.make options.player_count 0) in
+  let player i = Player.new_player (World.get_tile map 1 i) in
+  let players = Array.map player indexes in
   {
     player_turns = 0;
-    map = World.generate_map;
+    map = map;
     map_display = (0, 0);
     selected_tile = (0, 0);
     pane_state = Tile;
     current_player = 0;
-    players = Array.append (Array.make (options.player_count - 1) Player.new_player) [| Player.new_player2 |]
+    players = players
   }
 
 let turns gst = gst.player_turns / Array.length gst.players
@@ -323,9 +327,9 @@ let next_turn state =
   let update_movements_and_health p =
     let entities_of_player = List.filter valid_entity (Player.entities p) in
     let units_of_player = List.filter (fun e -> Entity.is_unit !e) entities_of_player in
-    List.iter (fun e -> 
+    List.iter (fun e ->
       let u = Entity.get_unit_entity (!e) in
-      if Entity.moves_left u = Entity.movement_points (Entity.unit_type u) then 
+      if Entity.moves_left u = Entity.movement_points (Entity.unit_type u) then
         let health = Entity.health (!e) in e := Entity.set_health (!e) (health + 10) else ();
         e := Entity.Unit (Entity.reset_movement u)) units_of_player in
     let () = if state.current_player + 1 = Array.length state.players then

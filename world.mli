@@ -9,7 +9,7 @@ type terrain = Grassland | Plains | Desert | Tundra | Ice
   | Ocean | Coast | Lake
 
 (* The possible natural features of a tile *)
-type feature = Forest | Jungle | Oasis | FloodPlains
+type feature = Forest | Jungle | Oasis
 
 (* The possible elevations of a tile *)
 type elevation = Flatland | Hill | Peak
