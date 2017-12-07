@@ -15,3 +15,6 @@ debug:
 
 clean:
 	ocamlbuild -clean && ocamlopt -clean
+
+test:
+	ocamlbuild -use-ocamlfind state_test.byte && ./state_test.byte
