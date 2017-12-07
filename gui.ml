@@ -436,12 +436,14 @@ let left_pane (w, h) gst =
       I.hcat [
         I.string (if blink then A.(selected_text ++ st blink) else selected_text) "▶ ";
         I.string selected_text (
-          tech_str t ^ " (" ^ (string_of_int (turns_left t)) ^ " turns)"
+          tech_str t ^ " (" ^ (string_of_int (turns_left t))
+          ^ (if turns_left t = 1 then " turn)" else " turns)")
         )
       ]
       else
       I.string text (
-        "  " ^ tech_str t ^ " (" ^ (string_of_int (turns_left t)) ^ " turns)"
+        "  " ^ tech_str t ^ " (" ^ (string_of_int (turns_left t))
+        ^ (if turns_left t = 1 then " turn)" else " turns)")
       )
     in
     I.vcat [
@@ -538,16 +540,18 @@ let feature_opt_img tile =
     | None -> I.empty)
 
 (* [elevation_img u tile] returns the image for [tile]'s elevation,
- * where [u] indicates whether the text should be the highlighted color *)
-let elevation_img u tile =
+ * where [u] indicates whether the text should be the highlighted color
+ * and [underlined] indicates whether the text should be underlined *)
+let elevation_img u underlined tile =
   let str =
     World.(
       match elevation tile with
       | Flatland -> "            "
-      | Hill -> "︵  ︵︵ ︵ ︵ ︵︵"
+      | Hill -> "︵︵︵ ︵ ︵︵︵︵"
       | Peak -> "△^△^△^^△^△^△^△"
     ) in
-  I.string A.(fg (if u then blue else (gray 7)) ++ st underline) str
+  let text = A.(fg (if u then blue else (gray 7))) in
+  I.string (if underlined then A.(text ++ st underline) else text) str
 
 (* [resource_img r] returns the image for resource [r] *)
 let resource_img r =
@@ -583,14 +587,24 @@ let resource_opt_img gst tile =
     | Some r -> resource_img r
     | None -> I.empty)
 
-(* [tile_unit_str units] is the string indicating the number of units on a tile *)
-let tile_unit_str units =
-  if List.length units = 0 then ""
-  else if List.length units = 1 then string_of_int (List.length units) ^ " unit"
-  else string_of_int (List.length units) ^ " units"
+(* [tile_unit_str p units] is the string indicating the number of units on a
+ * tile belonging to player [p] *)
+let tile_unit_str gst units =
+  if List.length units = 0 then I.empty
+  else
+    let p = fst (List.hd units) in
+    let num = player_number gst p in
+    let len = List.length units in
+    let color = player_color gst p in
+    let suffix = if len = 1 then "unit" else "units" in
+    I.string color (String.concat " " [
+      string_of_int len;
+      suffix;
+      "(" ^ "P" ^ string_of_int num ^ ")"
+    ])
 
 (* [city_imgs (col, row) gst] returns the image for the city on the map *)
-let city_imgs (col, row) gst =
+let city_imgs t (col, row) is_selected gst =
   match State.city (col, row) gst with
   | Some (p, city) ->
     let text s = I.string A.(fg (gray 3)) s in
@@ -643,7 +657,12 @@ let city_imgs (col, row) gst =
     let below = text "" in
     (top, middle, bottom, below)
 
-  | None -> (I.empty, I.empty, I.empty, I.empty)
+  | None -> (
+    feature_opt_img t,
+    terrain_img t,
+    elevation_img is_selected false t,
+    I.empty
+  )
 
 (* [move_unit_tile gst dir] returns a new game state for movement in a direction,
  * if the move is a legal move *)
@@ -688,29 +707,25 @@ let tile_img is_selected (col, row) (left_col, top_row) gst (w, h) =
   let top_underline_offset = if row = top_row || is_selected then 0 else 1 in
   let left = initial_tile_left w + (tile_width*(col - left_col)) in
   let top = initial_tile_top + (tile_height*(row - top_row)) + odd_even_col_offset + top_underline_offset in
-  let t =
-    try
-      World.get_tile gst.map col row
-    with _ -> failwith (string_of_int col)
-  in
+  let t = World.get_tile gst.map col row in
   let units = State.units (col, row) gst in
-  let (city_top, city_mid, city_bot, city_bel) = city_imgs (col, row) gst in
+  let (city_top, city_mid, city_bot, city_bel) = city_imgs t (col, row) is_selected gst in
   grid [
     if row = top_row then [I.void 5 1; I.string color_underline "            "]
     else if is_selected then
       let (above_col, above_row) = move_unit_tile gst `TopMiddle in
-      [I.void 5 1; I.hsnap 12 (elevation_img true (World.get_tile gst.map above_col above_row))]
+      [I.void 5 1; I.hsnap 12 (elevation_img true true (World.get_tile gst.map above_col above_row))]
     else [];
     [I.void 4 1; I.uchar color 0x2571 1 1; I.hsnap 12 city_top; I.uchar color 0x2572 1 1];
     [I.void 3 1; I.uchar color 0x2571 1 1; I.hsnap 14 city_mid; I.uchar color 0x2572 1 1];
     [I.void 2 1; I.uchar color 0x2571 1 1; I.hsnap 16 city_bot; I.uchar color 0x2572 1 1];
     [I.void 1 1; I.uchar color 0x2571 1 1; I.hsnap 18 city_bel; I.uchar color 0x2572 1 1];
-    [I.uchar color 0x2571 1 1; I.hsnap 20 (I.string text_color (tile_unit_str units)); I.uchar color 0x2572 1 1];
+    [I.uchar color 0x2571 1 1; I.hsnap 20 (tile_unit_str gst units); I.uchar color 0x2572 1 1];
     [I.uchar color 0x2572 1 1; I.hsnap 20 I.(I.string text_color (improvement_opt_str t)); I.uchar color 0x2571 1 1];
     [I.void 1 1; I.uchar color 0x2572 1 1; I.hsnap 18 (resource_opt_img gst t); I.uchar color 0x2571 1 1];
     [I.void 2 1; I.uchar color 0x2572 1 1; I.hsnap 16 (feature_opt_img t); I.uchar color 0x2571 1 1];
     [I.void 3 1; I.uchar color 0x2572 1 1; I.hsnap 14 (terrain_img t); I.uchar color 0x2571 1 1];
-    [I.void 4 1; I.uchar color 0x2572 1 1; I.hsnap 12 (elevation_img is_selected t); I.uchar color 0x2571 1 1];
+    [I.void 4 1; I.uchar color 0x2572 1 1; I.hsnap 12 (elevation_img is_selected true t); I.uchar color 0x2571 1 1];
   ] |> I.pad ~l:left ~t:top
 
 (* [game_map (w, h) gst] returns the image with the game map of tiles drawn *)
@@ -739,7 +754,9 @@ let game_map (w, h) gst =
       ]
     ))
     </>
-    game_map_helper (tile_img true (selected_col, selected_row) (left_col, top_row) gst (w, h)) (w, h) gst tiles_w tiles_h (left_col, top_row) (left_col, top_row) (map_cols, map_rows)
+    game_map_helper
+      (tile_img true (selected_col, selected_row) (left_col, top_row) gst (w, h))
+      (w, h) gst tiles_w tiles_h (left_col, top_row) (left_col, top_row) (map_cols, map_rows)
   )
 
 (* [img t (w, h) gst] returns the image of the menu bars and game map *)

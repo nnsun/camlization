@@ -376,7 +376,8 @@ let next_turn state =
   state.players.(state.current_player) <- player;
   snap_coordinates { state with
     player_turns = state.player_turns + 1;
-    current_player = (state.current_player + 1) mod Array.length (state.players)
+    current_player = (state.current_player + 1) mod Array.length (state.players);
+    pane_state = Unit (0, 0)
   }
 
 let found_city gst tile worker_unit =
