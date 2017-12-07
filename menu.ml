@@ -148,7 +148,7 @@ let acknowledgements_items = [|
   index = -1;
   img = I.vcat [
     I.void 1 1;
-    img "Special thanks to David Kaloper for his OCaml terminal GUI library, Notty";
+    img "Special thanks to David Kaloper for his OCaml terminal graphics library, Notty";
     img "(https://github.com/pqwy/notty), which helped make this project possible.";
     I.void 1 1
   ];
@@ -332,7 +332,7 @@ let rec multiplayer t (w, h) i options =
   | `Resize (nw, nh) -> multiplayer t (nw, nh) i options
   | _ -> multiplayer t (w, h) i options
 
-(* [acknowledgements t (w, h)] handles the menu in the acknowledgements state *)
+(* [acknowledgements t (w, h) mst] handles the menu in the acknowledgements state *)
 let rec acknowledgements t (w, h) mst =
   Term.image t (img t (w, h) mst);
   match Term.event t with
