@@ -99,7 +99,7 @@ let tile_yields_img tile =
   World.(
     let y = tile_yields tile in
     I.(hcat [
-      uchar A.(fg green ++ bg black) 127823 1 1;
+      uchar A.(fg green ++ bg black) 127822 1 1;
       void 1 1;
       string A.(fg green ++ bg black) (string_of_int y.food);
       void 1 1;
@@ -528,12 +528,12 @@ let terrain_img tile =
     if elevation tile = Peak then I.empty else
     match terrain tile with
     | Grassland -> I.string A.(fg green) ",,,,,,,,,,,,,,"
-    | Plains -> I.string A.(fg yellow) "_______________"
-    | Desert -> I.string A.(fg lightyellow) "__↟_________↟_"
+    | Plains -> I.string A.(fg yellow) ",,,,,,,,,,,,,,"
+    | Desert -> I.string A.(fg lightyellow) "______________"
     | Tundra -> I.string A.(fg (gray 13)) "-=--=-=--=-==-"
     | Ice -> I.string A.(fg white) "〜〜〜〜〜〜〜〜〜〜〜〜〜〜"
     | Ocean -> I.string A.(fg blue) "〜〜〜〜〜〜〜〜〜〜〜〜〜〜"
-    | Coast -> I.string A.(fg lightyellow) "〜〜-.___--_.-〜〜"
+    | Coast -> I.string A.(fg lightyellow) "〜〜-.______.-〜〜"
     | Lake -> I.string A.(fg blue) "--------------")
 
 (* [feature_img f] returns the image for the given feature *)
