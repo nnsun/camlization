@@ -14,7 +14,7 @@ debug:
 	menu.mli menu.ml main.ml
 
 clean:
-	ocamlbuild -clean && ocamlopt -clean
+	ocamlbuild -clean
 
 test:
 	ocamlbuild -use-ocamlfind test.byte && ./test.byte
