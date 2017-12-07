@@ -126,8 +126,9 @@ let coordinates tile = tile.coordinates
 
 let random_arr =
   let _ = Random.self_init () in
-  let rows = Array.make 255 0 in
-  Array.map (fun _ -> Random.int 255) rows
+  let rows = Array.make 512 0 in
+  let p = Array.map (fun _ -> Random.int 255) rows in
+  let _ = Array.blit p 0 p 256 256 in p
 
 let fade t = t *. t *. t *. (t *. (t *. 6. -. 15.) +. 10.)
 
@@ -164,7 +165,7 @@ let map_perlin_array (matrix: tile array array) (f: int -> tile -> tile) =
       (fun i2 row ->
         let v = int_of_float
           (100. *. (perlin
-            ((float_of_int i1) /. 5.) ((float_of_int i2) /. 10.))) in
+            ((float_of_int i1) /. 10.) ((float_of_int i2) /. 10.))) in
         f v matrix.(i1).(i2)) col) matrix
 
 let generate_map =
@@ -189,16 +190,16 @@ let generate_map =
       if n >= 70 then Peak else if n >= 40 then Hill else Flatland in
   let trees tile n =
     if tile.terrain = Ocean || tile.elevation = Peak then None else
-    if n < 40 || n > 60 then None else
+    if n < 35 || n > 65 then None else
       let (_, row_num) = tile.coordinates in
       let (_, rows) = map_dimensions matrix in
       let dist =
         min (abs (row_num - rows / 2)) (abs (row_num - (rows / 2 - 1))) in
-      let multi = (float_of_int dist) /. (float_of_int rows) in
+      let multi = 1. -. (float_of_int dist) /. (float_of_int rows) in
       let v = multi *. (float_of_int (abs (n - 50))) in
-      if v < 1. then
+      if v < 5. then
         None
-      else if v < 1.5 then Some Forest
+      else if v < 7.5 then Some Forest
       else Some Jungle in
   let matrix = map_perlin_array matrix
       (fun v t -> { t with terrain = land_water v }) in
