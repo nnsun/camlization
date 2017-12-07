@@ -221,7 +221,7 @@ let generate_map =
       (((float_of_int dist) +. (float_of_int rows /. 2.))
           /. (float_of_int rows)) ** 10. in
     let v = multi *. (float_of_int (abs (n - 50))) in
-    if v > 10. then
+    if v > 8. then
       if tile.terrain = Ocean then Ice else Tundra
     else tile.terrain in
   let matrix = map_perlin_array matrix
