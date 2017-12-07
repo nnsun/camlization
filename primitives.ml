@@ -8,6 +8,8 @@ type science = int
 (* Game constants *)
 let initial_year = -3000
 let years_per_turn = 100
+let map_height = 25
+let map_width = 40
 let max_players = 4
 let player_colors = Array.map (fun attr -> A.(attr ++ fg white)) A.[|
   bg lightmagenta; bg cyan; bg blue; bg A.yellow

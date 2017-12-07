@@ -1,3 +1,5 @@
+open Primitives
+
 type map = tile array array
 
 and tile = {
@@ -196,7 +198,7 @@ let generate_map =
     elevation = Flatland;
     movement_cost = 1
   } in
-  let matrix = Array.make_matrix 40 25 base_tile in
+  let matrix = Array.make_matrix map_height map_width base_tile in
   let matrix = Array.mapi
     (fun i1 col -> Array.mapi
       (fun i2 row ->
