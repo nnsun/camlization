@@ -380,7 +380,7 @@ let left_pane (w, h) gst =
         let turns_left u =
           if Entity.production_per_turn city = 0 then 99
           else
-            max 1 ((Entity.unit_cost u - Entity.production_stock city)
+            max 1 (1 + (Entity.unit_cost u - Entity.production_stock city)
             / (Entity.production_per_turn city))
           in
         let unit_img i u show show_selected =
