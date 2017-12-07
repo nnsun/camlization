@@ -254,6 +254,8 @@ let generate_map =
       (fun v t -> { t with terrain = ice_tundra t v }) in
   let matrix = Array.map (fun col -> Array.map
       (fun tile ->
+          if tile.terrain <> Coast && tile.terrain <> Ocean &&
+              tile.terrain <> Ice then tile else
           let adj = adjacent_tiles tile matrix in
           let pred = fun t -> tile.terrain <> Ocean &&
               tile.terrain <> Coast && tile.terrain <> Ice in
