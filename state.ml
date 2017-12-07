@@ -44,7 +44,7 @@ let initial_game_state options =
     map = map;
     map_display = (0, 0);
     selected_tile = (0, 0);
-    pane_state = Tile;
+    pane_state = Unit (0, 0);
     current_player = 0;
     players = players
   }

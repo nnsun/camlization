@@ -228,31 +228,21 @@ let unit_list_img gst ul selected_unit =
 let tab_img pst selected =
   let title_string =
     match pst with
-    | Unit _ -> " UNITS "
-    | City _ -> " CITY "
-    | Tech _ -> " TECH "
-  in
-  let shortcut_string =
-    match pst with
-    | Unit _ -> "[1]"
-    | City _ -> "[2]"
-    | Tech _ -> "[3]"
+    | Unit _ -> " UNITS [1] "
+    | City _ -> " CITY [2] "
+    | Tech _ -> " TECH [3] "
   in
   let len = String.length title_string in
   I.(void 1 1 <-> (
     if selected
-    then I.pad ~t:2 (I.hsnap len (string A.(bg white) shortcut_string))
-      </> I.(vcat [
+    then I.(vcat [
       string A.(bg white) (String.make len ' ');
       string A.(fg black ++ bg white) title_string;
       string A.(bg white) (String.make len ' ');
-      string A.(bg white) (String.make len ' ');
     ])
-    else I.pad ~t:2 (I.hsnap len (string A.(bg black) shortcut_string))
-      </> I.(vcat [
+    else I.(vcat [
       string A.(bg black) (String.make len ' ');
       string A.(bg black) title_string;
-      string A.(bg black) (String.make len ' ');
       string A.(bg black) (String.make len ' ');
     ])
   ))
