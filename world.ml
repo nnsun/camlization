@@ -204,15 +204,26 @@ let generate_map =
       else Some Jungle in
   let deserts tile n =
     if tile.terrain = Ocean || tile.elevation = Peak ||
-        tile.feature = Some Forest || tile.feature = Some Jungle
-        || n < 40 || n > 60 then tile.terrain else
+        n < 40 || n > 60 then tile.terrain else
     let (_, row_num) = tile.coordinates in
     let (_, rows) = map_dimensions matrix in
     let dist =
       min (abs (row_num - rows / 2)) (abs (row_num - (rows / 2 - 1))) in
-    let multi = (1. -. (float_of_int dist) /. (float_of_int rows)) ** 3. in
+    let multi = (1. -. ((float_of_int dist) /. (float_of_int rows))) ** 3. in
     let v = multi *. (float_of_int (abs (n - 50))) in
-    if v < 1. then Desert else tile.terrain in
+    if v > 5. then Desert else tile.terrain in
+  let ice_tundra tile n =
+    let (_, row_num) = tile.coordinates in
+    let (_, rows) = map_dimensions matrix in
+    let dist =
+      min (abs (row_num - rows / 2)) (abs (row_num - (rows / 2 - 1))) in
+    let multi =
+      (((float_of_int dist) +. (float_of_int rows /. 2.))
+          /. (float_of_int rows)) ** 10. in
+    let v = multi *. (float_of_int (abs (n - 50))) in
+    if v > 8. then
+      if tile.terrain = Ocean then Ice else Tundra
+    else tile.terrain in
   let matrix = map_perlin_array matrix
       (fun v t -> { t with terrain = land_water v }) in
   let matrix = map_perlin_array matrix
@@ -220,7 +231,9 @@ let generate_map =
   let matrix = map_perlin_array matrix
       (fun v t -> { t with feature = (trees t v) }) in
   let matrix = map_perlin_array matrix
-      (fun v t -> { t with terrain = deserts t v }) in
+      (fun v t -> { t with terrain = deserts t v; feature = None }) in
+  let matrix = map_perlin_array matrix
+      (fun v t -> { t with terrain = ice_tundra t v }) in
   matrix
 
 let terrain tile = tile.terrain
