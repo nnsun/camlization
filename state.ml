@@ -37,7 +37,27 @@ let start_state = Menu (Loading)
 let initial_game_state options =
   let map = World.generate_map in
   let indexes = Array.mapi (fun i _ -> i) (Array.make options.player_count 0) in
-  let player i = Player.new_player (World.get_tile map 1 i) in
+  let player i =
+    let quad_col, quad_row =
+      match i with
+      | 0 -> (0, 0)
+      | 1 -> (map_width / 2, map_height / 2)
+      | 2 -> (map_width / 2, 0)
+      | 3 -> (0, map_height / 2)
+      | _ -> failwith "Only 4 players supported!"
+    in
+    let rec find_start_tile () =
+      let rand_col = Random.int (map_width / 2) in
+      let rand_row = Random.int (map_height / 2) in
+      let tile = World.get_tile map (quad_col + rand_col) (quad_row + rand_row) in
+      World.(
+        match terrain tile, elevation tile with
+        | Tundra, _ | Ocean, _ | Desert, _ | Coast, _ | Ice, _ | _, Peak ->
+          find_start_tile ()
+        | _ -> tile
+      )
+    in
+    Player.new_player (find_start_tile ()) in
   let players = Array.map player indexes in
   {
     player_turns = 0;
