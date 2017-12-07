@@ -13,7 +13,7 @@ and tile = {
 and terrain = Grassland | Plains | Desert | Tundra | Ice
   | Ocean | Coast | Lake
 
-and feature = Forest | Jungle | Oasis | FloodPlains
+and feature = Forest | Jungle | Oasis
 
 and elevation = Flatland | Hill | Peak
 
