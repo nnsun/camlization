@@ -189,7 +189,7 @@ let generate_map =
       if n >= 70 then Peak else if n >= 40 then Hill else Flatland in
   let trees tile n =
     if tile.terrain = Ocean || tile.elevation = Peak then None else
-    if n < 45 || n > 55 then None else
+    if n < 40 || n > 60 then None else
       let (_, row_num) = tile.coordinates in
       let (_, rows) = map_dimensions matrix in
       let dist =
