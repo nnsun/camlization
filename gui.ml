@@ -64,7 +64,7 @@ let status_bar (w, h) gst =
     I.string A.(fg yellow ++ bg black) gold_text;
     gold_rate
   ] in
-  let background = I.tile w 1 (I.string A.(bg black) " ") in
+  let background = I.tabulate w 1 (fun x y -> (I.string A.(bg black) " ")) in
   I.(metrics </> status </> background)
 
 (* [player_bar (W, h) gst] is the player bar image *)
