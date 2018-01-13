@@ -242,23 +242,23 @@ let menu_img (items: menu_item array) index =
   let height =
     Array.fold_left (fun a i -> a + I.height i) (Array.length items) imgs - 1 in
   let vbar = I.hcat [
-    I.uchar A.empty 0x2551 1 height;
+    I.uchar A.empty (Uchar.of_int 0x2551) 1 height;
     I.void 1 height;
-    I.uchar A.empty 0x2551 1 height;
+    I.uchar A.empty (Uchar.of_int 0x2551) 1 height;
   ] in
   let item_img item =
     let w = width in
     let fill_img =
       if item.index = index then
-      border A.(fg yellow) 0x2591 w (I.height item.img)
+      border A.(fg yellow) (Uchar.of_int 0x2591) w (I.height item.img)
       else I.empty in
     I.vcat [
       I.(I.hsnap w item.img </> fill_img);
-      I.hsnap width (I.uchar A.empty 0x2500 (width - 8) 1);
+      I.hsnap width (I.uchar A.empty (Uchar.of_int 0x2500) (width - 8) 1);
     ]
     in
   let items_imgs = Array.map item_img items |> Array.to_list |> I.vcat in
-  let hbar = I.uchar A.empty 0x2550 width 1 in
+  let hbar = I.uchar A.empty (Uchar.of_int 0x2550) width 1 in
   let centered_items = I.vsnap height (I.crop ~b:1 items_imgs) in
   I.vcat [
     I.(img "╔══" <|> hbar <|> img "══╗");
