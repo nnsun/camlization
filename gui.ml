@@ -56,10 +56,10 @@ let status_bar (w, h) gst =
   ]) in
   let metrics = I.hcat [
     I.void 1 1;
-    I.uchar A.(fg blue ++ bg black) 9877 1 1;
+    I.uchar A.(fg blue ++ bg black) (Uchar.of_int 9877) 1 1;
     I.string A.(fg blue ++ bg black) science_text;
     I.void 1 1;
-    I.uchar A.(fg yellow ++ bg black) 11044 1 1;
+    I.uchar A.(fg yellow ++ bg black) (Uchar.of_int 11044) 1 1;
     I.void 1 1;
     I.string A.(fg yellow ++ bg black) gold_text;
     gold_rate
@@ -76,7 +76,7 @@ let player_bar (w, h) gst =
     then
       let color = (player_colors false).(gst.current_player) in
       I.(vcat [
-        hsnap len (uchar A.(fg white) 9660 1 1);
+        hsnap len (uchar A.(fg white) (Uchar.of_int 9660) 1 1);
         string color (String.make len ' ');
         string color player_string;
         string color (String.make len ' ');
@@ -178,18 +178,18 @@ let unit_list_img gst ul selected_unit =
         else A.(fg white ++ bg black) in
       let arrow =
         if selected_unit = current_unit
-        then I.(I.uchar (text true) 9654 1 1 <|> I.void 1 1)
+        then I.(I.uchar (text true) (Uchar.of_int 9654) 1 1 <|> I.void 1 1)
         else I.void 2 1 in
       I.vcat [
         I.hcat [
           arrow;
           I.string (text false) (unit_str u);
           I.void 1 1;
-          I.uchar health 9829 1 1;
+          I.uchar health (Uchar.of_int 9829) 1 1;
           I.void 1 1;
           I.string health (string_of_int (Entity.health unit));
           I.void 1 1;
-          I.uchar (text false) 8599 1 1;
+          I.uchar (text false) (Uchar.of_int 8599) 1 1;
           I.void 1 1;
           I.string (text false) (string_of_int (Entity.moves_left u));
           I.void 1 1;
@@ -264,7 +264,7 @@ let possible_improvements_img pi selected_pi =
         else A.(fg white ++ bg black) in
       let arrow =
         if selected_pi = current_pi
-        then I.(I.uchar (text true) 9654 1 1 <|> I.void 1 1)
+        then I.(I.uchar (text true) (Uchar.of_int 9654) 1 1 <|> I.void 1 1)
         else I.void 2 1 in
       I.vcat [
         I.hcat [
@@ -626,7 +626,7 @@ let city_imgs t (col, row) is_selected gst =
         string pop_attr (string_of_int pop);
         pop_text;
         I.void 1 1;
-        I.uchar health 9829 1 1;
+        I.uchar health (Uchar.of_int 9829) 1 1;
         I.string health (string_of_int (Entity.health (Entity.City city)));
         I.void 1 1;
         prod_text <|> (string prod_attr (prod_turns_left));
@@ -712,16 +712,16 @@ let tile_img is_selected (col, row) (left_col, top_row) gst (w, h) =
       let (above_col, above_row) = move_unit_tile gst `TopMiddle in
       [I.void 5 1; I.hsnap 12 (elevation_img true true (World.get_tile gst.map above_col above_row))]
     else [];
-    [I.void 4 1; I.uchar color 0x2571 1 1; I.hsnap 12 city_top; I.uchar color 0x2572 1 1];
-    [I.void 3 1; I.uchar color 0x2571 1 1; I.hsnap 14 city_mid; I.uchar color 0x2572 1 1];
-    [I.void 2 1; I.uchar color 0x2571 1 1; I.hsnap 16 city_bot; I.uchar color 0x2572 1 1];
-    [I.void 1 1; I.uchar color 0x2571 1 1; I.hsnap 18 city_bel; I.uchar color 0x2572 1 1];
-    [I.uchar color 0x2571 1 1; I.hsnap 20 (tile_unit_str gst units); I.uchar color 0x2572 1 1];
-    [I.uchar color 0x2572 1 1; I.hsnap 20 I.(I.string text_color (improvement_opt_str t)); I.uchar color 0x2571 1 1];
-    [I.void 1 1; I.uchar color 0x2572 1 1; I.hsnap 18 (resource_opt_img gst t); I.uchar color 0x2571 1 1];
-    [I.void 2 1; I.uchar color 0x2572 1 1; I.hsnap 16 (feature_opt_img t); I.uchar color 0x2571 1 1];
-    [I.void 3 1; I.uchar color 0x2572 1 1; I.hsnap 14 (terrain_img t); I.uchar color 0x2571 1 1];
-    [I.void 4 1; I.uchar color 0x2572 1 1; I.hsnap 12 (elevation_img is_selected true t); I.uchar color 0x2571 1 1];
+    [I.void 4 1; I.uchar color (Uchar.of_int 0x2571) 1 1; I.hsnap 12 city_top; I.uchar color (Uchar.of_int 0x2572) 1 1];
+    [I.void 3 1; I.uchar color (Uchar.of_int 0x2571) 1 1; I.hsnap 14 city_mid; I.uchar color (Uchar.of_int 0x2572) 1 1];
+    [I.void 2 1; I.uchar color (Uchar.of_int 0x2571) 1 1; I.hsnap 16 city_bot; I.uchar color (Uchar.of_int 0x2572) 1 1];
+    [I.void 1 1; I.uchar color (Uchar.of_int 0x2571) 1 1; I.hsnap 18 city_bel; I.uchar color (Uchar.of_int 0x2572) 1 1];
+    [I.uchar color (Uchar.of_int 0x2571) 1 1; I.hsnap 20 (tile_unit_str gst units); I.uchar color (Uchar.of_int 0x2572) 1 1];
+    [I.uchar color (Uchar.of_int 0x2572) 1 1; I.hsnap 20 I.(I.string text_color (improvement_opt_str t)); I.uchar color (Uchar.of_int 0x2571) 1 1];
+    [I.void 1 1; I.uchar color (Uchar.of_int 0x2572) 1 1; I.hsnap 18 (resource_opt_img gst t); I.uchar color (Uchar.of_int 0x2571) 1 1];
+    [I.void 2 1; I.uchar color (Uchar.of_int 0x2572) 1 1; I.hsnap 16 (feature_opt_img t); I.uchar color (Uchar.of_int 0x2571) 1 1];
+    [I.void 3 1; I.uchar color (Uchar.of_int 0x2572) 1 1; I.hsnap 14 (terrain_img t); I.uchar color (Uchar.of_int 0x2571) 1 1];
+    [I.void 4 1; I.uchar color (Uchar.of_int 0x2572) 1 1; I.hsnap 12 (elevation_img is_selected true t); I.uchar color (Uchar.of_int 0x2571) 1 1];
   ] |> I.pad ~l:left ~t:top
 
 let tile_details_img (w, h) (col, row) tile =
@@ -729,15 +729,15 @@ let tile_details_img (w, h) (col, row) tile =
     let yields =
       let y = tile_yields tile in
         I.(hcat [
-          uchar A.(fg green) 127823 1 1;
+          uchar A.(fg green) (Uchar.of_int 127823) 1 1;
           void 1 1;
           string A.(fg green) (string_of_int y.food);
           void 1 1;
-          uchar A.(fg yellow) 11044 1 1;
+          uchar A.(fg yellow) (Uchar.of_int 11044) 1 1;
           void 1 1;
           string A.(fg yellow) (string_of_int y.gold);
           void 1 1;
-          uchar A.(fg blue) 128296 1 1;
+          uchar A.(fg blue) (Uchar.of_int 128296) 1 1;
           void 1 1;
           string A.(fg blue) (string_of_int y.production);
         ])
