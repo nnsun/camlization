@@ -309,7 +309,10 @@ let rec copyright t (w, h) mst =
 let rec multiplayer t (w, h) i options =
   Term.image t (img t (w, h) (Multiplayer (i, options)));
   match Term.event t with
-  | `End | `Key (`Uchar 68, [`Ctrl]) | `Key (`Uchar 67, [`Ctrl])
+  | `End -> Menu (Main 0)
+  | `Key (`Uchar c, [`Ctrl]) ->
+    let n = Uchar.to_int c in
+    if n = 68 || n = 67 then Menu (Main 0) else multiplayer t (w, h) i options
   | `Key (`Escape, []) -> Menu (Main 0)
   | `Key (`Arrow(`Up), []) ->
     let new_index =
@@ -345,7 +348,10 @@ let rec main t i =
   let (w, h) = Term.size t in
   Term.image t (img t (w, h) (Main (i)));
   match Term.event t with
-  | `End | `Key (`Uchar 68, [`Ctrl]) | `Key (`Uchar 67, [`Ctrl])
+  | `End -> Quit
+  | `Key (`Uchar c, [`Ctrl]) ->
+    let n = Uchar.to_int c in
+    if n = 68 || n = 67 then Quit else main t i
   | `Key (`Escape, []) -> Quit
   | `Key (`Arrow(`Up), []) ->
     main t (if i-1 = -1 then Array.length main_menu_items - 1 else i-1)
