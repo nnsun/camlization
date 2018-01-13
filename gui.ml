@@ -915,9 +915,8 @@ let rec main t gst =
   Term.image t (img t (w, h) gst);
   match Term.event t with
   | `End | `Key (`Escape, []) -> Quit
-  | `Key (`Uchar c, [`Ctrl]) ->
-    let n = Uchar.to_int c in
-    if n = 67 || n = 68 then Quit else main t gst
+  | `Key (`ASCII c, [`Ctrl]) ->
+    if c = 'C' || c = 'D' then Quit else main t gst
   | `Key (`Arrow direction, []) ->
     let (tiles_w, tiles_h) = calculate_tiles_w_h (w, h) in
     let (new_selected_col, new_selected_row) = select_tile direction gst in
@@ -939,16 +938,16 @@ let rec main t gst =
     }
   | `Resize (nw, nh) -> main t gst
   | `Key (`Enter, []) -> main t (State.next_turn gst)
-  | `Key (`Uchar c, []) ->
-    let n = Uchar.to_int c in
-    if n = 49 then main t {gst with pane_state = Unit (0,0)}
-    else if n = 50 then main t {gst with pane_state = City 0}
-    else if n = 51 then main t {gst with pane_state = Tech 0}
-    else if n = 106 then main t {gst with pane_state = change_pane_state true gst.pane_state false false}
-    else if n = 107 then main t {gst with pane_state = change_pane_state false gst.pane_state false false}
-    else if n = 91 then main t {gst with pane_state = change_pane_state true gst.pane_state false true}
-    else if n = 93 then main t {gst with pane_state = change_pane_state false gst.pane_state false true}
-    else if n = 32 then
+  | `Key (`ASCII c, []) ->
+    let c = Char.lowercase_ascii c in
+    if c = '1' then main t {gst with pane_state = Unit (0,0)}
+    else if c = '2' then main t {gst with pane_state = City 0}
+    else if c = '3' then main t {gst with pane_state = Tech 0}
+    else if c = 'j' then main t {gst with pane_state = change_pane_state true gst.pane_state false false}
+    else if c = 'k' then main t {gst with pane_state = change_pane_state false gst.pane_state false false}
+    else if c = '[' then main t {gst with pane_state = change_pane_state true gst.pane_state false true}
+    else if c = ']' then main t {gst with pane_state = change_pane_state false gst.pane_state false true}
+    else if c = ' ' then
       let player = gst.players.(gst.current_player) in
       begin
         match gst.pane_state with
@@ -983,14 +982,14 @@ let rec main t gst =
           end
         | _ -> main t gst
       end
-    else if n = 113 then main t (move_unit gst `TopLeft (w, h))
-    else if n = 119 then main t (move_unit gst `TopMiddle (w, h))
-    else if n = 101 then main t (move_unit gst `TopRight (w, h))
-    else if n = 97 then main t (move_unit gst `BottomLeft (w, h))
-    else if n = 115 then main t (move_unit gst `BottomMiddle (w, h))
-    else if n = 100 then main t (move_unit gst `BottomRight (w, h))
-    else if n = 102 then main t (found_city gst)
-    else if n = 105 then main t (build_improvement gst)
+    else if c = 'q' then main t (move_unit gst `TopLeft (w, h))
+    else if c = 'w' then main t (move_unit gst `TopMiddle (w, h))
+    else if c = 'e' then main t (move_unit gst `TopRight (w, h))
+    else if c = 'a' then main t (move_unit gst `BottomLeft (w, h))
+    else if c = 's' then main t (move_unit gst `BottomMiddle (w, h))
+    else if c = 'd' then main t (move_unit gst `BottomRight (w, h))
+    else if c = 'f' then main t (found_city gst)
+    else if c = 'i' then main t (build_improvement gst)
     else main t gst
   | _ -> main t gst
 
