@@ -914,8 +914,10 @@ let rec main t gst =
   let (w, h) = Term.size t in
   Term.image t (img t (w, h) gst);
   match Term.event t with
-  | `End | `Key (`Uchar 68, [`Ctrl]) | `Key (`Uchar 67, [`Ctrl])
-  | `Key (`Escape, []) -> Quit
+  | `End | `Key (`Escape, []) -> Quit
+  | `Key (`Uchar c, [`Ctrl]) ->
+    let n = Uchar.to_int c in
+    if n = 67 || n = 68 then Quit else main t gst
   | `Key (`Arrow direction, []) ->
     let (tiles_w, tiles_h) = calculate_tiles_w_h (w, h) in
     let (new_selected_col, new_selected_row) = select_tile direction gst in
@@ -937,56 +939,59 @@ let rec main t gst =
     }
   | `Resize (nw, nh) -> main t gst
   | `Key (`Enter, []) -> main t (State.next_turn gst)
-  | `Key (`Uchar 49, []) -> main t {gst with pane_state = Unit (0,0)}
-  | `Key (`Uchar 50, []) -> main t {gst with pane_state = City 0}
-  | `Key (`Uchar 51, []) -> main t {gst with pane_state = Tech 0}
-  | `Key (`Uchar 106, []) -> main t {gst with pane_state = change_pane_state true gst.pane_state false false}
-  | `Key (`Uchar 107, []) -> main t {gst with pane_state = change_pane_state false gst.pane_state false false}
-  | `Key (`Uchar 91, []) -> main t {gst with pane_state = change_pane_state true gst.pane_state false true}
-  | `Key (`Uchar 93, []) -> main t {gst with pane_state = change_pane_state false gst.pane_state false true}
-  | `Key (`Uchar 32, []) ->
-    let player = gst.players.(gst.current_player) in
-    begin
-      match gst.pane_state with
-      | Tech i ->
-        if Player.current_tech player = None then (
-          let techs = State.available_techs gst in
-          if List.length techs > 0 then
-          (let tech = List.nth techs (i %! List.length techs) in
-          gst.players.(gst.current_player) <- Player.research_tech (gst.players.(gst.current_player)) tech)
-        );
-        main t gst
-      | City i ->
-        let city_ref = State.city_ref gst.selected_tile gst in
-        begin
-          match city_ref with
-          | Some e ->
-            let entity = snd e in
-            if List.mem entity (Player.entities player) then
-            Entity.(
-              match !entity with
-              | City city ->
-                if Entity.unit_production city = None then (
-                  let prods = State.available_units gst in
-                  let prod = List.nth prods (i %! List.length prods) in
-                  Entity.change_production entity prod
-                );
-                main t gst
-              | _ -> main t gst
-            ) else main t gst
-          | None ->
+  | `Key (`Uchar c, []) ->
+    let n = Uchar.to_int c in
+    if n = 49 then main t {gst with pane_state = Unit (0,0)}
+    else if n = 50 then main t {gst with pane_state = City 0}
+    else if n = 51 then main t {gst with pane_state = Tech 0}
+    else if n = 106 then main t {gst with pane_state = change_pane_state true gst.pane_state false false}
+    else if n = 107 then main t {gst with pane_state = change_pane_state false gst.pane_state false false}
+    else if n = 91 then main t {gst with pane_state = change_pane_state true gst.pane_state false true}
+    else if n = 93 then main t {gst with pane_state = change_pane_state false gst.pane_state false true}
+    else if n = 32 then
+      let player = gst.players.(gst.current_player) in
+      begin
+        match gst.pane_state with
+        | Tech i ->
+          if Player.current_tech player = None then (
+            let techs = State.available_techs gst in
+            if List.length techs > 0 then
+            (let tech = List.nth techs (i %! List.length techs) in
+            gst.players.(gst.current_player) <- Player.research_tech (gst.players.(gst.current_player)) tech)
+          );
           main t gst
-        end
-      | _ -> main t gst
-    end
-  | `Key (`Uchar 113, []) -> main t (move_unit gst `TopLeft (w, h))
-  | `Key (`Uchar 119, []) -> main t (move_unit gst `TopMiddle (w, h))
-  | `Key (`Uchar 101, []) -> main t (move_unit gst `TopRight (w, h))
-  | `Key (`Uchar 97, []) -> main t (move_unit gst `BottomLeft (w, h))
-  | `Key (`Uchar 115, []) -> main t (move_unit gst `BottomMiddle (w, h))
-  | `Key (`Uchar 100, []) -> main t (move_unit gst `BottomRight (w, h))
-  | `Key (`Uchar 102, []) -> main t (found_city gst)
-  | `Key (`Uchar 105, []) -> main t (build_improvement gst)
+        | City i ->
+          let city_ref = State.city_ref gst.selected_tile gst in
+          begin
+            match city_ref with
+            | Some e ->
+              let entity = snd e in
+              if List.mem entity (Player.entities player) then
+              Entity.(
+                match !entity with
+                | City city ->
+                  if Entity.unit_production city = None then (
+                    let prods = State.available_units gst in
+                    let prod = List.nth prods (i %! List.length prods) in
+                    Entity.change_production entity prod
+                  );
+                  main t gst
+                | _ -> main t gst
+              ) else main t gst
+            | None ->
+            main t gst
+          end
+        | _ -> main t gst
+      end
+    else if n = 113 then main t (move_unit gst `TopLeft (w, h))
+    else if n = 119 then main t (move_unit gst `TopMiddle (w, h))
+    else if n = 101 then main t (move_unit gst `TopRight (w, h))
+    else if n = 97 then main t (move_unit gst `BottomLeft (w, h))
+    else if n = 115 then main t (move_unit gst `BottomMiddle (w, h))
+    else if n = 100 then main t (move_unit gst `BottomRight (w, h))
+    else if n = 102 then main t (found_city gst)
+    else if n = 105 then main t (build_improvement gst)
+    else main t gst
   | _ -> main t gst
 
 let new_state t gst =
