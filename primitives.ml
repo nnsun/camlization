@@ -8,8 +8,8 @@ type science = int
 (* Game constants *)
 let initial_year = -3000
 let years_per_turn = 100
-let map_height = 25
-let map_width = 40
+let map_height = 15
+let map_width = 20
 let max_players = 4
 let player_colors fg =
   let colors = A.[| lightmagenta; cyan; blue; yellow |] in

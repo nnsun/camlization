@@ -21,11 +21,11 @@ let is_alive entity_ref = Entity.health (!entity_ref) > 0
 let gold p = p.gold
 
 let filter_city_refs p =
-  let is_city_ref entity = Entity.is_city !entity in
+  let is_city_ref entity = Entity.is_city !entity && is_alive entity in
   List.filter is_city_ref p.entities
 
 let filter_unit_refs p =
-  let is_unit_ref entity = Entity.is_unit !entity in
+  let is_unit_ref entity = Entity.is_unit !entity && is_alive entity in
   List.filter is_unit_ref p.entities
 
 let gold_rate p =
@@ -38,12 +38,12 @@ let maintenance p =
   let free_cities = 4 in
   let free_units = 4 in
   let city_maintenance =
-    let num_cities = List.length (List.filter is_alive (filter_city_refs p)) in
+    let num_cities = List.length (filter_city_refs p) in
     if num_cities > free_cities then
       10 * (num_cities - free_cities)
     else 0 in
   let unit_maintenance =
-    let num_units = List.length (List.filter is_alive (filter_unit_refs p)) in
+    let num_units = List.length (filter_unit_refs p) in
     if num_units > free_units then
       3 * (num_units - free_units)
     else 0 in
@@ -126,7 +126,7 @@ let research_tech player tech =
   { player with current_tech = Some tech }
 
 let set_new_city player tile =
-  let num_cities = List.length (List.filter is_alive (filter_city_refs player)) in
+  let num_cities = List.length (filter_city_refs player) in
   let is_capital = num_cities = 0 in
   { player with
           entities = ref (Entity.new_city tile is_capital) :: player.entities }

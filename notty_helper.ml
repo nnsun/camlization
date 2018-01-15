@@ -1,7 +1,7 @@
 open Notty
 open Notty_unix
 
-(* [center img w h] returns a new Notty image with [img] placed in the center of 
+(* [center img w h] returns a new Notty image with [img] placed in the center of
  * an image with width [w] and height [h] *)
 let center img w h = I.vsnap h (I.hsnap w img)
 
