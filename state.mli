@@ -21,13 +21,13 @@ type pane_state =
 
 (* [game_state] represents the state of a running game *)
 type game_state = {
-  player_turns: int;
-  map: World.map;
-  map_display: int * int;
-  selected_tile: int * int;
-  pane_state: pane_state;
-  current_player: int;
-  players: Player.player array;
+  player_turns : int;
+  map : World.map;
+  map_display : int * int;
+  selected_tile : int * int;
+  pane_state : pane_state;
+  current_player : int;
+  players : Player.player array;
 }
 
 (* [state] represents everything about the status of the game *)

@@ -1,10 +1,10 @@
 open Primitives
 
 type player = {
-  gold: int;
+  gold : int;
   current_tech : Tech.tech option;
-  science: science;
-  techs: Tech.tech list;
+  science : science;
+  techs : Tech.tech list;
   entities : Entity.entity ref list;
 }
 

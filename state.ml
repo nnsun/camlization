@@ -17,13 +17,13 @@ type pane_state =
   | Tech of int
 
 type game_state = {
-  player_turns: int;
-  map: World.map;
-  map_display: int * int;
-  selected_tile: int * int;
-  pane_state: pane_state;
-  current_player: int;
-  players: Player.player array;
+  player_turns : int;
+  map : World.map;
+  map_display:  int * int;
+  selected_tile : int * int;
+  pane_state : pane_state;
+  current_player : int;
+  players : Player.player array;
 }
 
 type state =
