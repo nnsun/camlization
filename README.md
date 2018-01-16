@@ -1,5 +1,5 @@
 # Camlization
-A Civilization V-inspired game written in OCaml
+A game inspired by Sid Meier's Civilization, written in OCaml.
 
 CS 3110 Fall 2017 Final Project
 
