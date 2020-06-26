@@ -2,10 +2,10 @@ build-play:
 	make build && make play
 
 build:
-	ocamlbuild -pkg notty -pkg notty.unix -use-ocamlfind main.byte
+	dune build main.exe --profile release
 
 play:
-	./main.byte
+	_build/default/main.exe
 
 debug:
 	ocamlfind ocamlopt -g -o main -linkpkg -package notty,notty.unix \
@@ -14,7 +14,7 @@ debug:
 	menu.mli menu.ml main.ml
 
 clean:
-	ocamlbuild -clean
+	dune clean
 
 test:
 	ocamlbuild -use-ocamlfind test.byte && ./test.byte
