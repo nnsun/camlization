@@ -548,7 +548,7 @@ let resource_img r =
     | Crab -> I.string A.empty "Crab"
     | Gold -> I.string A.(fg yellow) "Gold"
     | Silver -> I.string A.(fg (gray 10)) "Silver"
-    | Gems -> I.string A.(fg lightmagenta) "Gem"
+    | Gems -> I.string A.(fg lightmagenta) "Gems"
     | Salt -> I.string A.empty "Salt"
     | Iron -> I.string A.(fg (gray 10)) "Iron"
     | Marble -> I.string A.(fg (gray 10)) "Marble"
