@@ -21,3 +21,7 @@ Simply run the Makefile with no options to play, by entering the code directory 
 You can play the game again by running `make play`.
 
 Note: Please maximize your terminal window or enter full-screen mode before running the game. The GUI will resize according to terminal window size and font size.
+
+## Gameplay
+
+Overall, gameplay is very similar to that of Civilization V. Each player starts out with a worker, which should be used to found a city. Cities can then be used to build military units that are used to attack and defend against other civilizations. Cities generate some amount of science per turn, which can then be used to research technoologies. These technologies can unlock more advanced units such as the fearsome Swordsman or Horseman. Some, such as Agriculture or Mining, can also reveal resources such as Wheat or Gems on the map, which give improved tile yields. Tile yields can furthermore be improved with improvements such as Farms, Mines, Fishing Boats, and Pastures, which can be built by Workers or Work Boats. 
